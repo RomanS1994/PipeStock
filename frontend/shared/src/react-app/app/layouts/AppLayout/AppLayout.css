@@ -1,0 +1,17 @@
+.appLayout {
+  min-height: 100dvh;
+}
+
+.appLayout-workspaceBody {
+  min-height: 100dvh;
+}
+
+.pageContainer {
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: max(var(--space-4), env(safe-area-inset-top)) var(--page-inline) max(var(--space-6), env(safe-area-inset-bottom));
+}
+
+.appLayout-main {
+  min-width: 0;
+}

@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: npm install --include=dev
+      - run: npm --prefix backend install --include=dev
+      - run: npm test
+      - run: npm run db:generate
+        env:
+          DATABASE_URL: postgresql://user:password@localhost:5432/pipestock
+      - run: npm run build:web
