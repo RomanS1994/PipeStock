@@ -1,7 +1,9 @@
 import { HttpError } from '../lib/errors.js';
+import { handleAuthRoutes } from './auth.js';
+import { handleMeRoutes } from './me.js';
 import { handlePublicRoutes } from './public.js';
 
-const routeHandlers = [handlePublicRoutes];
+const routeHandlers = [handlePublicRoutes, handleAuthRoutes, handleMeRoutes];
 
 export async function routeRequest(request, response, context = {}) {
   const url = context.url || new URL(request.url, `http://${request.headers.host || 'localhost'}`);

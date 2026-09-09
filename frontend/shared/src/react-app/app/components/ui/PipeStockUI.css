@@ -1,0 +1,184 @@
+.pipeBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+}
+
+.pipeBrand-mark {
+  position: relative;
+  width: 38px;
+  height: 38px;
+}
+.pipeBrand-mark span {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 7px 9px 7px 9px;
+  background: var(--primary);
+  transform: rotate(28deg);
+}
+.pipeBrand-mark span:nth-child(1) { left: 10px; top: 0; }
+.pipeBrand-mark span:nth-child(2) { left: 2px; top: 15px; background: var(--primary-strong); }
+.pipeBrand-mark span:nth-child(3) { right: 0; top: 14px; background: var(--primary-light); }
+.pipeBrand-name {
+  display: inline-flex;
+  font-size: 29px;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+.pipeBrand-name strong { color: #172554; }
+.pipeBrand-name b { color: var(--primary); }
+.pipeBrand--compact .pipeBrand-mark { width: 31px; height: 31px; transform: scale(.82); transform-origin: left center; }
+.pipeBrand--compact .pipeBrand-name { font-size: 23px; }
+
+.psButton {
+  appearance: none;
+  min-height: var(--control-height-touch);
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 15px;
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  cursor: pointer;
+  transition: transform var(--motion-fast), background var(--motion-fast), border-color var(--motion-fast), opacity var(--motion-fast);
+}
+.psButton:active:not(:disabled) { transform: scale(.985); }
+.psButton:disabled { opacity: .5; cursor: not-allowed; }
+.psButton--primary { color: #fff; background: var(--primary); }
+.psButton--primary:hover:not(:disabled) { background: var(--primary-strong); }
+.psButton--secondary { color: var(--primary); background: var(--primary-soft); border-color: #d8e8ff; }
+.psButton--text { color: var(--primary); background: transparent; padding-inline: 8px; min-height: 38px; }
+.psButton--danger { color: #fff; background: var(--danger); }
+.psButton--full { width: 100%; }
+
+.psField { display: grid; gap: 7px; }
+.psField-label { color: var(--text-soft); font-size: var(--font-size-label); font-weight: var(--weight-semibold); }
+.psField-control {
+  display: flex;
+  min-height: var(--control-height);
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-subtle);
+  transition: border-color var(--motion-fast), box-shadow var(--motion-fast), background var(--motion-fast);
+}
+.psField-control:focus-within { border-color: #8eb8ff; box-shadow: var(--focus-ring); background: #fff; }
+.psField-icon { margin-left: 13px; flex: 0 0 auto; color: #6b7a90; }
+.psField-control input {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  padding: 0 12px 0 0;
+  border: 0;
+  outline: 0;
+  color: var(--text);
+  background: transparent;
+}
+.psField-control input::placeholder { color: #98a2b3; }
+.psField-eye {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  min-height: 0;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  color: #667085;
+  background: transparent;
+}
+.psField-hint, .psField-error { font-size: var(--font-size-caption); }
+.psField-hint { color: var(--muted); }
+.psField-error { color: var(--danger); }
+.psField--error .psField-control { border-color: #fda4af; }
+
+.psSteps {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.psSteps-dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #dbe3ef;
+}
+.psSteps-dot:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 8px;
+  width: 6px;
+  height: 2px;
+  background: #dbe3ef;
+}
+.psSteps-dot.is-active, .psSteps-dot.is-active::after { background: var(--primary); }
+.psSteps-dot:last-child::after { display: none; }
+
+.psBackLink {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: var(--radius-full);
+  color: #172554;
+  text-decoration: none;
+}
+.psBackLink:active { background: var(--primary-soft); }
+
+.psRoleCard {
+  display: grid;
+  width: 100%;
+  min-height: 112px;
+  grid-template-columns: 48px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  background: var(--surface);
+  text-align: left;
+  box-shadow: var(--shadow-sm);
+}
+.psRoleCard-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 14px;
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+.psRoleCard-copy { display: grid; gap: 5px; }
+.psRoleCard-copy strong { font-size: 17px; }
+.psRoleCard-copy span { color: var(--muted); font-size: 13px; line-height: 1.35; }
+.psRoleCard-chevron { color: #7c8799; }
+
+.authShell {
+  display: grid;
+  width: min(100%, 430px);
+  min-height: calc(100dvh - 36px);
+  margin: 0 auto;
+  align-content: start;
+  gap: 22px;
+  padding: 4px 0 26px;
+}
+.authShell-topbar {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  align-items: center;
+  min-height: 36px;
+}
+.authShell-content { display: grid; gap: 20px; }
+.authShell-footer { margin-top: auto; padding-top: 10px; }
+
+@media (max-width: 480px) {
+  .pipeBrand-name { font-size: 26px; }
+  .authShell { gap: 18px; }
+}

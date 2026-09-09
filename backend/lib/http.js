@@ -1,3 +1,5 @@
+import { HttpError } from './errors.js';
+
 export function sendJson(response, statusCode, payload) {
   if (response.writableEnded) return;
 
@@ -6,6 +8,25 @@ export function sendJson(response, statusCode, payload) {
     'Cache-Control': 'no-store',
   });
   response.end(JSON.stringify(payload));
+}
+
+export async function readJsonBody(request, { maxBytes = 32_768 } = {}) {
+  let size = 0;
+  const chunks = [];
+
+  for await (const chunk of request) {
+    size += chunk.length;
+    if (size > maxBytes) throw new HttpError(413, 'Request body is too large');
+    chunks.push(chunk);
+  }
+
+  if (chunks.length === 0) return {};
+
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  } catch {
+    throw new HttpError(400, 'Invalid JSON body');
+  }
 }
 
 function getAllowedOrigins() {

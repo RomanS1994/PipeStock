@@ -1,26 +1,30 @@
 :root {
   color-scheme: light;
 
-  --bg-top: #fbfdfb;
-  --bg-bottom: #f5f8f6;
-  --surface: rgba(255, 255, 255, 0.94);
-  --surface-strong: #ffffff;
-  --surface-subtle: #f7f9f8;
-  --surface-border: rgba(17, 24, 39, 0.09);
+  --bg: #f7f9fc;
+  --bg-soft: #f3f6fb;
+  --surface: #ffffff;
+  --surface-subtle: #f8fafc;
   --text: #111827;
+  --text-soft: #374151;
   --muted: #667085;
-  --accent: #16a34a;
-  --accent-strong: #15803d;
-  --accent-soft: #ecfdf3;
-  --accent-softer: #f4fbf6;
-  --line: rgba(17, 24, 39, 0.09);
-  --success: #15803d;
+  --line: #e5e7eb;
+  --line-strong: #d1d5db;
+
+  --primary: #1263eb;
+  --primary-strong: #0b55d6;
+  --primary-light: #3b82f6;
+  --primary-soft: #eaf3ff;
+  --success: #10b981;
+  --success-soft: #e8faf3;
   --warning: #f59e0b;
-  --danger: #b42318;
+  --warning-soft: #fff7df;
+  --danger: #ef4444;
+  --danger-soft: #fff0f0;
 
   --font-app: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
   --font-size-page-title: 26px;
-  --font-size-section-title: 18px;
+  --font-size-section-title: 19px;
   --font-size-card-title: 16px;
   --font-size-body: 15px;
   --font-size-secondary: 14px;
@@ -38,36 +42,31 @@
   --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
-  --space-page: var(--space-3);
-  --space-card: var(--space-4);
-  --page-inline: var(--space-4);
+  --space-10: 40px;
+  --space-page: var(--space-4);
+  --page-inline: 18px;
 
+  --radius-xs: 8px;
   --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
   --radius-full: 999px;
 
   --shadow-none: none;
-  --shadow-sm: 0 4px 16px rgba(20, 40, 28, 0.045);
-  --shadow-overlay: 0 12px 32px rgba(15, 23, 42, 0.12);
+  --shadow-sm: 0 3px 14px rgba(17, 24, 39, 0.06);
+  --shadow-overlay: 0 18px 42px rgba(15, 23, 42, 0.14);
 
-  --control-height-compact: 36px;
-  --control-height: 40px;
-  --control-height-touch: 44px;
-
+  --control-height-compact: 38px;
+  --control-height: 46px;
+  --control-height-touch: 48px;
   --motion-fast: 150ms ease;
-  --focus-ring: 0 0 0 3px rgba(22, 163, 74, 0.18);
+  --focus-ring: 0 0 0 3px rgba(18, 99, 235, 0.16);
 }
 
 * { box-sizing: border-box; }
-
-html,
-body,
-#react-root {
-  width: 100%;
-  min-height: 100%;
-}
-
+html, body, #react-root { width: 100%; min-height: 100%; }
+html { background: var(--bg); }
 body {
   margin: 0;
   font-family: var(--font-app);
@@ -75,84 +74,42 @@ body {
   line-height: 1.45;
   letter-spacing: -0.005em;
   color: var(--text);
-  background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-button,
-input,
-select,
-textarea { font-family: var(--font-app); }
+a { color: inherit; }
+button, input, select, textarea { font-family: var(--font-app); }
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+input:not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: 16px !important; }
 
-button,
-a,
-input,
-select,
-textarea { -webkit-tap-highlight-color: transparent; }
-
-input:not([type="checkbox"]):not([type="radio"]),
-select,
-textarea { font-size: 16px !important; }
-
-button {
-  appearance: none;
-  min-height: var(--control-height);
-  padding: 0 14px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  background: var(--surface-strong);
-  font: inherit;
-  font-size: var(--font-size-secondary);
-  font-weight: var(--weight-semibold);
-  cursor: pointer;
-  transition: transform var(--motion-fast), background-color var(--motion-fast), border-color var(--motion-fast);
-}
-
-button:active:not(:disabled) { transform: scale(0.985); }
-button:disabled { opacity: 0.5; cursor: not-allowed; }
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }
 
-.pageStack {
-  display: grid;
-  gap: var(--space-page);
-}
+h1, h2, h3, p { text-wrap: pretty; }
 
-.screenCard {
-  display: grid;
-  gap: var(--space-page);
-  padding: var(--space-card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--surface-strong);
-  box-shadow: var(--shadow-sm);
-}
-
-.compactHeader {
-  display: grid;
-  gap: 5px;
-}
-
+.pageStack { display: grid; gap: var(--space-page); }
+.compactHeader { display: grid; gap: 6px; }
 .compactHeader > h1 {
   margin: 0;
   font-size: var(--font-size-page-title);
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  line-height: 1.08;
+  letter-spacing: -0.032em;
   font-weight: var(--weight-bold);
 }
+.compactHeader > p { margin: 0; color: var(--muted); font-size: var(--font-size-secondary); }
 
-.compactHeader > p {
-  margin: 0;
-  color: var(--muted);
-  font-size: var(--font-size-secondary);
+.screenCard {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .sectionEyebrow {
@@ -162,12 +119,40 @@ textarea:focus-visible {
   align-items: center;
   padding: 0 9px;
   border-radius: var(--radius-full);
-  background: var(--accent-soft);
-  color: var(--accent-strong);
+  background: var(--primary-soft);
+  color: var(--primary);
   font-size: var(--font-size-caption);
   font-weight: var(--weight-semibold);
 }
 
+.statusChip {
+  display: inline-flex;
+  min-height: 24px;
+  width: fit-content;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-caption);
+  font-weight: var(--weight-semibold);
+}
+.statusChip--draft { background: #eef1f5; color: #667085; }
+.statusChip--submitted { background: var(--primary-soft); color: var(--primary); }
+.statusChip--completed, .statusChip--active { background: var(--success-soft); color: #079568; }
+.statusChip--warning { background: var(--warning-soft); color: #b77900; }
+.statusChip--danger { background: var(--danger-soft); color: var(--danger); }
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (min-width: 701px) {
-  :root { --font-size-page-title: 28px; }
+  :root { --font-size-page-title: 28px; --page-inline: 24px; }
 }

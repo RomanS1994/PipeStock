@@ -14,7 +14,12 @@ export const baseApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: resolveBaseUrl(),
     credentials: 'include',
+    prepareHeaders(headers, { getState }) {
+      const token = getState()?.auth?.token;
+      if (token) headers.set('Authorization', `Bearer ${token}`);
+      return headers;
+    },
   }),
-  tagTypes: [],
+  tagTypes: ['Session'],
   endpoints: () => ({}),
 });
