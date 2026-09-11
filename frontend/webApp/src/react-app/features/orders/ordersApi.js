@@ -19,14 +19,11 @@ export const ordersApi = baseApi.injectEndpoints({
       ],
     }),
     createOrder: builder.mutation({
-      query: ({ projectId, ...body }) => ({
-        url: `/projects/${encodeURIComponent(projectId)}/orders`,
-        method: 'POST',
-        body,
-      }),
+      query: ({ projectId, ...body }) => ({ url: `/projects/${encodeURIComponent(projectId)}/orders`, method: 'POST', body }),
       invalidatesTags: (_result, _error, { projectId }) => [
         { type: 'Orders', id: `PROJECT-${projectId}` },
         { type: 'Orders', id: 'GLOBAL' },
+        { type: 'Dashboard', id: 'SUMMARY' },
       ],
     }),
     getOrder: builder.query({
@@ -39,6 +36,7 @@ export const ordersApi = baseApi.injectEndpoints({
       invalidatesTags: (result, _error, { orderId }) => [
         { type: 'Orders', id: orderId },
         { type: 'Orders', id: 'GLOBAL' },
+        { type: 'Dashboard', id: 'SUMMARY' },
         ...(result?.order?.project?.id ? [{ type: 'Orders', id: `PROJECT-${result.order.project.id}` }] : []),
       ],
     }),
@@ -58,17 +56,11 @@ export const ordersApi = baseApi.injectEndpoints({
       providesTags: [{ type: 'MaterialRecent', id: 'LIST' }],
     }),
     addFavoriteMaterial: builder.mutation({
-      query: catalogItemId => ({
-        url: `/materials/favorites/${encodeURIComponent(catalogItemId)}`,
-        method: 'POST',
-      }),
+      query: catalogItemId => ({ url: `/materials/favorites/${encodeURIComponent(catalogItemId)}`, method: 'POST' }),
       invalidatesTags: [{ type: 'MaterialFavorites', id: 'LIST' }],
     }),
     removeFavoriteMaterial: builder.mutation({
-      query: catalogItemId => ({
-        url: `/materials/favorites/${encodeURIComponent(catalogItemId)}`,
-        method: 'DELETE',
-      }),
+      query: catalogItemId => ({ url: `/materials/favorites/${encodeURIComponent(catalogItemId)}`, method: 'DELETE' }),
       invalidatesTags: [{ type: 'MaterialFavorites', id: 'LIST' }],
     }),
     addOrderItem: builder.mutation({
@@ -77,24 +69,23 @@ export const ordersApi = baseApi.injectEndpoints({
         { type: 'Orders', id: orderId },
         { type: 'Orders', id: 'GLOBAL' },
         { type: 'MaterialRecent', id: 'LIST' },
+        { type: 'Dashboard', id: 'SUMMARY' },
       ],
     }),
     updateOrderItem: builder.mutation({
-      query: ({ orderId, itemId, quantity }) => ({
-        url: `/orders/${encodeURIComponent(orderId)}/items/${encodeURIComponent(itemId)}`,
-        method: 'PATCH',
-        body: { quantity },
-      }),
-      invalidatesTags: (_result, _error, { orderId }) => [{ type: 'Orders', id: orderId }],
-    }),
-    deleteOrderItem: builder.mutation({
-      query: ({ orderId, itemId }) => ({
-        url: `/orders/${encodeURIComponent(orderId)}/items/${encodeURIComponent(itemId)}`,
-        method: 'DELETE',
-      }),
+      query: ({ orderId, itemId, quantity }) => ({ url: `/orders/${encodeURIComponent(orderId)}/items/${encodeURIComponent(itemId)}`, method: 'PATCH', body: { quantity } }),
       invalidatesTags: (_result, _error, { orderId }) => [
         { type: 'Orders', id: orderId },
         { type: 'Orders', id: 'GLOBAL' },
+        { type: 'Dashboard', id: 'SUMMARY' },
+      ],
+    }),
+    deleteOrderItem: builder.mutation({
+      query: ({ orderId, itemId }) => ({ url: `/orders/${encodeURIComponent(orderId)}/items/${encodeURIComponent(itemId)}`, method: 'DELETE' }),
+      invalidatesTags: (_result, _error, { orderId }) => [
+        { type: 'Orders', id: orderId },
+        { type: 'Orders', id: 'GLOBAL' },
+        { type: 'Dashboard', id: 'SUMMARY' },
       ],
     }),
     submitOrder: builder.mutation({
@@ -102,6 +93,7 @@ export const ordersApi = baseApi.injectEndpoints({
       invalidatesTags: (result, _error, orderId) => [
         { type: 'Orders', id: orderId },
         { type: 'Orders', id: 'GLOBAL' },
+        { type: 'Dashboard', id: 'SUMMARY' },
         ...(result?.order?.project?.id ? [{ type: 'Orders', id: `PROJECT-${result.order.project.id}` }] : []),
       ],
     }),
@@ -110,6 +102,7 @@ export const ordersApi = baseApi.injectEndpoints({
       invalidatesTags: (result, _error, orderId) => [
         { type: 'Orders', id: orderId },
         { type: 'Orders', id: 'GLOBAL' },
+        { type: 'Dashboard', id: 'SUMMARY' },
         ...(result?.order?.project?.id ? [{ type: 'Orders', id: `PROJECT-${result.order.project.id}` }] : []),
       ],
     }),
