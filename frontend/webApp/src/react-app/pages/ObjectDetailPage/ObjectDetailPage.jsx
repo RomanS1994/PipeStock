@@ -83,10 +83,12 @@ export function ObjectDetailPage() {
             <dl><div><dt>Адреса</dt><dd>{project.address || '—'}</dd></div><div><dt>Примітка</dt><dd>{project.description || '—'}</dd></div><div><dt>Статус</dt><dd>{STATUS_LABELS[project.status] || project.status}</dd></div></dl>
           </section>
 
-          <section className="screenCard objectDetailTeam">
-            <div className="objectDetailSectionHeader"><div><strong>Працівники</strong><span>{project.employees?.length || 0} призначено на об’єкт.</span></div></div>
-            {project.employees?.length ? <div className="objectDetailEmployeeList">{project.employees.map(employee => <div className="objectDetailEmployee" key={employee.membershipId}><span className="objectDetailAvatar">{(employee.user?.name || '?').slice(0,1).toUpperCase()}</span><div><strong>{employee.user?.name || employee.user?.email}</strong><span>{employee.user?.email}</span></div></div>)}</div> : <p className="objectDetailEmptyTeam">Працівників ще не призначено.</p>}
-          </section>
+          {manager ? (
+            <section className="screenCard objectDetailTeam">
+              <div className="objectDetailSectionHeader"><div><strong>Працівники</strong><span>{project.employees?.length || 0} призначено на об’єкт.</span></div></div>
+              {project.employees?.length ? <div className="objectDetailEmployeeList">{project.employees.map(employee => <div className="objectDetailEmployee" key={employee.membershipId}><span className="objectDetailAvatar">{(employee.user?.name || '?').slice(0,1).toUpperCase()}</span><div><strong>{employee.user?.name || employee.user?.email}</strong><span>{employee.user?.email}</span></div></div>)}</div> : <p className="objectDetailEmptyTeam">Працівників ще не призначено.</p>}
+            </section>
+          ) : null}
         </>
       )}
     </div>
