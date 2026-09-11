@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button, Icon, SearchField, StepIndicator } from '@shared/app/components/ui/PipeStockUI.jsx';
+import { Button, Icon, StepIndicator } from '@shared/app/components/ui/PipeStockUI.jsx';
 import {
   useAddFavoriteMaterialMutation,
   useAddOrderItemMutation,
@@ -13,6 +13,8 @@ import {
 import '../OrderFlow/OrderFlow.css';
 import './AddMaterialPage.css';
 import { getMaterialCategoryImage, getMaterialImage } from './materialImageResolver.js';
+
+const CATEGORY_ORDER = ['Cu', 'PPR', 'PEX/MLCP', 'HT', 'KG', 'Steel', 'Ventily', 'Інше'];
 
 function unique(values) {
   return [...new Set(values)];
@@ -53,18 +55,26 @@ export function AddMaterialPage() {
   const [diameter, setDiameter] = useState('');
   const [catalogItemId, setCatalogItemId] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [search, setSearch] = useState('');
 
   const favoriteIds = useMemo(() => new Set(favorites.map(item => item.id)), [favorites]);
   const categories = useMemo(() => {
     const map = new Map();
     catalog.forEach(item => map.set(item.categoryKey, item.categoryLabel));
-    return [...map.entries()].map(([key, label]) => ({ key, label }));
+    return [...map.entries()]
+      .map(([key, label]) => ({ key, label }))
+      .sort((a, b) => {
+        const aIndex = CATEGORY_ORDER.indexOf(a.label);
+        const bIndex = CATEGORY_ORDER.indexOf(b.label);
+        if (aIndex === -1 && bIndex === -1) return a.label.localeCompare(b.label, 'uk');
+        if (aIndex === -1) return 1;
+        if (bIndex === -1) return -1;
+        return aIndex - bIndex;
+      });
   }, [catalog]);
 
   const categoryItems = useMemo(() => catalog.filter(item => item.categoryKey === categoryKey), [catalog, categoryKey]);
   const diameters = useMemo(() => unique(categoryItems.map(item => item.diameter)), [categoryItems]);
-  const typeItems = useMemo(() => categoryItems.filter(item => item.diameter === diameter && (!search.trim() || `${item.type} ${item.name}`.toLowerCase().includes(search.toLowerCase()))), [categoryItems, diameter, search]);
+  const typeItems = useMemo(() => categoryItems.filter(item => item.diameter === diameter), [categoryItems, diameter]);
   const selectedItem = catalog.find(item => item.id === catalogItemId);
   const selectedIsFavorite = selectedItem ? favoriteIds.has(selectedItem.id) : false;
 
@@ -99,7 +109,6 @@ export function AddMaterialPage() {
     setDiameter('');
     setCatalogItemId('');
     setQuantity(1);
-    setSearch('');
     setShowShortcuts(true);
     setStep(1);
   }
@@ -184,7 +193,6 @@ export function AddMaterialPage() {
       {step === 3 ? (
         <section className="materialWizardStage">
           <div className="compactHeader"><h1>3. Виберіть тип</h1><p>{categories.find(item => item.key === categoryKey)?.label} · {diameter}</p></div>
-          <SearchField value={search} onChange={event => setSearch(event.target.value)} placeholder="Пошук матеріалу…" />
           <div className="materialTypeList">
             {typeItems.map(item => (
               <button key={item.id} type="button" className="materialTypeRow" onClick={() => selectType(item.id)}>
