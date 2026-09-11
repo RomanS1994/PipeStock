@@ -1,8 +1,7 @@
-import { randomBytes } from 'node:crypto';
-
 import { prisma } from '../db/prisma.js';
 import { HttpError } from '../lib/errors.js';
 import { readJsonBody, sendJson } from '../lib/http.js';
+import { createInviteCode } from '../lib/invite-code.js';
 import { clearRefreshCookie, readRefreshToken, setRefreshCookie } from '../auth/session-cookie.js';
 import { createAccessToken, createRefreshToken, getRefreshExpiry, hashPassword, hashToken, verifyPassword } from '../auth/tokens.js';
 import { requireAuth, serializeUser } from '../auth/current-user.js';
@@ -30,13 +29,9 @@ function slugify(value) {
   return base || 'company';
 }
 
-function createJoinCode() {
-  return `PST-${randomBytes(3).toString('hex').slice(0, 5).toUpperCase()}`;
-}
-
 async function uniqueJoinCode(tx) {
   for (let attempt = 0; attempt < 10; attempt += 1) {
-    const joinCode = createJoinCode();
+    const joinCode = createInviteCode();
     if (!(await tx.company.findUnique({ where: { joinCode } }))) return joinCode;
   }
   throw new HttpError(503, 'Could not generate company code');
