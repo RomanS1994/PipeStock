@@ -3,6 +3,8 @@ import { getMaterialCategoryImage as getBaseCategoryImage, getMaterialImage as g
 const EXTRA_MATERIAL_IMAGES = {
   'cu|koleno 45°': '/materials/cu-elbow-45.webp',
   'cu|redukce': '/materials/cu-reducer.webp',
+  'cu|přechodka': '/materials/cu-male-adapter.webp',
+  'cu|prechodka': '/materials/cu-male-adapter.webp',
   'cu|přechodka m': '/materials/cu-male-adapter.webp',
   'cu|prechodka m': '/materials/cu-male-adapter.webp',
   'cu|zátka': '/materials/cu-cap.webp',
@@ -10,6 +12,8 @@ const EXTRA_MATERIAL_IMAGES = {
   'ppr|trubka': '/materials/ppr-pipe.webp',
   'ppr|spojka': '/materials/ppr-coupling.webp',
   'ppr|redukce': '/materials/ppr-reducer.webp',
+  'ppr|přechodka': '/materials/ppr-male-adapter.webp',
+  'ppr|prechodka': '/materials/ppr-male-adapter.webp',
   'ppr|přechodka m': '/materials/ppr-male-adapter.webp',
   'ppr|prechodka m': '/materials/ppr-male-adapter.webp',
   'pex_mlcp|trubka': '/materials/pex-pipe.webp',
