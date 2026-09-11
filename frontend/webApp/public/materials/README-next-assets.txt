@@ -1,0 +1,1 @@
+KG, Steel and valve image placeholders are being replaced by binary WebP assets in the same directory.
