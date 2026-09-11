@@ -90,6 +90,18 @@ function serializeOrder(order) {
   };
 }
 
+function serializeEvent(event) {
+  return {
+    id: event.id,
+    type: event.type,
+    createdAt: event.createdAt,
+    actor: event.actor?.user ? {
+      id: event.actor.user.id,
+      name: event.actor.user.name,
+    } : null,
+  };
+}
+
 async function findOrder(orderId, membership) {
   const order = await prisma.order.findFirst({
     where: { id: orderId, companyId: membership.companyId },
@@ -170,17 +182,31 @@ async function createOrder(request, response, projectId) {
   if (!title) throw new HttpError(400, 'Order title is required');
   if (title.length > 120) throw new HttpError(400, 'Order title is too long');
 
-  const order = await prisma.order.create({
-    data: {
-      companyId: membership.companyId,
-      projectId,
-      createdByMembershipId: membership.id,
-      title,
-      category: normalizeText(body.category) || null,
-      note: normalizeText(body.note) || null,
-    },
-    include: orderInclude,
+  const order = await prisma.$transaction(async tx => {
+    const created = await tx.order.create({
+      data: {
+        companyId: membership.companyId,
+        projectId,
+        createdByMembershipId: membership.id,
+        title,
+        category: normalizeText(body.category) || null,
+        note: normalizeText(body.note) || null,
+      },
+      include: orderInclude,
+    });
+
+    await tx.orderEvent.create({
+      data: {
+        orderId: created.id,
+        actorMembershipId: membership.id,
+        type: 'CREATED',
+        createdAt: created.createdAt,
+      },
+    });
+
+    return created;
   });
+
   sendJson(response, 201, { order: serializeOrder(order) });
 }
 
@@ -190,6 +216,26 @@ async function getOrder(request, response, orderId) {
   const order = await findOrder(orderId, membership);
   const normalizedOrder = { ...order, project: { ...order.project, assignments: undefined } };
   sendJson(response, 200, { order: serializeOrder(normalizedOrder) });
+}
+
+async function listOrderHistory(request, response, orderId) {
+  const user = await requireAuth(request);
+  const membership = requireMembership(user);
+  await findOrder(orderId, membership);
+
+  const events = await prisma.orderEvent.findMany({
+    where: { orderId },
+    include: {
+      actor: {
+        include: {
+          user: { select: { id: true, name: true } },
+        },
+      },
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  sendJson(response, 200, { events: events.map(serializeEvent) });
 }
 
 async function updateOrder(request, response, orderId) {
@@ -290,11 +336,22 @@ async function submitOrder(request, response, orderId) {
       },
     });
 
-    return tx.order.update({
+    const nextOrder = await tx.order.update({
       where: { id: orderId },
       data: { status: 'SUBMITTED', submittedAt },
       include: orderInclude,
     });
+
+    await tx.orderEvent.create({
+      data: {
+        orderId,
+        actorMembershipId: membership.id,
+        type: 'SUBMITTED',
+        createdAt: submittedAt,
+      },
+    });
+
+    return nextOrder;
   });
 
   sendJson(response, 200, { order: serializeOrder(updated) });
@@ -320,11 +377,22 @@ async function completeOrder(request, response, orderId) {
       });
     }
 
-    return tx.order.update({
+    const nextOrder = await tx.order.update({
       where: { id: orderId },
       data: { status: 'COMPLETED', completedAt },
       include: orderInclude,
     });
+
+    await tx.orderEvent.create({
+      data: {
+        orderId,
+        actorMembershipId: membership.id,
+        type: 'COMPLETED',
+        createdAt: completedAt,
+      },
+    });
+
+    return nextOrder;
   });
 
   sendJson(response, 200, { order: serializeOrder(updated) });
@@ -396,6 +464,12 @@ export async function handleOrderRoutes(request, response, { pathName }) {
   const addItemMatch = pathName.match(/^\/api\/orders\/([^/]+)\/items$/);
   if (addItemMatch && request.method === 'POST') {
     await addItem(request, response, decodeURIComponent(addItemMatch[1]));
+    return true;
+  }
+
+  const historyMatch = pathName.match(/^\/api\/orders\/([^/]+)\/history$/);
+  if (historyMatch && request.method === 'GET') {
+    await listOrderHistory(request, response, decodeURIComponent(historyMatch[1]));
     return true;
   }
 
