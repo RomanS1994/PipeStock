@@ -10,7 +10,6 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
-    "catalog:sync": "node tools/sync-official-materials.js",
     "test": "node --test tests/*.test.js",
     "postinstall": "node tools/prisma-postinstall.js"
   },
