@@ -15,9 +15,24 @@ import './AddMaterialPage.css';
 import { getMaterialCategoryImage, getMaterialImage } from './materialImageResolver.js';
 
 const CATEGORY_ORDER = ['Cu', 'PPR', 'PEX/MLCP', 'HT', 'KG', 'Steel', 'Ventily', 'Інше'];
+const TYPE_ORDER = ['Trubka', 'Koleno 90°', 'Koleno 45°', 'T-kus', 'Spojka', 'Redukce', 'Přechodka'];
 
 function unique(values) {
   return [...new Set(values)];
+}
+
+function getDiameterNumber(value) {
+  const match = String(value || '').replace(',', '.').match(/\d+(?:\.\d+)?/);
+  return match ? Number(match[0]) : Number.POSITIVE_INFINITY;
+}
+
+function sortByApprovedTypeOrder(a, b) {
+  const aIndex = TYPE_ORDER.indexOf(a.type);
+  const bIndex = TYPE_ORDER.indexOf(b.type);
+  if (aIndex === -1 && bIndex === -1) return a.type.localeCompare(b.type, 'cs');
+  if (aIndex === -1) return 1;
+  if (bIndex === -1) return -1;
+  return aIndex - bIndex;
 }
 
 function MaterialThumb({ item, className = 'materialTypeMark' }) {
@@ -73,8 +88,14 @@ export function AddMaterialPage() {
   }, [catalog]);
 
   const categoryItems = useMemo(() => catalog.filter(item => item.categoryKey === categoryKey), [catalog, categoryKey]);
-  const diameters = useMemo(() => unique(categoryItems.map(item => item.diameter)), [categoryItems]);
-  const typeItems = useMemo(() => categoryItems.filter(item => item.diameter === diameter), [categoryItems, diameter]);
+  const diameters = useMemo(
+    () => unique(categoryItems.map(item => item.diameter)).sort((a, b) => getDiameterNumber(a) - getDiameterNumber(b) || String(a).localeCompare(String(b), 'cs')),
+    [categoryItems],
+  );
+  const typeItems = useMemo(
+    () => categoryItems.filter(item => item.diameter === diameter).sort(sortByApprovedTypeOrder),
+    [categoryItems, diameter],
+  );
   const selectedItem = catalog.find(item => item.id === catalogItemId);
   const selectedIsFavorite = selectedItem ? favoriteIds.has(selectedItem.id) : false;
 
