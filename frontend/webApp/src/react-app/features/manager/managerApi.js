@@ -14,6 +14,19 @@ export const managerApi = baseApi.injectEndpoints({
         ...(result || []).map(member => ({ type: 'Team', id: member.membershipId })),
       ],
     }),
+    getTeamInvite: builder.query({
+      query: () => '/team/invite',
+      transformResponse: response => response?.invite || null,
+      providesTags: [{ type: 'Team', id: 'INVITE' }],
+    }),
+    regenerateTeamInvite: builder.mutation({
+      query: () => ({ url: '/team/invite', method: 'POST' }),
+      invalidatesTags: [{ type: 'Team', id: 'INVITE' }],
+    }),
+    revokeTeamInvite: builder.mutation({
+      query: () => ({ url: '/team/invite', method: 'DELETE' }),
+      invalidatesTags: [{ type: 'Team', id: 'INVITE' }],
+    }),
     updateTeamMember: builder.mutation({
       query: ({ membershipId, status }) => ({
         url: `/team/${encodeURIComponent(membershipId)}`,
@@ -33,5 +46,8 @@ export const managerApi = baseApi.injectEndpoints({
 export const {
   useGetDashboardQuery,
   useGetTeamQuery,
+  useGetTeamInviteQuery,
+  useRegenerateTeamInviteMutation,
+  useRevokeTeamInviteMutation,
   useUpdateTeamMemberMutation,
 } = managerApi;
