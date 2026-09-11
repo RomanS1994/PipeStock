@@ -1,7 +1,11 @@
+import { randomBytes } from 'node:crypto';
+
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../auth/current-user.js';
 import { HttpError } from '../lib/errors.js';
 import { readJsonBody, sendJson } from '../lib/http.js';
+
+const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function getManagerMembership(user) {
   const membership = (user.memberships || []).find(
@@ -9,6 +13,34 @@ function getManagerMembership(user) {
   );
   if (!membership) throw new HttpError(403, 'Manager access is required');
   return membership;
+}
+
+function createInviteCode() {
+  return `PST-${randomBytes(3).toString('hex').slice(0, 5).toUpperCase()}`;
+}
+
+async function uniqueInviteCode() {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const code = createInviteCode();
+    if (!(await prisma.company.findUnique({ where: { joinCode: code } }))) return code;
+  }
+  throw new HttpError(503, 'Could not generate invite code');
+}
+
+function serializeInvite(company) {
+  const active = Boolean(
+    company.joinCode &&
+    !company.joinCodeRevokedAt &&
+    company.joinCodeExpiresAt &&
+    company.joinCodeExpiresAt > new Date(),
+  );
+  return {
+    code: company.joinCode,
+    createdAt: company.joinCodeCreatedAt,
+    expiresAt: company.joinCodeExpiresAt,
+    revokedAt: company.joinCodeRevokedAt,
+    active,
+  };
 }
 
 async function dashboard(request, response) {
@@ -135,6 +167,40 @@ async function updateTeamMember(request, response, membershipId) {
   });
 }
 
+async function getInvite(request, response) {
+  const user = await requireAuth(request);
+  const membership = getManagerMembership(user);
+  const company = await prisma.company.findUnique({ where: { id: membership.companyId } });
+  if (!company) throw new HttpError(404, 'Company not found');
+  sendJson(response, 200, { invite: serializeInvite(company) });
+}
+
+async function regenerateInvite(request, response) {
+  const user = await requireAuth(request);
+  const membership = getManagerMembership(user);
+  const now = new Date();
+  const company = await prisma.company.update({
+    where: { id: membership.companyId },
+    data: {
+      joinCode: await uniqueInviteCode(),
+      joinCodeCreatedAt: now,
+      joinCodeExpiresAt: new Date(now.getTime() + INVITE_TTL_MS),
+      joinCodeRevokedAt: null,
+    },
+  });
+  sendJson(response, 200, { invite: serializeInvite(company) });
+}
+
+async function revokeInvite(request, response) {
+  const user = await requireAuth(request);
+  const membership = getManagerMembership(user);
+  const company = await prisma.company.update({
+    where: { id: membership.companyId },
+    data: { joinCodeRevokedAt: new Date() },
+  });
+  sendJson(response, 200, { invite: serializeInvite(company) });
+}
+
 export async function handleManagerRoutes(request, response, { pathName }) {
   if (request.method === 'GET' && pathName === '/api/dashboard') {
     await dashboard(request, response);
@@ -143,6 +209,21 @@ export async function handleManagerRoutes(request, response, { pathName }) {
 
   if (request.method === 'GET' && pathName === '/api/team') {
     await listTeam(request, response);
+    return true;
+  }
+
+  if (request.method === 'GET' && pathName === '/api/team/invite') {
+    await getInvite(request, response);
+    return true;
+  }
+
+  if (request.method === 'POST' && pathName === '/api/team/invite') {
+    await regenerateInvite(request, response);
+    return true;
+  }
+
+  if (request.method === 'DELETE' && pathName === '/api/team/invite') {
+    await revokeInvite(request, response);
     return true;
   }
 
