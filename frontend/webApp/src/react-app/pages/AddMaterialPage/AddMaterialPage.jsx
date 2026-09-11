@@ -11,6 +11,7 @@ import {
   useRemoveFavoriteMaterialMutation,
 } from '../../features/orders/ordersApi.js';
 import '../OrderFlow/OrderFlow.css';
+import './AddMaterialPage.css';
 
 function unique(values) {
   return [...new Set(values)];
