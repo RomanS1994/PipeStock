@@ -25,6 +25,7 @@ export const baseApi = createApi({
     'Projects',
     'Employees',
     'Orders',
+    'OrderHistory',
     'MaterialCatalog',
     'MaterialFavorites',
     'MaterialRecent',
