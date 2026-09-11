@@ -98,6 +98,7 @@ model CompanyMembership {
   user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   assignments   ProjectAssignment[]
   createdOrders Order[]             @relation("OrderCreator")
+  orderEvents   OrderEvent[]        @relation("OrderEventActor")
 
   @@unique([companyId, userId])
   @@index([userId])
@@ -198,6 +199,7 @@ model Order {
   createdByMembership CompanyMembership @relation("OrderCreator", fields: [createdByMembershipId], references: [id], onDelete: Restrict)
   items               OrderItem[]
   snapshot            OrderSnapshot?
+  events              OrderEvent[]
 
   @@index([companyId, status])
   @@index([projectId, createdAt])
@@ -240,4 +242,19 @@ model OrderSnapshot {
 
   @@index([createdAt])
   @@map("order_snapshots")
+}
+
+model OrderEvent {
+  id                String   @id @default(cuid())
+  orderId           String
+  actorMembershipId String?
+  type              String
+  createdAt         DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  actor CompanyMembership? @relation("OrderEventActor", fields: [actorMembershipId], references: [id], onDelete: SetNull)
+
+  @@index([orderId, createdAt])
+  @@index([actorMembershipId])
+  @@map("order_events")
 }
