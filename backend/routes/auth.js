@@ -7,6 +7,8 @@ import { clearRefreshCookie, readRefreshToken, setRefreshCookie } from '../auth/
 import { createAccessToken, createRefreshToken, getRefreshExpiry, hashPassword, hashToken, verifyPassword } from '../auth/tokens.js';
 import { requireAuth, serializeUser } from '../auth/current-user.js';
 
+const JOIN_CODE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
 function normalizeEmail(value) {
   return String(value || '').trim().toLowerCase();
 }
@@ -29,7 +31,7 @@ function slugify(value) {
 }
 
 function createJoinCode() {
-  return randomBytes(4).toString('hex').slice(0, 6).toUpperCase();
+  return `PST-${randomBytes(3).toString('hex').slice(0, 5).toUpperCase()}`;
 }
 
 async function uniqueJoinCode(tx) {
@@ -97,8 +99,15 @@ async function registerManager(request, response) {
     const user = await tx.user.create({
       data: { email, passwordHash: hashPassword(password), name, firstName: name.split(/\s+/)[0] || name, lastName: name.split(/\s+/).slice(1).join(' '), phone },
     });
+    const now = new Date();
     const company = await tx.company.create({
-      data: { name: companyName, slug: await uniqueSlug(tx, companyName), joinCode: await uniqueJoinCode(tx) },
+      data: {
+        name: companyName,
+        slug: await uniqueSlug(tx, companyName),
+        joinCode: await uniqueJoinCode(tx),
+        joinCodeCreatedAt: now,
+        joinCodeExpiresAt: new Date(now.getTime() + JOIN_CODE_TTL_MS),
+      },
     });
     await tx.companyMembership.create({ data: { userId: user.id, companyId: company.id, role: 'MANAGER' } });
     const session = await issueSession(tx, user.id);
@@ -142,6 +151,11 @@ async function joinCompany(request, response) {
   const user = await prisma.$transaction(async tx => {
     const company = await tx.company.findUnique({ where: { joinCode } });
     if (!company) throw new HttpError(404, 'Company code was not found');
+    if (company.joinCodeRevokedAt) throw new HttpError(410, 'Company code was revoked');
+    if (!company.joinCodeExpiresAt || company.joinCodeExpiresAt <= new Date()) {
+      throw new HttpError(410, 'Company code has expired');
+    }
+
     const existing = await tx.companyMembership.findUnique({ where: { companyId_userId: { companyId: company.id, userId: current.id } } });
     if (!existing) await tx.companyMembership.create({ data: { companyId: company.id, userId: current.id, role: 'EMPLOYEE' } });
     else if (existing.deletedAt || existing.status !== 'ACTIVE') await tx.companyMembership.update({ where: { id: existing.id }, data: { deletedAt: null, status: 'ACTIVE', role: 'EMPLOYEE' } });
