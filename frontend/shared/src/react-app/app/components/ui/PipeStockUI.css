@@ -54,6 +54,20 @@
 .psButton--danger { color: #fff; background: var(--danger); }
 .psButton--full { width: 100%; }
 
+.psIconButton {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  min-height: 0;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--primary);
+  background: var(--surface);
+}
+.psIconButton:active { background: var(--primary-soft); }
+
 .psField { display: grid; gap: 7px; }
 .psField-label { color: var(--text-soft); font-size: var(--font-size-label); font-weight: var(--weight-semibold); }
 .psField-control {
@@ -94,6 +108,46 @@
 .psField-hint { color: var(--muted); }
 .psField-error { color: var(--danger); }
 .psField--error .psField-control { border-color: #fda4af; }
+
+.psSearch {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: #7c8799;
+  background: var(--surface-subtle);
+}
+.psSearch:focus-within { border-color: #8eb8ff; box-shadow: var(--focus-ring); background: #fff; }
+.psSearch input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  color: var(--text);
+  background: transparent;
+}
+.psSearch input::placeholder { color: #98a2b3; }
+
+.psStatusChip {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 24px;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-caption);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  white-space: nowrap;
+}
+.psStatusChip--active,
+.psStatusChip--completed { color: #087a55; background: #dcfce7; }
+.psStatusChip--draft { color: #667085; background: #eef2f6; }
+.psStatusChip--paused { color: #a15c00; background: #fff3d6; }
+.psStatusChip--submitted { color: #0b5dd7; background: #e5f0ff; }
 
 .psSteps {
   display: inline-flex;
