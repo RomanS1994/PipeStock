@@ -12,6 +12,12 @@ const EXTRA_MATERIAL_IMAGES = {
   'ppr|redukce': '/materials/ppr-reducer.webp',
   'ppr|přechodka m': '/materials/ppr-male-adapter.webp',
   'ppr|prechodka m': '/materials/ppr-male-adapter.webp',
+  'pex_mlcp|trubka': '/materials/pex-pipe.webp',
+  'pex_mlcp|koleno 90°': '/materials/pex-elbow-90.webp',
+  'pex_mlcp|t-kus': '/materials/pex-tee.webp',
+  'ht|koleno 45°': '/materials/ht-elbow-45.webp',
+  'ht|koleno 87°': '/materials/ht-elbow-87.webp',
+  'ht|t-kus': '/materials/ht-tee.webp',
 };
 
 export function getMaterialImage(item) {
