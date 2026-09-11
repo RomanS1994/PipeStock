@@ -2,13 +2,24 @@
 .materialShortcutHeading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .materialShortcutHeading > span { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: var(--weight-semibold); }
 .materialShortcutHeading small { color: var(--muted); }
-.materialShortcutList { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(145px, 1fr); gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.materialShortcutList { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(170px, 1fr); gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
 .materialShortcutList::-webkit-scrollbar { display: none; }
-.materialShortcutList button { display: grid; min-height: 64px; align-content: center; gap: 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); text-align: left; }
-.materialShortcutList strong { font-size: 13px; }
-.materialShortcutList span { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.materialShortcutCard { display: grid; grid-template-columns: 42px minmax(0, 1fr); align-items: center; min-height: 68px; gap: 10px; padding: 9px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); text-align: left; }
+.materialShortcutMark { display: grid; width: 42px; height: 42px; place-items: center; overflow: hidden; border-radius: 10px; color: var(--primary); background: var(--primary-soft); font-size: 10px; font-weight: 700; }
+.materialShortcutMark.has-image { border: 1px solid var(--line); background: #fff; }
+.materialShortcutMark img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+.materialShortcutCopy { display: grid; min-width: 0; gap: 3px; }
+.materialShortcutCopy strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.materialShortcutCopy > span { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.materialCategoryCard { min-height: 112px; }
+.materialCategoryCard > span { width: 56px; height: 56px; border-radius: 16px; }
 .materialCategoryCard > span.has-image { overflow: hidden; border: 1px solid var(--line); background: #fff; }
-.materialCategoryCard > span.has-image img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
-.selectedMaterialCard { position: relative; padding-right: 58px; }
+.materialCategoryCard > span.has-image img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+.materialTypeRow { min-height: 68px; }
+.materialTypeMark { width: 46px; height: 46px; }
+.materialTypeMark.has-image img { padding: 3px; }
+.selectedMaterialCard { position: relative; min-height: 82px; padding-right: 58px; }
+.selectedMaterialMark { width: 62px; height: 62px; flex-basis: 62px; }
+.selectedMaterialMark.has-image img { padding: 3px; }
 .materialFavoriteButton { position: absolute; top: 50%; right: 12px; display: grid; width: 38px; height: 38px; min-height: 0; padding: 0; place-items: center; border: 0; border-radius: 50%; color: var(--muted); background: var(--surface-subtle); }
 .materialFavoriteButton.is-active { color: var(--warning); background: #fff7df; }
