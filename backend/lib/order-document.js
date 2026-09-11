@@ -183,6 +183,26 @@ function createDefinition(snapshot) {
         },
       },
       {
+        columns: [
+          {
+            width: '*',
+            stack: [
+              { text: 'Підпис', style: 'label', margin: [0, 0, 0, 14] },
+              { text: '____________________________', color: '#98A2B3' },
+            ],
+          },
+          {
+            width: 150,
+            stack: [
+              { text: 'Дата', style: 'label', margin: [0, 0, 0, 14] },
+              { text: '____________________', color: '#98A2B3' },
+            ],
+          },
+        ],
+        columnGap: 24,
+        margin: [0, 24, 0, 0],
+      },
+      {
         text: `Snapshot v${snapshot.version || 1} · ${formatDate(snapshot.createdAt)}`,
         color: '#98A2B3',
         fontSize: 8,
