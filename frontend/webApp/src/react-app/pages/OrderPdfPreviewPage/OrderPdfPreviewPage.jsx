@@ -12,6 +12,7 @@ export function OrderPdfPreviewPage() {
   const [downloadOrderPdf] = useDownloadOrderPdfMutation();
   const [pdfUrl, setPdfUrl] = useState('');
   const [pdfError, setPdfError] = useState('');
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     if (!order?.documentAvailable) return undefined;
@@ -20,6 +21,7 @@ export function OrderPdfPreviewPage() {
     let objectUrl = '';
 
     async function loadPreview() {
+      setPdfUrl('');
       setPdfError('');
       try {
         const blob = await downloadOrderPdf(order.id).unwrap();
@@ -36,7 +38,7 @@ export function OrderPdfPreviewPage() {
       active = false;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [downloadOrderPdf, order?.documentAvailable, order?.id]);
+  }, [downloadOrderPdf, order?.documentAvailable, order?.id, retryKey]);
 
   if (orderLoading) {
     return <section className="screenCard orderPdfPreviewState"><strong>Завантажуємо документ…</strong></section>;
@@ -67,7 +69,7 @@ export function OrderPdfPreviewPage() {
       </section>
 
       <section className="screenCard orderPdfPreviewCard">
-        {pdfError ? <div className="orderPdfPreviewState"><strong>{pdfError}</strong><Button variant="text" onClick={() => window.location.reload()}>Спробувати ще раз</Button></div> : null}
+        {pdfError ? <div className="orderPdfPreviewState"><strong>{pdfError}</strong><Button variant="text" onClick={() => setRetryKey(value => value + 1)}>Спробувати ще раз</Button></div> : null}
         {!pdfError && !pdfUrl ? <div className="orderPdfPreviewState"><strong>Готуємо PDF…</strong></div> : null}
         {pdfUrl ? (
           <object className="orderPdfPreviewDocument" data={pdfUrl} type="application/pdf" aria-label={`PDF заказа #${order.number}`}>
