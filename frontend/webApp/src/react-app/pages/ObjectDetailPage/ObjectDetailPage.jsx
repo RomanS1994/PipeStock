@@ -71,7 +71,7 @@ export function ObjectDetailPage() {
       ) : (
         <>
           <section className="screenCard objectDetailOrders">
-            <div className="objectDetailSectionHeader"><div><strong>Закази</strong><span>{orders.length} на цьому об’єкті.</span></div>{project.status !== 'COMPLETED' ? <Link className="objectDetailActionLink" to={`/objects/${project.id}/orders/new`}>+ Новий заказ</Link> : null}</div>
+            <div className="objectDetailSectionHeader"><div><strong>Закази</strong><span>{orders.length} на цьому об’єкті.</span></div></div>
             {ordersLoading ? <p className="objectDetailEmptyTeam">Завантажуємо закази…</p> : orders.length ? (
               <div className="objectOrderList">{orders.map(order => <Link className="objectOrderRow" key={order.id} to={`/orders/${order.id}`}><div><strong>#{order.number} · {order.title}</strong><span>{order.category || 'Без категорії'} · {order.worker?.name || '—'}</span></div><div><StatusChip status={order.status}>{ORDER_STATUS_LABELS[order.status]}</StatusChip><small>{order.itemCount} поз.</small></div></Link>)}</div>
             ) : <div className="objectDetailEmptyOrders"><strong>Заказів ще немає</strong><span>Створіть перший заказ і додайте потрібні матеріали.</span></div>}
