@@ -24,6 +24,12 @@ enum ProjectStatus {
   COMPLETED
 }
 
+enum OrderStatus {
+  DRAFT
+  SUBMITTED
+  COMPLETED
+}
+
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
@@ -68,6 +74,7 @@ model Company {
 
   memberships CompanyMembership[]
   projects    Project[]
+  orders      Order[]
 
   @@index([joinCode])
   @@map("companies")
@@ -83,9 +90,10 @@ model CompanyMembership {
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
-  company     Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  assignments ProjectAssignment[]
+  company       Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignments   ProjectAssignment[]
+  createdOrders Order[]             @relation("OrderCreator")
 
   @@unique([companyId, userId])
   @@index([userId])
@@ -108,6 +116,7 @@ model Project {
 
   company     Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
   assignments ProjectAssignment[]
+  orders      Order[]
 
   @@index([companyId])
   @@index([companyId, status])
@@ -126,4 +135,78 @@ model ProjectAssignment {
   @@unique([projectId, membershipId])
   @@index([membershipId])
   @@map("project_assignments")
+}
+
+model MaterialCatalogItem {
+  id            String   @id
+  key           String   @unique
+  categoryKey   String
+  categoryLabel String
+  diameter      String
+  type          String
+  name          String
+  unit          String
+  sku           String?
+  imageUrl      String?
+  sortOrder     Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  orderItems OrderItem[]
+
+  @@index([categoryKey, diameter, isActive])
+  @@index([isActive, sortOrder])
+  @@map("material_catalog_items")
+}
+
+model Order {
+  id                    String      @id @default(cuid())
+  number                Int         @unique @default(autoincrement())
+  companyId             String
+  projectId             String
+  createdByMembershipId String
+  title                 String
+  category              String?
+  note                  String?
+  status                OrderStatus @default(DRAFT)
+  submittedAt           DateTime?
+  completedAt           DateTime?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  company             Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  project             Project           @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  createdByMembership CompanyMembership @relation("OrderCreator", fields: [createdByMembershipId], references: [id], onDelete: Restrict)
+  items               OrderItem[]
+
+  @@index([companyId, status])
+  @@index([projectId, createdAt])
+  @@index([createdByMembershipId, createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id            String   @id @default(cuid())
+  orderId       String
+  catalogItemId String?
+  materialKey   String
+  materialName  String
+  categoryKey   String
+  categoryLabel String
+  diameter      String
+  type          String
+  unit          String
+  sku           String?
+  imageUrl      String?
+  quantity      Decimal  @db.Decimal(10, 2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  order       Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  catalogItem MaterialCatalogItem? @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([catalogItemId])
+  @@map("order_items")
 }

@@ -1,6 +1,7 @@
 import { HttpError } from '../lib/errors.js';
 import { handleAuthRoutes } from './auth.js';
 import { handleMeRoutes } from './me.js';
+import { handleOrderRoutes } from './orders.js';
 import { handleProjectRoutes } from './projects.js';
 import { handlePublicRoutes } from './public.js';
 
@@ -9,6 +10,7 @@ const routeHandlers = [
   handleAuthRoutes,
   handleMeRoutes,
   handleProjectRoutes,
+  handleOrderRoutes,
 ];
 
 export async function routeRequest(request, response, context = {}) {

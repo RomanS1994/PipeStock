@@ -11,9 +11,12 @@ import {
   SignInPage,
   WelcomePage,
 } from './pages/AuthPages/AuthPages.jsx';
+import { AddMaterialPage } from './pages/AddMaterialPage/AddMaterialPage.jsx';
 import { CreateObjectPage } from './pages/CreateObjectPage/CreateObjectPage.jsx';
+import { CreateOrderPage } from './pages/CreateOrderPage/CreateOrderPage.jsx';
 import { ObjectDetailPage } from './pages/ObjectDetailPage/ObjectDetailPage.jsx';
 import { ObjectsPage } from './pages/ObjectsPage/ObjectsPage.jsx';
+import { OrderDetailPage } from './pages/OrderDetailPage/OrderDetailPage.jsx';
 
 export const router = createBrowserRouter([
   {
@@ -28,6 +31,9 @@ export const router = createBrowserRouter([
       { path: 'objects', element: <ProtectedRoute><ObjectsPage /></ProtectedRoute> },
       { path: 'objects/new', element: <ProtectedRoute requireManager><CreateObjectPage /></ProtectedRoute> },
       { path: 'objects/:projectId', element: <ProtectedRoute><ObjectDetailPage /></ProtectedRoute> },
+      { path: 'objects/:projectId/orders/new', element: <ProtectedRoute><CreateOrderPage /></ProtectedRoute> },
+      { path: 'orders/:orderId', element: <ProtectedRoute><OrderDetailPage /></ProtectedRoute> },
+      { path: 'orders/:orderId/materials/new', element: <ProtectedRoute><AddMaterialPage /></ProtectedRoute> },
     ],
   },
 ]);

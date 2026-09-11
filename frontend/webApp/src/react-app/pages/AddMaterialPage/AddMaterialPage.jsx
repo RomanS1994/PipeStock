@@ -1,0 +1,140 @@
+import { useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { BackLink, Button, SearchField, StepIndicator } from '@shared/app/components/ui/PipeStockUI.jsx';
+import { useAddOrderItemMutation, useGetMaterialCatalogQuery, useGetOrderQuery } from '../../features/orders/ordersApi.js';
+import '../OrderFlow/OrderFlow.css';
+
+function unique(values) {
+  return [...new Set(values)];
+}
+
+export function AddMaterialPage() {
+  const { orderId } = useParams();
+  const navigate = useNavigate();
+  const { data: order } = useGetOrderQuery(orderId);
+  const { data: catalog = [], isLoading } = useGetMaterialCatalogQuery();
+  const [addItem, { isLoading: adding, error }] = useAddOrderItemMutation();
+  const [step, setStep] = useState(1);
+  const [categoryKey, setCategoryKey] = useState('');
+  const [diameter, setDiameter] = useState('');
+  const [catalogItemId, setCatalogItemId] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [search, setSearch] = useState('');
+
+  const categories = useMemo(() => {
+    const map = new Map();
+    catalog.forEach(item => map.set(item.categoryKey, item.categoryLabel));
+    return [...map.entries()].map(([key, label]) => ({ key, label }));
+  }, [catalog]);
+
+  const categoryItems = useMemo(() => catalog.filter(item => item.categoryKey === categoryKey), [catalog, categoryKey]);
+  const diameters = useMemo(() => unique(categoryItems.map(item => item.diameter)), [categoryItems]);
+  const typeItems = useMemo(() => categoryItems.filter(item => item.diameter === diameter && (!search.trim() || `${item.type} ${item.name}`.toLowerCase().includes(search.toLowerCase()))), [categoryItems, diameter, search]);
+  const selectedItem = catalog.find(item => item.id === catalogItemId);
+
+  function selectCategory(key) {
+    setCategoryKey(key);
+    setDiameter('');
+    setCatalogItemId('');
+    setStep(2);
+  }
+
+  function selectDiameter(value) {
+    setDiameter(value);
+    setCatalogItemId('');
+    setStep(3);
+  }
+
+  function selectType(id) {
+    setCatalogItemId(id);
+    setStep(4);
+  }
+
+  function goBackStep() {
+    if (step === 1) return navigate(`/orders/${orderId}`);
+    setStep(value => Math.max(1, value - 1));
+  }
+
+  async function handleAdd() {
+    if (!catalogItemId || quantity <= 0) return;
+    try {
+      await addItem({ orderId, catalogItemId, quantity }).unwrap();
+      navigate(`/orders/${orderId}`);
+    } catch {
+      // API error below.
+    }
+  }
+
+  return (
+    <div className="pageStack materialWizard">
+      <header className="materialWizardTopbar">
+        <button type="button" className="materialWizardBack" onClick={goBackStep} aria-label="Назад"><span>‹</span></button>
+        <strong>Додати матеріал</strong>
+        <span />
+      </header>
+      <StepIndicator current={step} total={4} />
+      <p className="materialWizardOrder">Заказ #{order?.number || '…'} · {order?.title || ''}</p>
+
+      {isLoading ? <section className="screenCard">Завантажуємо каталог…</section> : null}
+
+      {!isLoading && step === 1 ? (
+        <section className="materialWizardStage">
+          <div className="compactHeader"><h1>1. Виберіть категорію</h1><p>Оберіть тип матеріалу</p></div>
+          <div className="materialCategoryGrid">
+            {categories.map(category => (
+              <button key={category.key} type="button" className="materialCategoryCard" onClick={() => selectCategory(category.key)}>
+                <span>{category.label.slice(0, 2).toUpperCase()}</span><strong>{category.label}</strong>
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {step === 2 ? (
+        <section className="materialWizardStage">
+          <div className="compactHeader"><h1>2. Виберіть діаметр</h1><p>{categories.find(item => item.key === categoryKey)?.label}</p></div>
+          <div className="materialDiameterGrid">
+            {diameters.map(value => <button key={value} type="button" className={diameter === value ? 'is-selected' : ''} onClick={() => selectDiameter(value)}>{value}</button>)}
+          </div>
+        </section>
+      ) : null}
+
+      {step === 3 ? (
+        <section className="materialWizardStage">
+          <div className="compactHeader"><h1>3. Виберіть тип</h1><p>{categories.find(item => item.key === categoryKey)?.label} · {diameter}</p></div>
+          <SearchField value={search} onChange={event => setSearch(event.target.value)} placeholder="Пошук матеріалу…" />
+          <div className="materialTypeList">
+            {typeItems.map(item => (
+              <button key={item.id} type="button" className="materialTypeRow" onClick={() => selectType(item.id)}>
+                <span className="materialTypeMark">{item.categoryLabel.slice(0, 2).toUpperCase()}</span>
+                <span><strong>{item.type}</strong><small>{item.name}</small></span>
+                <b>›</b>
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {step === 4 && selectedItem ? (
+        <section className="materialWizardStage materialQuantityStage">
+          <div className="compactHeader"><h1>4. Вкажіть кількість</h1><p>Перевірте матеріал і додайте в заказ</p></div>
+          <div className="selectedMaterialCard">
+            <span className="selectedMaterialMark">{selectedItem.categoryLabel.slice(0, 2).toUpperCase()}</span>
+            <div><strong>{selectedItem.categoryLabel} {selectedItem.diameter}</strong><span>{selectedItem.type}</span></div>
+          </div>
+          <div className="quantityStepper">
+            <button type="button" onClick={() => setQuantity(value => Math.max(1, value - 1))}>−</button>
+            <strong>{quantity}</strong>
+            <button type="button" onClick={() => setQuantity(value => value + 1)}>+</button>
+          </div>
+          <span className="quantityUnit">{selectedItem.unit}</span>
+          <div className="quantityQuickButtons">
+            {[1, 5, 10].map(amount => <button key={amount} type="button" onClick={() => setQuantity(value => value + amount)}>+{amount}</button>)}
+          </div>
+          {error ? <p className="orderError">{error?.data?.error || 'Не вдалося додати матеріал'}</p> : null}
+          <Button fullWidth disabled={adding} onClick={handleAdd}>{adding ? 'Додаємо…' : 'Додати'}</Button>
+        </section>
+      ) : null}
+    </div>
+  );
+}
