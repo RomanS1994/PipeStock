@@ -1,9 +1,8 @@
-import { randomBytes } from 'node:crypto';
-
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../auth/current-user.js';
 import { HttpError } from '../lib/errors.js';
 import { readJsonBody, sendJson } from '../lib/http.js';
+import { createInviteCode } from '../lib/invite-code.js';
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -13,10 +12,6 @@ function getManagerMembership(user) {
   );
   if (!membership) throw new HttpError(403, 'Manager access is required');
   return membership;
-}
-
-function createInviteCode() {
-  return `PST-${randomBytes(3).toString('hex').slice(0, 5).toUpperCase()}`;
 }
 
 async function uniqueInviteCode() {
