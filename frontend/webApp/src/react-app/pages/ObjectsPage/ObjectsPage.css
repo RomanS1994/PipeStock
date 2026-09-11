@@ -6,9 +6,6 @@
 .objectsHero { display: grid; gap: 14px; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-sm); }
 .objectsTitleRow { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
 .objectsTitleRow .compactHeader { min-width: 0; }
-.companyCodeCard { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--primary-soft); }
-.companyCodeCard span { color: var(--muted); font-size: 12px; }
-.companyCodeCard strong { color: var(--primary); letter-spacing: .1em; }
 .objectsList { display: grid; gap: 10px; }
 .objectCard {
   display: grid;
