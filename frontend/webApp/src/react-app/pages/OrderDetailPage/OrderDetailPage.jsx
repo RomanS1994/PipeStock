@@ -69,7 +69,7 @@ export function OrderDetailPage() {
 
       <section className="screenCard orderMaterialsCard">
         <div className="orderSectionHeader">
-          <div><strong>Матеріали ({order.itemCount})</strong><span>Дані позицій зафіксовані на момент додавання.</span></div>
+          <div><strong>Матеріали ({order.itemCount})</strong></div>
         </div>
 
         {order.items.length ? (
@@ -85,7 +85,7 @@ export function OrderDetailPage() {
               </div>
             ))}
           </div>
-        ) : <div className="orderEmptyMaterials"><strong>Матеріалів ще немає</strong><p>Додайте першу позицію через швидкий 4-кроковий flow.</p></div>}
+        ) : <div className="orderEmptyMaterials"><strong>Матеріалів ще немає</strong><p>Додайте перший матеріал до заказа.</p></div>}
 
         {canEdit ? <Link className="psButton psButton--primary psButton--full orderButtonLink" to={`/orders/${order.id}/materials/new`}>+ Додати матеріал</Link> : null}
       </section>
@@ -125,7 +125,7 @@ export function OrderDetailPage() {
 
       {canEdit ? (
         <Button variant="secondary" fullWidth disabled={submitState.isLoading || !order.items.length} onClick={() => submitOrder(order.id)}>
-          {submitState.isLoading ? 'Відправляємо…' : 'Відправити менеджеру'}
+          {submitState.isLoading ? 'Відправляємо…' : manager ? 'Відправити' : 'Відправити менеджеру'}
         </Button>
       ) : null}
       {manager && order.status === 'SUBMITTED' ? (
