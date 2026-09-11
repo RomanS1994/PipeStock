@@ -23,10 +23,6 @@ function MaterialThumb({ item, className = 'materialTypeMark' }) {
     : <span className={className}>{item?.categoryLabel?.slice(0, 2).toUpperCase()}</span>;
 }
 
-function manufacturerText(item) {
-  return [item?.brand, item?.manufacturerSku].filter(Boolean).join(' · ');
-}
-
 export function AddMaterialPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
@@ -53,12 +49,7 @@ export function AddMaterialPage() {
 
   const categoryItems = useMemo(() => catalog.filter(item => item.categoryKey === categoryKey), [catalog, categoryKey]);
   const diameters = useMemo(() => unique(categoryItems.map(item => item.diameter)), [categoryItems]);
-  const typeItems = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    return categoryItems.filter(item => item.diameter === diameter && (!query || [item.type, item.name, item.brand, item.manufacturerSku]
-      .filter(Boolean)
-      .some(value => String(value).toLowerCase().includes(query))));
-  }, [categoryItems, diameter, search]);
+  const typeItems = useMemo(() => categoryItems.filter(item => item.diameter === diameter && (!search.trim() || `${item.type} ${item.name}`.toLowerCase().includes(search.toLowerCase()))), [categoryItems, diameter, search]);
   const selectedItem = catalog.find(item => item.id === catalogItemId);
   const selectedIsFavorite = selectedItem ? favoriteIds.has(selectedItem.id) : false;
 
@@ -126,7 +117,7 @@ export function AddMaterialPage() {
             <div className="materialShortcutSection">
               <div className="materialShortcutHeading"><span><Icon name="star" size={16} /> Обране</span><small>{favorites.length}</small></div>
               <div className="materialShortcutList">
-                {favorites.slice(0, 6).map(item => <button key={item.id} type="button" onClick={() => selectShortcut(item)}><strong>{item.categoryLabel} {item.diameter}</strong><span>{manufacturerText(item) || item.type}</span></button>)}
+                {favorites.slice(0, 6).map(item => <button key={item.id} type="button" onClick={() => selectShortcut(item)}><strong>{item.categoryLabel} {item.diameter}</strong><span>{item.type}</span></button>)}
               </div>
             </div>
           ) : null}
@@ -135,7 +126,7 @@ export function AddMaterialPage() {
             <div className="materialShortcutSection">
               <div className="materialShortcutHeading"><span><Icon name="clock" size={16} /> Нещодавні</span><small>{recent.length}</small></div>
               <div className="materialShortcutList">
-                {recent.slice(0, 6).map(item => <button key={item.id} type="button" onClick={() => selectShortcut(item)}><strong>{item.categoryLabel} {item.diameter}</strong><span>{manufacturerText(item) || item.type}</span></button>)}
+                {recent.slice(0, 6).map(item => <button key={item.id} type="button" onClick={() => selectShortcut(item)}><strong>{item.categoryLabel} {item.diameter}</strong><span>{item.type}</span></button>)}
               </div>
             </div>
           ) : null}
@@ -163,12 +154,12 @@ export function AddMaterialPage() {
       {step === 3 ? (
         <section className="materialWizardStage">
           <div className="compactHeader"><h1>3. Виберіть тип</h1><p>{categories.find(item => item.key === categoryKey)?.label} · {diameter}</p></div>
-          <SearchField value={search} onChange={event => setSearch(event.target.value)} placeholder="Пошук типу, бренду або артикула…" />
+          <SearchField value={search} onChange={event => setSearch(event.target.value)} placeholder="Пошук матеріалу…" />
           <div className="materialTypeList">
             {typeItems.map(item => (
               <button key={item.id} type="button" className="materialTypeRow" onClick={() => selectType(item.id)}>
                 <MaterialThumb item={item} />
-                <span><strong>{item.type}</strong><small>{manufacturerText(item) || item.name}</small></span>
+                <span><strong>{item.type}</strong><small>{item.name}</small></span>
                 <b>›</b>
               </button>
             ))}
@@ -181,10 +172,9 @@ export function AddMaterialPage() {
           <div className="compactHeader"><h1>4. Вкажіть кількість</h1><p>Перевірте матеріал і додайте в заказ</p></div>
           <div className="selectedMaterialCard">
             <MaterialThumb item={selectedItem} className="selectedMaterialMark" />
-            <div><strong>{selectedItem.categoryLabel} {selectedItem.diameter}</strong><span>{selectedItem.type}</span>{manufacturerText(selectedItem) ? <small>{manufacturerText(selectedItem)}</small> : null}</div>
+            <div><strong>{selectedItem.categoryLabel} {selectedItem.diameter}</strong><span>{selectedItem.type}</span></div>
             <button type="button" className={`materialFavoriteButton${selectedIsFavorite ? ' is-active' : ''}`} onClick={toggleFavorite} aria-label={selectedIsFavorite ? 'Прибрати з обраного' : 'Додати в обране'}><Icon name="star" size={19} /></button>
           </div>
-          {selectedItem.sourceUrl ? <a className="materialOfficialProductLink" href={selectedItem.sourceUrl} target="_blank" rel="noreferrer">Офіційна сторінка виробника ↗</a> : null}
           <div className="quantityStepper">
             <button type="button" onClick={() => setQuantity(value => Math.max(1, value - 1))}>−</button>
             <strong>{quantity}</strong>
