@@ -33,6 +33,9 @@ function normalizeItem(item) {
     type: item.type,
     unit: item.unit,
     sku: item.sku || null,
+    brand: item.brand || null,
+    manufacturerSku: item.manufacturerSku || null,
+    sourceUrl: item.sourceUrl || null,
     quantity: Number(item.quantity),
   };
 }
@@ -84,6 +87,11 @@ function formatDate(value) {
 function text(value, fallback = '-') {
   const normalized = String(value ?? '').trim();
   return normalized || fallback;
+}
+
+function manufacturerLabel(item) {
+  const parts = [item.brand, item.manufacturerSku].filter(Boolean);
+  return parts.length ? parts.join(' · ') : '-';
 }
 
 function createDefinition(snapshot) {
@@ -153,13 +161,14 @@ function createDefinition(snapshot) {
       {
         table: {
           headerRows: 1,
-          widths: [24, 72, 62, '*', 48],
+          widths: [22, 58, 48, '*', 76, 42],
           body: [
             [
               { text: '#', style: 'tableHeader' },
               { text: 'Матеріал', style: 'tableHeader' },
               { text: 'Діаметр', style: 'tableHeader' },
               { text: 'Тип', style: 'tableHeader' },
+              { text: 'Виробник / SKU', style: 'tableHeader' },
               { text: 'К-сть', style: 'tableHeader', alignment: 'right' },
             ],
             ...items.map((item, index) => [
@@ -167,6 +176,7 @@ function createDefinition(snapshot) {
               text(item.categoryLabel || item.materialName),
               text(item.diameter),
               text(item.type || item.materialName),
+              manufacturerLabel(item),
               { text: `${item.quantity} ${text(item.unit, '')}`.trim(), alignment: 'right' },
             ]),
           ],
@@ -177,8 +187,8 @@ function createDefinition(snapshot) {
           },
           hLineColor: '#E5E7EB',
           vLineColor: '#E5E7EB',
-          paddingLeft: () => 7,
-          paddingRight: () => 7,
+          paddingLeft: () => 6,
+          paddingRight: () => 6,
           paddingTop: () => 6,
           paddingBottom: () => 6,
         },
