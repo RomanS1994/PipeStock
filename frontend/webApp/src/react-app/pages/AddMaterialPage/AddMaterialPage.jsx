@@ -77,7 +77,17 @@ export function AddMaterialPage() {
     setCategoryKey(item.categoryKey);
     setDiameter(item.diameter);
     setCatalogItemId(item.id);
+    setQuantity(1);
     setStep(4);
+  }
+
+  function resetForNextMaterial() {
+    setCategoryKey('');
+    setDiameter('');
+    setCatalogItemId('');
+    setQuantity(1);
+    setSearch('');
+    setStep(1);
   }
 
   function goBackStep() {
@@ -95,7 +105,7 @@ export function AddMaterialPage() {
     if (!catalogItemId || quantity <= 0) return;
     try {
       await addItem({ orderId, catalogItemId, quantity }).unwrap();
-      navigate(`/orders/${orderId}`);
+      resetForNextMaterial();
     } catch {
       // API error below.
     }
