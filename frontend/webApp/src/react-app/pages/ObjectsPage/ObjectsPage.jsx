@@ -9,8 +9,8 @@ import {
   SearchField,
   StatusChip,
 } from '@shared/app/components/ui/PipeStockUI.jsx';
+import { WorkspaceNavigation } from '../../components/WorkspaceNavigation/WorkspaceNavigation.jsx';
 import { selectUser } from '../../features/auth/authSlice.js';
-import { useLogoutMutation } from '../../features/auth/authApi.js';
 import { useGetProjectsQuery } from '../../features/projects/projectsApi.js';
 import './ObjectsPage.css';
 
@@ -25,7 +25,6 @@ export function ObjectsPage() {
   const navigate = useNavigate();
   const user = useSelector(selectUser);
   const [search, setSearch] = useState('');
-  const [logout] = useLogoutMutation();
   const { data: projects = [], isLoading, isError, refetch } = useGetProjectsQuery();
   const membership = (user?.memberships || []).find(item => item.status === 'ACTIVE');
   const manager = membership?.role === 'MANAGER';
@@ -39,11 +38,6 @@ export function ObjectsPage() {
         .some(value => value.toLowerCase().includes(query)),
     );
   }, [projects, search]);
-
-  async function handleLogout() {
-    await logout();
-    navigate('/sign-in', { replace: true });
-  }
 
   return (
     <div className="pageStack objectsPage">
@@ -73,17 +67,9 @@ export function ObjectsPage() {
         ) : null}
       </section>
 
-      <SearchField
-        value={search}
-        onChange={event => setSearch(event.target.value)}
-        placeholder="Пошук об’єктів..."
-        aria-label="Пошук об’єктів"
-      />
+      <SearchField value={search} onChange={event => setSearch(event.target.value)} placeholder="Пошук об’єктів..." aria-label="Пошук об’єктів" />
 
-      {isLoading ? (
-        <section className="screenCard objectsState"><strong>Завантажуємо об’єкти…</strong></section>
-      ) : null}
-
+      {isLoading ? <section className="screenCard objectsState"><strong>Завантажуємо об’єкти…</strong></section> : null}
       {isError ? (
         <section className="screenCard objectsState">
           <strong>Не вдалося завантажити об’єкти</strong>
@@ -95,17 +81,9 @@ export function ObjectsPage() {
         <section className="screenCard objectsEmpty">
           <div className="objectsEmpty-icon"><Icon name="building" size={24} /></div>
           <strong>{search ? 'Нічого не знайдено' : 'Поки немає об’єктів'}</strong>
-          <p>
-            {search
-              ? 'Спробуйте змінити пошуковий запит.'
-              : manager
-                ? 'Створіть перший об’єкт і призначте працівників.'
-                : 'Об’єкти, призначені вам менеджером, з’являться тут.'}
-          </p>
+          <p>{search ? 'Спробуйте змінити пошуковий запит.' : manager ? 'Створіть перший об’єкт і призначте працівників.' : 'Об’єкти, призначені вам менеджером, з’являться тут.'}</p>
           {!search && manager ? (
-            <button type="button" className="objectsCreateEmpty" onClick={() => navigate('/objects/new')}>
-              <Icon name="plus" size={18} /> Створити об’єкт
-            </button>
+            <button type="button" className="objectsCreateEmpty" onClick={() => navigate('/objects/new')}><Icon name="plus" size={18} /> Створити об’єкт</button>
           ) : null}
         </section>
       ) : null}
@@ -114,22 +92,11 @@ export function ObjectsPage() {
         <section className="objectsList" aria-label="Список об’єктів">
           {visibleProjects.map(project => (
             <Link className="objectCard" key={project.id} to={`/objects/${project.id}`}>
-              <div className="objectCard-media">
-                {project.imageUrl ? <img src={project.imageUrl} alt="" /> : <Icon name="building" size={25} />}
-              </div>
+              <div className="objectCard-media">{project.imageUrl ? <img src={project.imageUrl} alt="" /> : <Icon name="building" size={25} />}</div>
               <div className="objectCard-copy">
-                <div className="objectCard-titleRow">
-                  <strong>{project.name}</strong>
-                  <StatusChip status={project.status}>{STATUS_LABELS[project.status] || project.status}</StatusChip>
-                </div>
-                <span className="objectCard-address">
-                  <Icon name="mapPin" size={14} />
-                  {project.address || 'Адресу не вказано'}
-                </span>
-                <span className="objectCard-meta">
-                  <Icon name="users" size={14} />
-                  {project.employees?.length || 0} {project.employees?.length === 1 ? 'працівник' : 'працівників'}
-                </span>
+                <div className="objectCard-titleRow"><strong>{project.name}</strong><StatusChip status={project.status}>{STATUS_LABELS[project.status] || project.status}</StatusChip></div>
+                <span className="objectCard-address"><Icon name="mapPin" size={14} />{project.address || 'Адресу не вказано'}</span>
+                <span className="objectCard-meta"><Icon name="users" size={14} />{project.employees?.length || 0} {project.employees?.length === 1 ? 'працівник' : 'працівників'}</span>
               </div>
               <Icon name="chevronRight" size={19} className="objectCard-chevron" />
             </Link>
@@ -137,7 +104,7 @@ export function ObjectsPage() {
         </section>
       ) : null}
 
-      <button type="button" className="objectsLogout" onClick={handleLogout}>Вийти з аккаунту</button>
+      <WorkspaceNavigation />
     </div>
   );
 }
