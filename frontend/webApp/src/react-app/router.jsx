@@ -11,6 +11,8 @@ import {
   SignInPage,
   WelcomePage,
 } from './pages/AuthPages/AuthPages.jsx';
+import { CreateObjectPage } from './pages/CreateObjectPage/CreateObjectPage.jsx';
+import { ObjectDetailPage } from './pages/ObjectDetailPage/ObjectDetailPage.jsx';
 import { ObjectsPage } from './pages/ObjectsPage/ObjectsPage.jsx';
 
 export const router = createBrowserRouter([
@@ -24,6 +26,8 @@ export const router = createBrowserRouter([
       { path: 'register/employee', element: <EmployeeRegistrationPage /> },
       { path: 'join-company', element: <ProtectedRoute requireCompany={false}><JoinCompanyPage /></ProtectedRoute> },
       { path: 'objects', element: <ProtectedRoute><ObjectsPage /></ProtectedRoute> },
+      { path: 'objects/new', element: <ProtectedRoute requireManager><CreateObjectPage /></ProtectedRoute> },
+      { path: 'objects/:projectId', element: <ProtectedRoute><ObjectDetailPage /></ProtectedRoute> },
     ],
   },
 ]);
