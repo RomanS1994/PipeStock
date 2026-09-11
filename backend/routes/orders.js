@@ -2,6 +2,7 @@ import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../auth/current-user.js';
 import { HttpError } from '../lib/errors.js';
 import { readJsonBody, sendJson } from '../lib/http.js';
+import { buildOrderSnapshot, createOrderPdf } from '../lib/order-document.js';
 
 function normalizeText(value) {
   return String(value ?? '').trim();
@@ -38,6 +39,7 @@ async function requireProjectAccess(projectId, membership) {
 }
 
 const orderInclude = {
+  company: { select: { id: true, name: true } },
   project: { select: { id: true, name: true, address: true, status: true } },
   createdByMembership: {
     include: {
@@ -45,6 +47,7 @@ const orderInclude = {
     },
   },
   items: { orderBy: { createdAt: 'asc' } },
+  snapshot: true,
 };
 
 function serializeItem(item) {
@@ -83,6 +86,8 @@ function serializeOrder(order) {
     createdByMembershipId: order.createdByMembershipId,
     items: (order.items || []).map(serializeItem),
     itemCount: order.items?.length || 0,
+    documentAvailable: order.status !== 'DRAFT',
+    snapshotCreatedAt: order.snapshot?.createdAt || null,
   };
 }
 
@@ -268,11 +273,29 @@ async function submitOrder(request, response, orderId) {
   const order = await findOrder(orderId, membership);
   assertDraftEditAccess(order, membership);
   if (!order.items?.length) throw new HttpError(409, 'Add at least one material before submitting');
-  const updated = await prisma.order.update({
-    where: { id: orderId },
-    data: { status: 'SUBMITTED', submittedAt: new Date() },
-    include: orderInclude,
+
+  const submittedAt = new Date();
+  const snapshotPayload = buildOrderSnapshot(order, {
+    status: 'SUBMITTED',
+    submittedAt,
   });
+
+  const updated = await prisma.$transaction(async tx => {
+    await tx.orderSnapshot.create({
+      data: {
+        orderId,
+        version: 1,
+        payload: snapshotPayload,
+      },
+    });
+
+    return tx.order.update({
+      where: { id: orderId },
+      data: { status: 'SUBMITTED', submittedAt },
+      include: orderInclude,
+    });
+  });
+
   sendJson(response, 200, { order: serializeOrder(updated) });
 }
 
@@ -281,12 +304,55 @@ async function completeOrder(request, response, orderId) {
   const membership = requireMembership(user, 'MANAGER');
   const order = await findOrder(orderId, membership);
   if (order.status !== 'SUBMITTED') throw new HttpError(409, 'Only submitted orders can be completed');
-  const updated = await prisma.order.update({
-    where: { id: orderId },
-    data: { status: 'COMPLETED', completedAt: new Date() },
-    include: orderInclude,
+
+  const completedAt = new Date();
+  const updated = await prisma.$transaction(async tx => {
+    if (!order.snapshot) {
+      await tx.orderSnapshot.create({
+        data: {
+          orderId,
+          version: 1,
+          payload: buildOrderSnapshot(order),
+        },
+      });
+    }
+
+    return tx.order.update({
+      where: { id: orderId },
+      data: { status: 'COMPLETED', completedAt },
+      include: orderInclude,
+    });
   });
+
   sendJson(response, 200, { order: serializeOrder(updated) });
+}
+
+async function downloadOrderPdf(request, response, orderId) {
+  const user = await requireAuth(request);
+  const membership = requireMembership(user);
+  const order = await findOrder(orderId, membership);
+  if (order.status === 'DRAFT') throw new HttpError(409, 'Submit the order before downloading PDF');
+
+  let snapshot = order.snapshot;
+  if (!snapshot) {
+    snapshot = await prisma.orderSnapshot.create({
+      data: {
+        orderId,
+        version: 1,
+        payload: buildOrderSnapshot(order),
+      },
+    });
+  }
+
+  const buffer = await createOrderPdf(snapshot.payload);
+  if (response.writableEnded) return;
+  response.writeHead(200, {
+    'Content-Type': 'application/pdf',
+    'Content-Disposition': `attachment; filename="pipestock-order-${order.number}.pdf"`,
+    'Content-Length': String(buffer.length),
+    'Cache-Control': 'private, no-store',
+  });
+  response.end(buffer);
 }
 
 export async function handleOrderRoutes(request, response, { pathName }) {
@@ -337,6 +403,12 @@ export async function handleOrderRoutes(request, response, { pathName }) {
   const completeMatch = pathName.match(/^\/api\/orders\/([^/]+)\/complete$/);
   if (completeMatch && request.method === 'POST') {
     await completeOrder(request, response, decodeURIComponent(completeMatch[1]));
+    return true;
+  }
+
+  const pdfMatch = pathName.match(/^\/api\/orders\/([^/]+)\/pdf$/);
+  if (pdfMatch && request.method === 'GET') {
+    await downloadOrderPdf(request, response, decodeURIComponent(pdfMatch[1]));
     return true;
   }
 
