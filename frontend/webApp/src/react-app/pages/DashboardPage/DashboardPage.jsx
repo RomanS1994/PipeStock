@@ -26,9 +26,8 @@ export function DashboardPage() {
         <>
           <section className="dashboardStats">
             <Link to="/objects" className="dashboardStat"><Icon name="building" size={20} /><span>Активні об’єкти</span><strong>{stats.activeProjects || 0}</strong></Link>
+            <Link to="/orders" className="dashboardStat"><Icon name="clipboard" size={20} /><span>Нові закази</span><strong>{stats.submittedOrders || 0}</strong></Link>
             <Link to="/employees" className="dashboardStat"><Icon name="users" size={20} /><span>Працівники</span><strong>{stats.activeEmployees || 0}</strong></Link>
-            <Link to="/orders" className="dashboardStat"><Icon name="clipboard" size={20} /><span>Очікують</span><strong>{stats.submittedOrders || 0}</strong></Link>
-            <Link to="/history" className="dashboardStat"><Icon name="history" size={20} /><span>Завершені</span><strong>{stats.completedOrders || 0}</strong></Link>
           </section>
 
           <section className="screenCard dashboardOrders">
