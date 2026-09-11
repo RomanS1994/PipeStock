@@ -164,8 +164,8 @@ export function JoinCompanyPage() {
     <AuthShell backTo="/role" step={{ current: 3, total: 4 }}>
       <AuthHeading title="Приєднання до компанії" description="Введіть код компанії, який надав ваш керівник." />
       <form className="authForm" onSubmit={submit}>
-        <TextField icon="building" placeholder="Код компанії" value={joinCode} onChange={event => setJoinCode(event.target.value.toUpperCase())} maxLength={6} autoCapitalize="characters" required />
-        <p className="authHint">Наприклад: AB12C3</p>
+        <TextField icon="building" placeholder="PST-82KM4" value={joinCode} onChange={event => setJoinCode(event.target.value.toUpperCase())} maxLength={9} autoCapitalize="characters" required />
+        <p className="authHint">Наприклад: PST-82KM4</p>
         {error ? <p className="authError">{error}</p> : null}
         <Button type="submit" fullWidth disabled={isLoading}>{isLoading ? 'Перевіряємо…' : 'Приєднатися'}</Button>
       </form>
