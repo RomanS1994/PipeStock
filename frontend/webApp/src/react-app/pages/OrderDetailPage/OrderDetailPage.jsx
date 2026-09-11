@@ -13,6 +13,10 @@ import '../OrderFlow/OrderFlow.css';
 
 const STATUS_LABELS = { DRAFT: 'Draft', SUBMITTED: 'Submitted', COMPLETED: 'Completed' };
 
+function manufacturerText(item) {
+  return [item.brand, item.manufacturerSku].filter(Boolean).join(' · ');
+}
+
 export function OrderDetailPage() {
   const { orderId } = useParams();
   const user = useSelector(selectUser);
@@ -57,16 +61,27 @@ export function OrderDetailPage() {
 
         {order.items.length ? (
           <div className="orderItemList">
-            {order.items.map(item => (
-              <div className="orderItemRow" key={item.id}>
-                <div className={`orderMaterialMark${item.imageUrl ? ' has-image' : ''}`}>
-                  {item.imageUrl ? <img src={item.imageUrl} alt="" /> : item.categoryLabel.slice(0, 2).toUpperCase()}
+            {order.items.map(item => {
+              const manufacturer = manufacturerText(item);
+              return (
+                <div className="orderItemRow" key={item.id}>
+                  <div className={`orderMaterialMark${item.imageUrl ? ' has-image' : ''}`}>
+                    {item.imageUrl ? <img src={item.imageUrl} alt="" /> : item.categoryLabel.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="orderItemCopy">
+                    <strong>{item.categoryLabel} {item.diameter}</strong>
+                    <span>{item.type}</span>
+                    {manufacturer ? (
+                      item.sourceUrl
+                        ? <a href={item.sourceUrl} target="_blank" rel="noreferrer">{manufacturer} ↗</a>
+                        : <small>{manufacturer}</small>
+                    ) : null}
+                  </div>
+                  <strong className="orderItemQty">{item.quantity} {item.unit}</strong>
+                  {canEdit ? <button className="orderRemoveItem" type="button" aria-label="Видалити матеріал" onClick={() => deleteItem({ orderId: order.id, itemId: item.id })}>×</button> : null}
                 </div>
-                <div className="orderItemCopy"><strong>{item.categoryLabel} {item.diameter}</strong><span>{item.type}</span></div>
-                <strong className="orderItemQty">{item.quantity} {item.unit}</strong>
-                {canEdit ? <button className="orderRemoveItem" type="button" aria-label="Видалити матеріал" onClick={() => deleteItem({ orderId: order.id, itemId: item.id })}>×</button> : null}
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : <div className="orderEmptyMaterials"><strong>Матеріалів ще немає</strong><p>Додайте першу позицію через швидкий 4-кроковий flow.</p></div>}
 
