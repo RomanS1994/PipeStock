@@ -12,7 +12,7 @@ import {
 } from '../../features/orders/ordersApi.js';
 import '../OrderFlow/OrderFlow.css';
 import './AddMaterialPage.css';
-import { getMaterialCategoryImage, getMaterialImage } from './materialImages.js';
+import { getMaterialCategoryImage, getMaterialImage } from './materialImageResolver.js';
 
 function unique(values) {
   return [...new Set(values)];
