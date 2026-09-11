@@ -1,0 +1,10 @@
+.createObjectPage { padding-bottom: 24px; }
+.createObjectHeader { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; align-items: start; gap: 8px; }
+.createObjectHeader > div { text-align: center; }
+.createObjectHeader h1 { margin: 0; font-size: 21px; letter-spacing: -.02em; }
+.createObjectHeader p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+.createObjectCard { padding: 18px; }
+
+@media (max-width: 420px) {
+  .createObjectCard { padding: 16px; }
+}
