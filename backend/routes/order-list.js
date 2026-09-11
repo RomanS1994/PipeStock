@@ -47,6 +47,7 @@ export async function handleOrderListRoutes(request, response, { pathName }) {
       project: order.project,
       worker: order.createdByMembership?.user || null,
       itemCount: order._count.items,
+      documentAvailable: order.status !== 'DRAFT',
     })),
   });
 
