@@ -43,8 +43,8 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  sessions         Session[]
-  memberships      CompanyMembership[]
+  sessions          Session[]
+  memberships       CompanyMembership[]
   materialFavorites MaterialFavorite[]
 
   @@index([deletedAt])
@@ -195,6 +195,7 @@ model Order {
   project             Project           @relation(fields: [projectId], references: [id], onDelete: Restrict)
   createdByMembership CompanyMembership @relation("OrderCreator", fields: [createdByMembershipId], references: [id], onDelete: Restrict)
   items               OrderItem[]
+  snapshot            OrderSnapshot?
 
   @@index([companyId, status])
   @@index([projectId, createdAt])
@@ -225,4 +226,17 @@ model OrderItem {
   @@index([orderId])
   @@index([catalogItemId])
   @@map("order_items")
+}
+
+model OrderSnapshot {
+  id        String   @id @default(cuid())
+  orderId   String   @unique
+  version   Int      @default(1)
+  payload   Json
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@map("order_snapshots")
 }
