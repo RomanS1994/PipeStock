@@ -5,14 +5,20 @@ import './PipeStockUI.css';
 const iconPaths = {
   arrowLeft: 'M15 18l-6-6 6-6',
   building: 'M3 21h18M5 21V7l7-4v18M19 21V11l-7-4M9 9h.01M9 13h.01M9 17h.01M15 13h.01M15 17h.01',
+  check: 'M20 6 9 17l-5-5',
   chevronRight: 'M9 18l6-6-6-6',
+  edit: 'M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z',
   eye: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z',
   eyeOff: 'M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 4.2A11 11 0 0 1 12 4c6.5 0 10 8 10 8a17 17 0 0 1-2.1 3.1M6.2 6.2C3.4 8.1 2 12 2 12s3.5 8 10 8a10 10 0 0 0 4.1-.9',
   hardHat: 'M2 18h20M5 18v-2a7 7 0 0 1 14 0v2M9 9V5h6v4M12 5V2',
   lock: 'M6 10V8a6 6 0 0 1 12 0v2M5 10h14v11H5z',
   mail: 'M4 5h16v14H4zM4 7l8 6 8-6',
+  mapPin: 'M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Zm-8 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z',
   phone: 'M5 3l4 2-2 4a16 16 0 0 0 8 8l4-2 2 4-2 2C10 21 3 14 3 5z',
+  plus: 'M12 5v14M5 12h14',
+  search: 'M21 21l-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z',
   user: 'M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z',
+  users: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
 };
 
 export function Icon({ name, size = 20, strokeWidth = 1.8, className = '' }) {
@@ -38,6 +44,14 @@ export function Button({ variant = 'primary', fullWidth = false, className = '',
   return <button type={type} className={`psButton psButton--${variant}${fullWidth ? ' psButton--full' : ''} ${className}`.trim()} {...props} />;
 }
 
+export function IconButton({ icon, label, className = '', ...props }) {
+  return (
+    <button type="button" className={`psIconButton ${className}`.trim()} aria-label={label} {...props}>
+      <Icon name={icon} size={20} />
+    </button>
+  );
+}
+
 export function TextField({ label, icon, type = 'text', error, hint, className = '', ...props }) {
   const id = useId();
   const [showPassword, setShowPassword] = useState(false);
@@ -59,6 +73,20 @@ export function TextField({ label, icon, type = 'text', error, hint, className =
       {error ? <span className="psField-error">{error}</span> : hint ? <span className="psField-hint">{hint}</span> : null}
     </label>
   );
+}
+
+export function SearchField({ className = '', ...props }) {
+  return (
+    <label className={`psSearch ${className}`.trim()}>
+      <Icon name="search" size={18} />
+      <input type="search" {...props} />
+    </label>
+  );
+}
+
+export function StatusChip({ status, children }) {
+  const normalized = String(status || '').toLowerCase();
+  return <span className={`psStatusChip psStatusChip--${normalized}`}>{children}</span>;
 }
 
 export function StepIndicator({ current = 1, total = 4 }) {
