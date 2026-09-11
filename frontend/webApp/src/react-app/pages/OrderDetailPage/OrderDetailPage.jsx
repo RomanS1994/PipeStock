@@ -59,7 +59,9 @@ export function OrderDetailPage() {
           <div className="orderItemList">
             {order.items.map(item => (
               <div className="orderItemRow" key={item.id}>
-                <div className="orderMaterialMark">{item.categoryLabel.slice(0, 2).toUpperCase()}</div>
+                <div className={`orderMaterialMark${item.imageUrl ? ' has-image' : ''}`}>
+                  {item.imageUrl ? <img src={item.imageUrl} alt="" /> : item.categoryLabel.slice(0, 2).toUpperCase()}
+                </div>
                 <div className="orderItemCopy"><strong>{item.categoryLabel} {item.diameter}</strong><span>{item.type}</span></div>
                 <strong className="orderItemQty">{item.quantity} {item.unit}</strong>
                 {canEdit ? <button className="orderRemoveItem" type="button" aria-label="Видалити матеріал" onClick={() => deleteItem({ orderId: order.id, itemId: item.id })}>×</button> : null}
