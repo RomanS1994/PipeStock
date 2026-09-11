@@ -74,7 +74,6 @@ export function SignInPage() {
         {error ? <p className="authError">{error}</p> : null}
         <Button type="submit" fullWidth disabled={isLoading}>{isLoading ? 'Входимо…' : 'Увійти'}</Button>
       </form>
-      <div className="authDivider"><span>або</span></div>
       <p className="authSwitch">Немає аккаунту? <Link to="/role">Зареєструватися</Link></p>
     </AuthShell>
   );
@@ -83,7 +82,7 @@ export function SignInPage() {
 export function RoleSelectionPage() {
   const navigate = useNavigate();
   return (
-    <AuthShell backTo="/sign-in" step={{ current: 1, total: 4 }}>
+    <AuthShell backTo="/sign-in">
       <AuthHeading title="Хто ви?" description="Виберіть свою роль у PipeStock, щоб отримати відповідні можливості." />
       <div className="roleGrid">
         <RoleCard icon="hardHat" title="Менеджер" description="Керую роботою з об’єктами, заказами та командою." onClick={() => navigate('/register/manager')} />
@@ -121,7 +120,7 @@ function RegistrationForm({ mode }) {
   }
 
   return (
-    <AuthShell backTo="/role" step={{ current: 2, total: 4 }}>
+    <AuthShell backTo="/role">
       <AuthHeading
         title={manager ? 'Реєстрація менеджера' : 'Реєстрація працівника'}
         description={manager ? 'Створіть аккаунт, щоб керувати об’єктами та командою.' : 'Створіть аккаунт, щоб приєднатися до компанії.'}
@@ -166,7 +165,7 @@ export function JoinCompanyPage() {
   }
 
   return (
-    <AuthShell backTo="/role" step={{ current: 3, total: 4 }}>
+    <AuthShell backTo="/role">
       <AuthHeading title="Приєднання до компанії" description="Введіть код компанії, який надав ваш керівник." />
       <form className="authForm" onSubmit={submit}>
         <TextField icon="building" placeholder="PST-82KM4" value={joinCode} onChange={event => setJoinCode(event.target.value.toUpperCase())} maxLength={9} autoCapitalize="characters" required />
