@@ -6,7 +6,7 @@ import { WorkspaceNavigation } from '../../components/WorkspaceNavigation/Worksp
 import { useGetOrdersQuery } from '../../features/orders/ordersApi.js';
 import './HistoryPage.css';
 
-const STATUS_LABELS = { SUBMITTED: 'Відправлено', COMPLETED: 'Завершено' };
+const STATUS_LABELS = { SUBMITTED: 'Submitted', COMPLETED: 'Completed' };
 
 export function HistoryPage() {
   const { data: orders = [], isLoading, isError, refetch } = useGetOrdersQuery();
@@ -36,7 +36,7 @@ export function HistoryPage() {
       <SearchField value={search} onChange={event => setSearch(event.target.value)} placeholder="Пошук в історії…" />
 
       <div className="historyFilters">
-        {[['ALL','Усі'],['SUBMITTED','Відправлені'],['COMPLETED','Завершені']].map(([value,label]) => (
+        {[['ALL','Усі'],['SUBMITTED','Submitted'],['COMPLETED','Completed']].map(([value,label]) => (
           <button key={value} type="button" className={status===value?'is-active':''} onClick={() => setStatus(value)}>{label}</button>
         ))}
       </div>
