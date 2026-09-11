@@ -1,0 +1,16 @@
+.ordersPage { padding-bottom: 88px; }
+.ordersPage-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ordersFilters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.ordersFilters::-webkit-scrollbar { display: none; }
+.ordersFilters button { min-height: 34px; padding: 0 12px; border-radius: var(--radius-full); border: 1px solid var(--line); color: var(--muted); background: var(--surface); white-space: nowrap; }
+.ordersFilters button.is-active { color: var(--primary); border-color: #c9dcff; background: var(--primary-soft); }
+.ordersList { display: grid; gap: 10px; }
+.orderListCard { display: grid; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-md); color: var(--text); background: var(--surface); text-decoration: none; box-shadow: var(--shadow-sm); }
+.orderListCard-top { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.orderListCard-top > div { display: grid; min-width: 0; gap: 3px; }
+.orderListCard-top span { color: var(--muted); font-size: 11px; }
+.orderListCard-top strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }
+.orderListCard-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+.ordersState { justify-items: center; text-align: center; }
+.ordersState p { margin: 0; color: var(--muted); font-size: 12px; }
+.ordersState button { border: 0; color: var(--primary); background: transparent; }
