@@ -7,6 +7,11 @@ const EXTRA_MATERIAL_IMAGES = {
   'cu|prechodka m': '/materials/cu-male-adapter.webp',
   'cu|zátka': '/materials/cu-cap.webp',
   'cu|zatka': '/materials/cu-cap.webp',
+  'ppr|trubka': '/materials/ppr-pipe.webp',
+  'ppr|spojka': '/materials/ppr-coupling.webp',
+  'ppr|redukce': '/materials/ppr-reducer.webp',
+  'ppr|přechodka m': '/materials/ppr-male-adapter.webp',
+  'ppr|prechodka m': '/materials/ppr-male-adapter.webp',
 };
 
 export function getMaterialImage(item) {
