@@ -1,5 +1,6 @@
 import { HttpError } from '../lib/errors.js';
 import { handleAuthRoutes } from './auth.js';
+import { handleManagerRoutes } from './manager.js';
 import { handleMaterialRoutes } from './materials.js';
 import { handleMeRoutes } from './me.js';
 import { handleOrderListRoutes } from './order-list.js';
@@ -12,6 +13,7 @@ const routeHandlers = [
   handleAuthRoutes,
   handleMeRoutes,
   handleProjectRoutes,
+  handleManagerRoutes,
   handleMaterialRoutes,
   handleOrderListRoutes,
   handleOrderRoutes,
