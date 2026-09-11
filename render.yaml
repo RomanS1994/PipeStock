@@ -4,7 +4,8 @@ services:
     runtime: node
     region: frankfurt
     branch: main
-    buildCommand: npm install --include=dev && npm --prefix backend install --include=dev && npm run build
+    rootDir: backend
+    buildCommand: npm install --include=dev && npm run db:generate
     preDeployCommand: npm run db:migrate:deploy
     startCommand: npm start
     healthCheckPath: /api/health
@@ -19,4 +20,6 @@ services:
       - key: DIRECT_DATABASE_URL
         sync: false
       - key: AUTH_TOKEN_SECRET
+        sync: false
+      - key: CLIENT_ORIGIN
         sync: false
