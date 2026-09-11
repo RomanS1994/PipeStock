@@ -16,6 +16,17 @@ function requireMembership(user, role) {
   return membership;
 }
 
+function normalizeText(value) {
+  return String(value ?? '').trim();
+}
+
+function assertHttpsUrl(value, fieldName) {
+  if (!value) return null;
+  if (value.length > 2000) throw new HttpError(400, `${fieldName} is too long`);
+  if (!/^https:\/\//i.test(value)) throw new HttpError(400, `${fieldName} must use HTTPS`);
+  return value;
+}
+
 function serializeCatalogItem(item, extra = {}) {
   return {
     id: item.id,
@@ -28,6 +39,11 @@ function serializeCatalogItem(item, extra = {}) {
     unit: item.unit,
     sku: item.sku,
     imageUrl: item.imageUrl,
+    brand: item.brand,
+    manufacturerSku: item.manufacturerSku,
+    sourceUrl: item.sourceUrl,
+    imageSourceUrl: item.imageSourceUrl,
+    sourceLabel: item.sourceLabel,
     ...extra,
   };
 }
@@ -105,21 +121,57 @@ async function removeFavorite(request, response, catalogItemId) {
   sendJson(response, 200, { ok: true });
 }
 
+async function requireCatalogItem(catalogItemId) {
+  const item = await prisma.materialCatalogItem.findFirst({ where: { id: catalogItemId, isActive: true } });
+  if (!item) throw new HttpError(404, 'Material was not found');
+  return item;
+}
+
 async function updateCatalogImage(request, response, catalogItemId) {
   const user = await requireAuth(request);
   requireMembership(user, 'MANAGER');
+  await requireCatalogItem(catalogItemId);
   const body = await readJsonBody(request);
-  const imageUrl = String(body.imageUrl || '').trim();
-  if (imageUrl.length > 1500) throw new HttpError(400, 'Image URL is too long');
-  if (imageUrl && !/^https:\/\//i.test(imageUrl)) throw new HttpError(400, 'Image URL must use HTTPS');
-
-  const current = await prisma.materialCatalogItem.findFirst({ where: { id: catalogItemId, isActive: true } });
-  if (!current) throw new HttpError(404, 'Material was not found');
+  const imageUrl = assertHttpsUrl(normalizeText(body.imageUrl), 'Image URL');
 
   const item = await prisma.materialCatalogItem.update({
     where: { id: catalogItemId },
-    data: { imageUrl: imageUrl || null },
+    data: { imageUrl },
   });
+  sendJson(response, 200, { item: serializeCatalogItem(item) });
+}
+
+async function updateCatalogSource(request, response, catalogItemId) {
+  const user = await requireAuth(request);
+  requireMembership(user, 'MANAGER');
+  await requireCatalogItem(catalogItemId);
+  const body = await readJsonBody(request);
+
+  const brand = normalizeText(body.brand);
+  const manufacturerSku = normalizeText(body.manufacturerSku);
+  const sourceLabel = normalizeText(body.sourceLabel);
+  const sourceUrl = assertHttpsUrl(normalizeText(body.sourceUrl), 'Source URL');
+  const imageSourceUrl = assertHttpsUrl(normalizeText(body.imageSourceUrl), 'Image source URL');
+  const imageUrl = body.imageUrl === undefined
+    ? undefined
+    : assertHttpsUrl(normalizeText(body.imageUrl), 'Image URL');
+
+  if (brand.length > 120) throw new HttpError(400, 'Brand is too long');
+  if (manufacturerSku.length > 120) throw new HttpError(400, 'Manufacturer SKU is too long');
+  if (sourceLabel.length > 160) throw new HttpError(400, 'Source label is too long');
+
+  const item = await prisma.materialCatalogItem.update({
+    where: { id: catalogItemId },
+    data: {
+      brand: brand || null,
+      manufacturerSku: manufacturerSku || null,
+      sourceLabel: sourceLabel || null,
+      sourceUrl,
+      imageSourceUrl,
+      ...(imageUrl !== undefined ? { imageUrl } : {}),
+    },
+  });
+
   sendJson(response, 200, { item: serializeCatalogItem(item) });
 }
 
@@ -131,6 +183,12 @@ export async function handleMaterialRoutes(request, response, { pathName }) {
 
   if (request.method === 'GET' && pathName === '/api/materials/recent') {
     await listRecent(request, response);
+    return true;
+  }
+
+  const sourceMatch = pathName.match(/^\/api\/material-catalog\/([^/]+)\/source$/);
+  if (sourceMatch && request.method === 'PATCH') {
+    await updateCatalogSource(request, response, decodeURIComponent(sourceMatch[1]));
     return true;
   }
 
