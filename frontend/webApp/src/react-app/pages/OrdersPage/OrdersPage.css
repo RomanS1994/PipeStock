@@ -5,7 +5,8 @@
 .ordersFilters button { min-height: 34px; padding: 0 12px; border-radius: var(--radius-full); border: 1px solid var(--line); color: var(--muted); background: var(--surface); white-space: nowrap; }
 .ordersFilters button.is-active { color: var(--primary); border-color: #c9dcff; background: var(--primary-soft); }
 .ordersList { display: grid; gap: 10px; }
-.orderListCard { display: grid; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-md); color: var(--text); background: var(--surface); text-decoration: none; box-shadow: var(--shadow-sm); }
+.orderListCard { display: grid; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-md); color: var(--text); background: var(--surface); box-shadow: var(--shadow-sm); }
+.orderListCard-link { display: grid; gap: 12px; color: var(--text); text-decoration: none; }
 .orderListCard-top { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
 .orderListCard-top > div { display: grid; min-width: 0; gap: 3px; }
 .orderListCard-top span { color: var(--muted); font-size: 11px; }
