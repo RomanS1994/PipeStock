@@ -1,7 +1,15 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BackLink, Button, SearchField, StepIndicator } from '@shared/app/components/ui/PipeStockUI.jsx';
-import { useAddOrderItemMutation, useGetMaterialCatalogQuery, useGetOrderQuery } from '../../features/orders/ordersApi.js';
+import { Button, Icon, SearchField, StepIndicator } from '@shared/app/components/ui/PipeStockUI.jsx';
+import {
+  useAddFavoriteMaterialMutation,
+  useAddOrderItemMutation,
+  useGetFavoriteMaterialsQuery,
+  useGetMaterialCatalogQuery,
+  useGetOrderQuery,
+  useGetRecentMaterialsQuery,
+  useRemoveFavoriteMaterialMutation,
+} from '../../features/orders/ordersApi.js';
 import '../OrderFlow/OrderFlow.css';
 
 function unique(values) {
@@ -13,6 +21,10 @@ export function AddMaterialPage() {
   const navigate = useNavigate();
   const { data: order } = useGetOrderQuery(orderId);
   const { data: catalog = [], isLoading } = useGetMaterialCatalogQuery();
+  const { data: favorites = [] } = useGetFavoriteMaterialsQuery();
+  const { data: recent = [] } = useGetRecentMaterialsQuery();
+  const [addFavorite] = useAddFavoriteMaterialMutation();
+  const [removeFavorite] = useRemoveFavoriteMaterialMutation();
   const [addItem, { isLoading: adding, error }] = useAddOrderItemMutation();
   const [step, setStep] = useState(1);
   const [categoryKey, setCategoryKey] = useState('');
@@ -21,6 +33,7 @@ export function AddMaterialPage() {
   const [quantity, setQuantity] = useState(1);
   const [search, setSearch] = useState('');
 
+  const favoriteIds = useMemo(() => new Set(favorites.map(item => item.id)), [favorites]);
   const categories = useMemo(() => {
     const map = new Map();
     catalog.forEach(item => map.set(item.categoryKey, item.categoryLabel));
@@ -31,6 +44,7 @@ export function AddMaterialPage() {
   const diameters = useMemo(() => unique(categoryItems.map(item => item.diameter)), [categoryItems]);
   const typeItems = useMemo(() => categoryItems.filter(item => item.diameter === diameter && (!search.trim() || `${item.type} ${item.name}`.toLowerCase().includes(search.toLowerCase()))), [categoryItems, diameter, search]);
   const selectedItem = catalog.find(item => item.id === catalogItemId);
+  const selectedIsFavorite = selectedItem ? favoriteIds.has(selectedItem.id) : false;
 
   function selectCategory(key) {
     setCategoryKey(key);
@@ -50,9 +64,22 @@ export function AddMaterialPage() {
     setStep(4);
   }
 
+  function selectShortcut(item) {
+    setCategoryKey(item.categoryKey);
+    setDiameter(item.diameter);
+    setCatalogItemId(item.id);
+    setStep(4);
+  }
+
   function goBackStep() {
     if (step === 1) return navigate(`/orders/${orderId}`);
     setStep(value => Math.max(1, value - 1));
+  }
+
+  async function toggleFavorite() {
+    if (!selectedItem) return;
+    if (selectedIsFavorite) await removeFavorite(selectedItem.id);
+    else await addFavorite(selectedItem.id);
   }
 
   async function handleAdd() {
@@ -79,6 +106,24 @@ export function AddMaterialPage() {
 
       {!isLoading && step === 1 ? (
         <section className="materialWizardStage">
+          {favorites.length ? (
+            <div className="materialShortcutSection">
+              <div className="materialShortcutHeading"><span><Icon name="star" size={16} /> Обране</span><small>{favorites.length}</small></div>
+              <div className="materialShortcutList">
+                {favorites.slice(0, 6).map(item => <button key={item.id} type="button" onClick={() => selectShortcut(item)}><strong>{item.categoryLabel} {item.diameter}</strong><span>{item.type}</span></button>)}
+              </div>
+            </div>
+          ) : null}
+
+          {recent.length ? (
+            <div className="materialShortcutSection">
+              <div className="materialShortcutHeading"><span><Icon name="clock" size={16} /> Нещодавні</span><small>{recent.length}</small></div>
+              <div className="materialShortcutList">
+                {recent.slice(0, 6).map(item => <button key={item.id} type="button" onClick={() => selectShortcut(item)}><strong>{item.categoryLabel} {item.diameter}</strong><span>{item.type}</span></button>)}
+              </div>
+            </div>
+          ) : null}
+
           <div className="compactHeader"><h1>1. Виберіть категорію</h1><p>Оберіть тип матеріалу</p></div>
           <div className="materialCategoryGrid">
             {categories.map(category => (
@@ -121,6 +166,7 @@ export function AddMaterialPage() {
           <div className="selectedMaterialCard">
             <span className="selectedMaterialMark">{selectedItem.categoryLabel.slice(0, 2).toUpperCase()}</span>
             <div><strong>{selectedItem.categoryLabel} {selectedItem.diameter}</strong><span>{selectedItem.type}</span></div>
+            <button type="button" className={`materialFavoriteButton${selectedIsFavorite ? ' is-active' : ''}`} onClick={toggleFavorite} aria-label={selectedIsFavorite ? 'Прибрати з обраного' : 'Додати в обране'}><Icon name="star" size={19} /></button>
           </div>
           <div className="quantityStepper">
             <button type="button" onClick={() => setQuantity(value => Math.max(1, value - 1))}>−</button>
