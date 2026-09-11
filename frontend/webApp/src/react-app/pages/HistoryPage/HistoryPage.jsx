@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SearchField, StatusChip } from '@shared/app/components/ui/PipeStockUI.jsx';
+import { OrderDocumentActions } from '../../components/OrderDocumentActions/OrderDocumentActions.jsx';
 import { WorkspaceNavigation } from '../../components/WorkspaceNavigation/WorkspaceNavigation.jsx';
 import { useGetOrdersQuery } from '../../features/orders/ordersApi.js';
 import './HistoryPage.css';
@@ -46,11 +47,14 @@ export function HistoryPage() {
       {!isLoading && !isError && history.length ? (
         <section className="historyList">
           {history.map(order => (
-            <Link key={order.id} to={`/orders/${order.id}`} className="historyCard">
-              <div className="historyCardTop"><div><span>#{order.number}</span><strong>{order.title}</strong></div><StatusChip status={order.status}>{STATUS_LABELS[order.status] || order.status}</StatusChip></div>
-              <div className="historyCardMeta"><span>{order.project?.name || 'Без об’єкта'}</span><span>{order.itemCount} поз.</span><span>{order.worker?.name || '—'}</span></div>
-              <small>{new Date(order.updatedAt || order.createdAt).toLocaleDateString('uk-UA')}</small>
-            </Link>
+            <article key={order.id} className="historyCard">
+              <Link to={`/orders/${order.id}`} className="historyCardLink">
+                <div className="historyCardTop"><div><span>#{order.number}</span><strong>{order.title}</strong></div><StatusChip status={order.status}>{STATUS_LABELS[order.status] || order.status}</StatusChip></div>
+                <div className="historyCardMeta"><span>{order.project?.name || 'Без об’єкта'}</span><span>{order.itemCount} поз.</span><span>{order.worker?.name || '—'}</span></div>
+                <small>{new Date(order.updatedAt || order.createdAt).toLocaleDateString('uk-UA')}</small>
+              </Link>
+              <OrderDocumentActions order={order} compact />
+            </article>
           ))}
         </section>
       ) : null}
