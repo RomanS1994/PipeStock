@@ -142,31 +142,24 @@ model ProjectAssignment {
 }
 
 model MaterialCatalogItem {
-  id              String   @id
-  key             String   @unique
-  categoryKey     String
-  categoryLabel   String
-  diameter        String
-  type            String
-  name            String
-  unit            String
-  sku             String?
-  imageUrl        String?
-  brand           String?
-  manufacturerSku String?
-  sourceUrl       String?
-  imageSourceUrl  String?
-  sourceLabel     String?
-  sortOrder       Int      @default(0)
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id            String   @id
+  key           String   @unique
+  categoryKey   String
+  categoryLabel String
+  diameter      String
+  type          String
+  name          String
+  unit          String
+  imageUrl      String?
+  sortOrder     Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   orderItems OrderItem[]
   favorites  MaterialFavorite[]
 
   @@index([categoryKey, diameter, isActive])
-  @@index([brand, manufacturerSku])
   @@index([isActive, sortOrder])
   @@map("material_catalog_items")
 }
@@ -213,24 +206,20 @@ model Order {
 }
 
 model OrderItem {
-  id              String   @id @default(cuid())
-  orderId         String
-  catalogItemId   String?
-  materialKey     String
-  materialName    String
-  categoryKey     String
-  categoryLabel   String
-  diameter        String
-  type            String
-  unit            String
-  sku             String?
-  imageUrl        String?
-  brand           String?
-  manufacturerSku String?
-  sourceUrl       String?
-  quantity        Decimal  @db.Decimal(10, 2)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id            String   @id @default(cuid())
+  orderId       String
+  catalogItemId String?
+  materialKey   String
+  materialName  String
+  categoryKey   String
+  categoryLabel String
+  diameter      String
+  type          String
+  unit          String
+  imageUrl      String?
+  quantity      Decimal  @db.Decimal(10, 2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   order       Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
   catalogItem MaterialCatalogItem? @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
