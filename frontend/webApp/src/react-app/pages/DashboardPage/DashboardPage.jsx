@@ -4,7 +4,7 @@ import { WorkspaceNavigation } from '../../components/WorkspaceNavigation/Worksp
 import { useGetDashboardQuery } from '../../features/manager/managerApi.js';
 import './DashboardPage.css';
 
-const STATUS_LABELS = { DRAFT: 'Draft', SUBMITTED: 'Відправлено', COMPLETED: 'Завершено' };
+const STATUS_LABELS = { DRAFT: 'Draft', SUBMITTED: 'Submitted', COMPLETED: 'Completed' };
 
 export function DashboardPage() {
   const { data, isLoading, isError, refetch } = useGetDashboardQuery();
