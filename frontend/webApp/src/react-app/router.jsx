@@ -17,6 +17,7 @@ import { CreateOrderPage } from './pages/CreateOrderPage/CreateOrderPage.jsx';
 import { DashboardPage } from './pages/DashboardPage/DashboardPage.jsx';
 import { EmployeesPage } from './pages/EmployeesPage/EmployeesPage.jsx';
 import { HistoryPage } from './pages/HistoryPage/HistoryPage.jsx';
+import { InviteEmployeePage } from './pages/InviteEmployeePage/InviteEmployeePage.jsx';
 import { MaterialCatalogPage } from './pages/MaterialCatalogPage/MaterialCatalogPage.jsx';
 import { ObjectDetailPage } from './pages/ObjectDetailPage/ObjectDetailPage.jsx';
 import { ObjectsPage } from './pages/ObjectsPage/ObjectsPage.jsx';
@@ -44,6 +45,7 @@ export const router = createBrowserRouter([
       { path: 'orders/:orderId/materials/new', element: <ProtectedRoute><AddMaterialPage /></ProtectedRoute> },
       { path: 'materials', element: <ProtectedRoute requireManager><MaterialCatalogPage /></ProtectedRoute> },
       { path: 'employees', element: <ProtectedRoute requireManager><EmployeesPage /></ProtectedRoute> },
+      { path: 'employees/invite', element: <ProtectedRoute requireManager><InviteEmployeePage /></ProtectedRoute> },
       { path: 'history', element: <ProtectedRoute><HistoryPage /></ProtectedRoute> },
       { path: 'profile', element: <ProtectedRoute><ProfilePage /></ProtectedRoute> },
     ],
