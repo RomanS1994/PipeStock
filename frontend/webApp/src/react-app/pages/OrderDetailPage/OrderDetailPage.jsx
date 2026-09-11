@@ -111,6 +111,16 @@ export function OrderDetailPage() {
         </section>
       ) : null}
 
+      {order.documentAvailable ? (
+        <section className="screenCard orderDocumentCard">
+          <div className="orderDocumentCardHeading">
+            <span className="orderDocumentCardMark">PDF</span>
+            <div><strong>Матеріали заказа #{order.number}</strong><span>PDF документ</span></div>
+          </div>
+          <OrderDocumentActions order={order} />
+        </section>
+      ) : null}
+
       {submitState.error ? <p className="orderError">{submitState.error?.data?.error}</p> : null}
       {completeState.error ? <p className="orderError">{completeState.error?.data?.error}</p> : null}
 
@@ -124,7 +134,6 @@ export function OrderDetailPage() {
           {completeState.isLoading ? 'Завершуємо…' : 'Позначити завершеним'}
         </Button>
       ) : null}
-      <OrderDocumentActions order={order} />
     </div>
   );
 }
