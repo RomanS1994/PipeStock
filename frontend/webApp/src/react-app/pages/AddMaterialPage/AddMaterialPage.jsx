@@ -12,14 +12,16 @@ import {
 } from '../../features/orders/ordersApi.js';
 import '../OrderFlow/OrderFlow.css';
 import './AddMaterialPage.css';
+import { getMaterialCategoryImage, getMaterialImage } from './materialImages.js';
 
 function unique(values) {
   return [...new Set(values)];
 }
 
 function MaterialThumb({ item, className = 'materialTypeMark' }) {
-  return item?.imageUrl
-    ? <span className={`${className} has-image`}><img src={item.imageUrl} alt="" /></span>
+  const image = getMaterialImage(item);
+  return image
+    ? <span className={`${className} has-image`}><img src={image} alt="" /></span>
     : <span className={className}>{item?.categoryLabel?.slice(0, 2).toUpperCase()}</span>;
 }
 
@@ -133,11 +135,15 @@ export function AddMaterialPage() {
 
           <div className="compactHeader"><h1>1. Виберіть категорію</h1><p>Оберіть тип матеріалу</p></div>
           <div className="materialCategoryGrid">
-            {categories.map(category => (
-              <button key={category.key} type="button" className="materialCategoryCard" onClick={() => selectCategory(category.key)}>
-                <span>{category.label.slice(0, 2).toUpperCase()}</span><strong>{category.label}</strong>
-              </button>
-            ))}
+            {categories.map(category => {
+              const image = getMaterialCategoryImage(category.key);
+              return (
+                <button key={category.key} type="button" className="materialCategoryCard" onClick={() => selectCategory(category.key)}>
+                  <span className={image ? 'has-image' : ''}>{image ? <img src={image} alt="" /> : category.label.slice(0, 2).toUpperCase()}</span>
+                  <strong>{category.label}</strong>
+                </button>
+              );
+            })}
           </div>
         </section>
       ) : null}
