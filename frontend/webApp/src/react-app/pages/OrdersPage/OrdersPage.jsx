@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SearchField, StatusChip } from '@shared/app/components/ui/PipeStockUI.jsx';
+import { OrderDocumentActions } from '../../components/OrderDocumentActions/OrderDocumentActions.jsx';
 import { WorkspaceNavigation } from '../../components/WorkspaceNavigation/WorkspaceNavigation.jsx';
 import { useGetOrdersQuery } from '../../features/orders/ordersApi.js';
 import './OrdersPage.css';
@@ -59,17 +60,20 @@ export function OrdersPage() {
       {!isLoading && !isError && visibleOrders.length ? (
         <div className="ordersList">
           {visibleOrders.map(order => (
-            <Link key={order.id} to={`/orders/${order.id}`} className="orderListCard">
-              <div className="orderListCard-top">
-                <div><span>#{order.number}</span><strong>{order.title}</strong></div>
-                <StatusChip status={order.status}>{STATUS_LABELS[order.status] || order.status}</StatusChip>
-              </div>
-              <div className="orderListCard-meta">
-                <span>{order.project?.name || 'Без об’єкта'}</span>
-                <span>{order.itemCount} поз.</span>
-                <span>{order.worker?.name || '—'}</span>
-              </div>
-            </Link>
+            <article key={order.id} className="orderListCard">
+              <Link to={`/orders/${order.id}`} className="orderListCard-link">
+                <div className="orderListCard-top">
+                  <div><span>#{order.number}</span><strong>{order.title}</strong></div>
+                  <StatusChip status={order.status}>{STATUS_LABELS[order.status] || order.status}</StatusChip>
+                </div>
+                <div className="orderListCard-meta">
+                  <span>{order.project?.name || 'Без об’єкта'}</span>
+                  <span>{order.itemCount} поз.</span>
+                  <span>{order.worker?.name || '—'}</span>
+                </div>
+              </Link>
+              <OrderDocumentActions order={order} compact />
+            </article>
           ))}
         </div>
       ) : null}
