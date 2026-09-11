@@ -7,6 +7,7 @@ import { selectUser } from '../../features/auth/authSlice.js';
 import { useGetProjectOrdersQuery } from '../../features/orders/ordersApi.js';
 import { ProjectForm } from '../../features/projects/ProjectForm.jsx';
 import { useGetEmployeesQuery, useGetProjectQuery, useUpdateProjectMutation } from '../../features/projects/projectsApi.js';
+import { uploadImageFile, usePrepareImageUploadMutation } from '../../features/uploads/uploadsApi.js';
 import './ObjectDetailPage.css';
 
 const STATUS_LABELS = { DRAFT: 'Draft', ACTIVE: 'Активний', PAUSED: 'Призупинений', COMPLETED: 'Завершений' };
@@ -26,13 +27,29 @@ export function ObjectDetailPage() {
   const { data: orders = [], isLoading: ordersLoading } = useGetProjectOrdersQuery(projectId);
   const { data: employees = [], isLoading: employeesLoading } = useGetEmployeesQuery(undefined, { skip: !manager });
   const [updateProject, { isLoading: saving, error: saveError }] = useUpdateProjectMutation();
+  const [prepareImageUpload] = usePrepareImageUploadMutation();
 
   const initialValues = useMemo(() => ({
-    name: project?.name || '', address: project?.address || '', description: project?.description || '', status: project?.status || 'ACTIVE', employeeMembershipIds: (project?.employees || []).map(employee => employee.membershipId),
+    name: project?.name || '',
+    address: project?.address || '',
+    description: project?.description || '',
+    imageUrl: project?.imageUrl || '',
+    status: project?.status || 'ACTIVE',
+    employeeMembershipIds: (project?.employees || []).map(employee => employee.membershipId),
   }), [project]);
 
+  async function handleUploadImage(file) {
+    const upload = await prepareImageUpload('project').unwrap();
+    return uploadImageFile(file, upload);
+  }
+
   async function handleSave(values) {
-    try { await updateProject({ projectId, ...values }).unwrap(); setEditing(false); } catch { /* mutation error rendered */ }
+    try {
+      await updateProject({ projectId, ...values }).unwrap();
+      setEditing(false);
+    } catch {
+      // mutation error rendered below
+    }
   }
 
   if (isLoading) return <section className="screenCard objectDetailState"><strong>Завантажуємо об’єкт…</strong></section>;
@@ -48,8 +65,8 @@ export function ObjectDetailPage() {
 
       {editing ? (
         <section className="screenCard objectDetailEditCard">
-          <div className="objectDetailSectionHeader"><div><strong>Редагування</strong><span>Змініть інформацію та склад команди.</span></div><Button variant="text" onClick={() => setEditing(false)}>Скасувати</Button></div>
-          <ProjectForm initialValues={initialValues} employees={employees} employeesLoading={employeesLoading} submitting={saving} submitLabel="Зберегти зміни" error={saveError ? getApiError(saveError) : ''} onSubmit={handleSave} />
+          <div className="objectDetailSectionHeader"><div><strong>Редагування</strong><span>Змініть інформацію, фото та склад команди.</span></div><Button variant="text" onClick={() => setEditing(false)}>Скасувати</Button></div>
+          <ProjectForm initialValues={initialValues} employees={employees} employeesLoading={employeesLoading} submitting={saving} submitLabel="Зберегти зміни" error={saveError ? getApiError(saveError) : ''} onUploadImage={handleUploadImage} onSubmit={handleSave} />
         </section>
       ) : (
         <>
