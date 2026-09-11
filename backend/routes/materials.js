@@ -48,6 +48,24 @@ function serializeCatalogItem(item, extra = {}) {
   };
 }
 
+async function listSourceMetadata(request, response) {
+  const user = await requireAuth(request);
+  requireMembership(user, 'MANAGER');
+  const items = await prisma.materialCatalogItem.findMany({
+    where: { isActive: true },
+    select: {
+      id: true,
+      brand: true,
+      manufacturerSku: true,
+      sourceUrl: true,
+      imageSourceUrl: true,
+      sourceLabel: true,
+      imageUrl: true,
+    },
+  });
+  sendJson(response, 200, { items });
+}
+
 async function listFavorites(request, response) {
   const user = await requireAuth(request);
   requireMembership(user);
@@ -176,6 +194,11 @@ async function updateCatalogSource(request, response, catalogItemId) {
 }
 
 export async function handleMaterialRoutes(request, response, { pathName }) {
+  if (request.method === 'GET' && pathName === '/api/material-catalog/sources') {
+    await listSourceMetadata(request, response);
+    return true;
+  }
+
   if (request.method === 'GET' && pathName === '/api/materials/favorites') {
     await listFavorites(request, response);
     return true;
