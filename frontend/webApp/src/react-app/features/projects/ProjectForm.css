@@ -1,0 +1,38 @@
+.projectForm { display: grid; gap: 16px; }
+.projectForm-field { display: grid; gap: 7px; }
+.projectForm-field > span { color: var(--text-soft); font-size: var(--font-size-label); font-weight: var(--weight-semibold); }
+.projectForm-field textarea,
+.projectForm-field select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  background: var(--surface-subtle);
+  outline: 0;
+}
+.projectForm-field textarea { min-height: 110px; padding: 12px; resize: vertical; }
+.projectForm-field select { min-height: 46px; padding: 0 12px; }
+.projectForm-field textarea:focus,
+.projectForm-field select:focus { border-color: #8eb8ff; box-shadow: var(--focus-ring); background: #fff; }
+.projectForm-employees { display: grid; gap: 12px; padding-top: 4px; }
+.projectForm-sectionTitle { display: flex; align-items: center; gap: 10px; }
+.projectForm-sectionIcon { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 11px; color: var(--primary); background: var(--primary-soft); }
+.projectForm-sectionTitle > div { display: grid; gap: 2px; }
+.projectForm-sectionTitle strong { font-size: 14px; }
+.projectForm-sectionTitle span { color: var(--muted); font-size: 12px; }
+.projectForm-employeeList { display: grid; gap: 8px; }
+.projectForm-employee { display: grid; grid-template-columns: auto 40px minmax(0, 1fr) 24px; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); }
+.projectForm-employee.is-selected { border-color: #a8c8ff; background: #f7fbff; }
+.projectForm-employee input { width: 17px; height: 17px; accent-color: var(--primary); }
+.projectForm-avatar { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 50%; color: var(--primary); background: var(--primary-soft); font-weight: var(--weight-bold); }
+.projectForm-employeeCopy { display: grid; min-width: 0; gap: 2px; }
+.projectForm-employeeCopy strong,
+.projectForm-employeeCopy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.projectForm-employeeCopy strong { font-size: 13px; }
+.projectForm-employeeCopy small { color: var(--muted); font-size: 11px; }
+.projectForm-check { display: grid; width: 22px; height: 22px; place-items: center; border-radius: 50%; color: transparent; background: var(--gray-100); }
+.projectForm-employee.is-selected .projectForm-check { color: #fff; background: var(--primary); }
+.projectForm-note,
+.projectForm-error { margin: 0; font-size: 12px; }
+.projectForm-note { color: var(--muted); }
+.projectForm-error { color: var(--danger); }
