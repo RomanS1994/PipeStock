@@ -51,7 +51,7 @@ export function OrderDetailPage() {
       <header className="orderTopbar">
         <BackLink to={`/objects/${order.project.id}`} />
         <strong>Заказ #{order.number}</strong>
-        <StatusChip status={order.status}>{STATUS_LABELS[order.status]}</StatusChip>
+        <span />
       </header>
 
       <section className="screenCard orderSummaryCard">
