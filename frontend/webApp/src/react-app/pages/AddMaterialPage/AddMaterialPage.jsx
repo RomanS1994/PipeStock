@@ -36,6 +36,7 @@ export function AddMaterialPage() {
   const [removeFavorite] = useRemoveFavoriteMaterialMutation();
   const [addItem, { isLoading: adding, error }] = useAddOrderItemMutation();
   const [step, setStep] = useState(1);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [categoryKey, setCategoryKey] = useState('');
   const [diameter, setDiameter] = useState('');
   const [catalogItemId, setCatalogItemId] = useState('');
@@ -87,6 +88,7 @@ export function AddMaterialPage() {
     setCatalogItemId('');
     setQuantity(1);
     setSearch('');
+    setShowShortcuts(true);
     setStep(1);
   }
 
@@ -125,7 +127,7 @@ export function AddMaterialPage() {
 
       {!isLoading && step === 1 ? (
         <section className="materialWizardStage">
-          {favorites.length ? (
+          {showShortcuts && favorites.length ? (
             <div className="materialShortcutSection">
               <div className="materialShortcutHeading"><span><Icon name="star" size={16} /> Обране</span><small>{favorites.length}</small></div>
               <div className="materialShortcutList">
@@ -134,7 +136,7 @@ export function AddMaterialPage() {
             </div>
           ) : null}
 
-          {recent.length ? (
+          {showShortcuts && recent.length ? (
             <div className="materialShortcutSection">
               <div className="materialShortcutHeading"><span><Icon name="clock" size={16} /> Нещодавні</span><small>{recent.length}</small></div>
               <div className="materialShortcutList">
