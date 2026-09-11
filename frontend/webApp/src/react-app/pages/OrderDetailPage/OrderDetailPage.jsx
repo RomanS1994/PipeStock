@@ -70,7 +70,6 @@ export function OrderDetailPage() {
       <section className="screenCard orderMaterialsCard">
         <div className="orderSectionHeader">
           <div><strong>Матеріали ({order.itemCount})</strong><span>Дані позицій зафіксовані на момент додавання.</span></div>
-          {canEdit ? <Link className="orderTextLink" to={`/orders/${order.id}/materials/new`}>+ Додати</Link> : null}
         </div>
 
         {order.items.length ? (
