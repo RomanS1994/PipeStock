@@ -6,6 +6,7 @@ import {
   useCreateProjectMutation,
   useGetEmployeesQuery,
 } from '../../features/projects/projectsApi.js';
+import { uploadImageFile, usePrepareImageUploadMutation } from '../../features/uploads/uploadsApi.js';
 import './CreateObjectPage.css';
 
 function getApiError(error) {
@@ -16,6 +17,12 @@ export function CreateObjectPage() {
   const navigate = useNavigate();
   const { data: employees = [], isLoading: employeesLoading } = useGetEmployeesQuery();
   const [createProject, { isLoading, error }] = useCreateProjectMutation();
+  const [prepareImageUpload] = usePrepareImageUploadMutation();
+
+  async function handleUploadImage(file) {
+    const upload = await prepareImageUpload('project').unwrap();
+    return uploadImageFile(file, upload);
+  }
 
   async function handleSubmit(values) {
     try {
@@ -32,7 +39,7 @@ export function CreateObjectPage() {
         <BackLink to="/objects" />
         <div>
           <h1>Створити об’єкт</h1>
-          <p>Додайте основну інформацію та працівників.</p>
+          <p>Додайте основну інформацію, фото та працівників.</p>
         </div>
         <span />
       </header>
@@ -44,6 +51,7 @@ export function CreateObjectPage() {
           submitting={isLoading}
           submitLabel="Створити об’єкт"
           error={error ? getApiError(error) : ''}
+          onUploadImage={handleUploadImage}
           onSubmit={handleSubmit}
         />
       </section>
