@@ -1,4 +1,4 @@
-.objectsPage { padding-bottom: 24px; }
+.objectsPage { padding-bottom: 88px; }
 .objectsHeader { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .objectsHeader-account { display: grid; justify-items: end; gap: 2px; }
 .objectsHeader-account span { color: var(--muted); font-size: 12px; }
@@ -35,13 +35,11 @@
 .objectCard-chevron { color: #98a2b3; }
 .objectsState { justify-items: center; padding: 28px 18px; text-align: center; }
 .objectsRetry,
-.objectsCreateEmpty,
-.objectsLogout { border: 0; color: var(--primary); background: transparent; }
+.objectsCreateEmpty { border: 0; color: var(--primary); background: transparent; }
 .objectsCreateEmpty { display: inline-flex; min-height: 40px; align-items: center; gap: 7px; padding: 0 12px; border-radius: var(--radius-sm); background: var(--primary-soft); font-weight: var(--weight-semibold); }
 .objectsEmpty { justify-items: center; padding: 32px 18px; text-align: center; }
 .objectsEmpty-icon { display: grid; width: 48px; height: 48px; place-items: center; border-radius: 16px; color: var(--primary); background: var(--primary-soft); }
 .objectsEmpty p { margin: 0; max-width: 320px; color: var(--muted); font-size: 13px; }
-.objectsLogout { justify-self: center; margin-top: 8px; color: var(--muted); font-size: 13px; }
 
 @media (max-width: 420px) {
   .objectsHero { padding: 16px; }
