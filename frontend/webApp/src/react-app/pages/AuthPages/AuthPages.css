@@ -15,15 +15,13 @@
 .welcomePage-points { display: grid; gap: 10px; color: var(--text-soft); font-size: 14px; font-weight: 600; }
 
 .authHeading { display: grid; gap: 7px; }
-.authHeading h1 { margin: 0; font-size: 28px; line-height: 1.08; letter-spacing: -.035em; }
+.authHeading h1 { margin: 0; font-size: var(--font-size-page-title); line-height: 1.08; letter-spacing: -.035em; }
 .authHeading p { margin: 0; max-width: 34rem; color: var(--muted); font-size: 14px; line-height: 1.45; }
 .authForm { display: grid; gap: 12px; }
 .authError { margin: 0; padding: 10px 12px; border-radius: var(--radius-sm); color: #b42318; background: var(--danger-soft); font-size: 13px; }
 .authHint, .authLegal { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
 .authSwitch { margin: 0; color: var(--muted); text-align: center; font-size: 13px; }
 .authSwitch a { color: var(--primary); font-weight: 600; text-decoration: none; }
-.authDivider { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; color: #98a2b3; font-size: 12px; }
-.authDivider::before, .authDivider::after { content: ''; height: 1px; background: var(--line); }
 .roleGrid { display: grid; gap: 14px; }
 
 @media (min-width: 700px) {
