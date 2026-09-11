@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 
 import { Button, Icon, TextField } from '@shared/app/components/ui/PipeStockUI.jsx';
+import { ImageUploadField } from '../../components/ImageUploadField/ImageUploadField.jsx';
 import './ProjectForm.css';
 
 const DEFAULT_VALUES = {
   name: '',
   address: '',
   description: '',
+  imageUrl: '',
   status: 'ACTIVE',
   employeeMembershipIds: [],
 };
@@ -18,6 +20,7 @@ export function ProjectForm({
   submitting = false,
   submitLabel = 'Зберегти',
   error = '',
+  onUploadImage,
   onSubmit,
 }) {
   const [values, setValues] = useState(DEFAULT_VALUES);
@@ -49,6 +52,7 @@ export function ProjectForm({
       name: values.name.trim(),
       address: values.address.trim(),
       description: values.description.trim(),
+      imageUrl: values.imageUrl.trim(),
       status: values.status,
       employeeMembershipIds: values.employeeMembershipIds,
     });
@@ -56,6 +60,14 @@ export function ProjectForm({
 
   return (
     <form className="projectForm" onSubmit={handleSubmit}>
+      <ImageUploadField
+        value={values.imageUrl}
+        label="Фото об’єкта"
+        disabled={submitting}
+        onUpload={onUploadImage}
+        onChange={value => updateField('imageUrl', value)}
+      />
+
       <TextField
         label="Назва об’єкта *"
         value={values.name}
