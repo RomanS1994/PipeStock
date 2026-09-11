@@ -17,6 +17,12 @@ function unique(values) {
   return [...new Set(values)];
 }
 
+function MaterialThumb({ item, className = 'materialTypeMark' }) {
+  return item?.imageUrl
+    ? <span className={`${className} has-image`}><img src={item.imageUrl} alt="" /></span>
+    : <span className={className}>{item?.categoryLabel?.slice(0, 2).toUpperCase()}</span>;
+}
+
 export function AddMaterialPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
@@ -152,7 +158,7 @@ export function AddMaterialPage() {
           <div className="materialTypeList">
             {typeItems.map(item => (
               <button key={item.id} type="button" className="materialTypeRow" onClick={() => selectType(item.id)}>
-                <span className="materialTypeMark">{item.categoryLabel.slice(0, 2).toUpperCase()}</span>
+                <MaterialThumb item={item} />
                 <span><strong>{item.type}</strong><small>{item.name}</small></span>
                 <b>›</b>
               </button>
@@ -165,7 +171,7 @@ export function AddMaterialPage() {
         <section className="materialWizardStage materialQuantityStage">
           <div className="compactHeader"><h1>4. Вкажіть кількість</h1><p>Перевірте матеріал і додайте в заказ</p></div>
           <div className="selectedMaterialCard">
-            <span className="selectedMaterialMark">{selectedItem.categoryLabel.slice(0, 2).toUpperCase()}</span>
+            <MaterialThumb item={selectedItem} className="selectedMaterialMark" />
             <div><strong>{selectedItem.categoryLabel} {selectedItem.diameter}</strong><span>{selectedItem.type}</span></div>
             <button type="button" className={`materialFavoriteButton${selectedIsFavorite ? ' is-active' : ''}`} onClick={toggleFavorite} aria-label={selectedIsFavorite ? 'Прибрати з обраного' : 'Додати в обране'}><Icon name="star" size={19} /></button>
           </div>
