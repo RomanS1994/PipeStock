@@ -1,4 +1,5 @@
 import { useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { Button } from '@shared/app/components/ui/PipeStockUI.jsx';
 import { WorkspaceNavigation } from '../../components/WorkspaceNavigation/WorkspaceNavigation.jsx';
 import { selectUser } from '../../features/auth/authSlice.js';
@@ -8,6 +9,7 @@ import './ProfilePage.css';
 export function ProfilePage() {
   const user = useSelector(selectUser);
   const membership = (user?.memberships || []).find(item => item.status === 'ACTIVE');
+  const manager = membership?.role === 'MANAGER';
   const [logout, { isLoading }] = useLogoutMutation();
 
   return (
@@ -24,12 +26,13 @@ export function ProfilePage() {
 
       <section className="screenCard profileDetails">
         <dl>
-          <div><dt>Роль</dt><dd>{membership?.role === 'MANAGER' ? 'Менеджер' : 'Працівник'}</dd></div>
+          <div><dt>Роль</dt><dd>{manager ? 'Менеджер' : 'Працівник'}</dd></div>
           <div><dt>Компанія</dt><dd>{membership?.company?.name || '—'}</dd></div>
           <div><dt>Телефон</dt><dd>{user?.phone || '—'}</dd></div>
         </dl>
       </section>
 
+      {manager ? <Link className="psButton psButton--secondary psButton--full" to="/materials">Каталог матеріалів</Link> : null}
       <Button variant="text" disabled={isLoading} onClick={() => logout()}>{isLoading ? 'Виходимо…' : 'Вийти з аккаунту'}</Button>
       <WorkspaceNavigation />
     </div>
