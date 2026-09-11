@@ -6,12 +6,10 @@ import { loadEnvFile } from './config/load-env.js';
 import { assertRuntimeEnv } from './config/runtime-env.js';
 import { prisma } from './db/prisma.js';
 import { sendHttpError } from './lib/errors.js';
-import { handleCors } from './lib/http.js';
-import { serveWebApp } from './lib/static.js';
+import { handleCors, sendJson } from './lib/http.js';
 import { routeRequest } from './routes/index.js';
 
 const serverDir = path.dirname(fileURLToPath(import.meta.url));
-const webDistDir = path.resolve(serverDir, '..', 'dist');
 loadEnvFile(path.join(serverDir, '.env'));
 
 const PORT = Number(process.env.PORT || process.env.BACKEND_PORT || 3001);
@@ -34,7 +32,22 @@ const server = http.createServer(async (request, response) => {
       return;
     }
 
-    await serveWebApp(request, response, { distDir: webDistDir, pathName: url.pathname });
+    if ((request.method === 'GET' || request.method === 'HEAD') && url.pathname === '/') {
+      if (request.method === 'HEAD') {
+        response.writeHead(200, { 'Cache-Control': 'no-store' });
+        response.end();
+        return;
+      }
+
+      sendJson(response, 200, {
+        ok: true,
+        service: 'PipeStock API',
+        health: '/api/health',
+      });
+      return;
+    }
+
+    sendJson(response, 404, { error: 'Route not found' });
   } catch (error) {
     sendHttpError(response, error);
   }
