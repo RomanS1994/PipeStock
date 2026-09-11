@@ -8,5 +8,8 @@
 .materialShortcutList strong { font-size: 13px; }
 .materialShortcutList span { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .selectedMaterialCard { position: relative; padding-right: 58px; }
+.selectedMaterialCard > div { min-width: 0; }
+.selectedMaterialCard > div small { color: var(--primary); font-size: 11px; font-weight: 600; }
 .materialFavoriteButton { position: absolute; top: 50%; right: 12px; display: grid; width: 38px; height: 38px; min-height: 0; padding: 0; place-items: center; border: 0; border-radius: 50%; color: var(--muted); background: var(--surface-subtle); }
 .materialFavoriteButton.is-active { color: var(--warning); background: #fff7df; }
+.materialOfficialProductLink { justify-self: start; color: var(--primary); font-size: 12px; font-weight: 600; text-decoration: none; }
