@@ -13,6 +13,12 @@ function getApiError(error, fallback = 'Щось пішло не так. Спр�
   return error?.data?.error || fallback;
 }
 
+function getSignedInDestination(user) {
+  const membership = (user?.memberships || []).find(item => item.status === 'ACTIVE' && item.company);
+  if (!membership) return '/join-company';
+  return membership.role === 'MANAGER' ? '/dashboard' : '/objects';
+}
+
 function AuthHeading({ title, description }) {
   return (
     <header className="authHeading">
@@ -53,8 +59,7 @@ export function SignInPage() {
     setError('');
     try {
       const result = await login(form).unwrap();
-      const hasCompany = (result.user?.memberships || []).some(item => item.status === 'ACTIVE' && item.company);
-      navigate(hasCompany ? '/objects' : '/join-company', { replace: true });
+      navigate(getSignedInDestination(result.user), { replace: true });
     } catch (requestError) {
       setError(getApiError(requestError, 'Не вдалося увійти. Перевірте email і пароль.'));
     }
@@ -102,14 +107,14 @@ function RegistrationForm({ mode }) {
     event.preventDefault();
     setError('');
     try {
-      await mutation({
+      const result = await mutation({
         name: form.name,
         email: form.email,
         password: form.password,
         phone: form.phone,
         ...(manager ? { companyName: form.companyName } : {}),
       }).unwrap();
-      navigate(manager ? '/objects' : '/join-company', { replace: true });
+      navigate(manager ? '/dashboard' : getSignedInDestination(result.user), { replace: true });
     } catch (requestError) {
       setError(getApiError(requestError));
     }
