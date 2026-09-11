@@ -63,6 +63,9 @@ function serializeItem(item) {
     unit: item.unit,
     sku: item.sku,
     imageUrl: item.imageUrl,
+    brand: item.brand,
+    manufacturerSku: item.manufacturerSku,
+    sourceUrl: item.sourceUrl,
     quantity: Number(item.quantity),
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
@@ -145,6 +148,11 @@ async function listCatalog(request, response) {
       unit: item.unit,
       sku: item.sku,
       imageUrl: item.imageUrl,
+      brand: item.brand,
+      manufacturerSku: item.manufacturerSku,
+      sourceUrl: item.sourceUrl,
+      imageSourceUrl: item.imageSourceUrl,
+      sourceLabel: item.sourceLabel,
     })),
   });
 }
@@ -164,7 +172,9 @@ async function listProjectOrders(request, response, projectId) {
 async function createOrder(request, response, projectId) {
   const user = await requireAuth(request);
   const membership = requireMembership(user);
-  await requireProjectAccess(projectId, membership);
+  const project = await requireProjectAccess(projectId, membership);
+  if (project.status === 'COMPLETED') throw new HttpError(409, 'Completed projects cannot accept new orders');
+
   const body = await readJsonBody(request);
   const title = normalizeText(body.title);
   if (!title) throw new HttpError(400, 'Order title is required');
@@ -236,6 +246,9 @@ async function addItem(request, response, orderId) {
       unit: catalogItem.unit,
       sku: catalogItem.sku,
       imageUrl: catalogItem.imageUrl,
+      brand: catalogItem.brand,
+      manufacturerSku: catalogItem.manufacturerSku,
+      sourceUrl: catalogItem.sourceUrl,
       quantity: parseQuantity(body.quantity),
     },
   });
@@ -281,8 +294,10 @@ async function submitOrder(request, response, orderId) {
   });
 
   const updated = await prisma.$transaction(async tx => {
-    await tx.orderSnapshot.create({
-      data: {
+    await tx.orderSnapshot.upsert({
+      where: { orderId },
+      update: {},
+      create: {
         orderId,
         version: 1,
         payload: snapshotPayload,
@@ -308,8 +323,10 @@ async function completeOrder(request, response, orderId) {
   const completedAt = new Date();
   const updated = await prisma.$transaction(async tx => {
     if (!order.snapshot) {
-      await tx.orderSnapshot.create({
-        data: {
+      await tx.orderSnapshot.upsert({
+        where: { orderId },
+        update: {},
+        create: {
           orderId,
           version: 1,
           payload: buildOrderSnapshot(order),
@@ -335,8 +352,10 @@ async function downloadOrderPdf(request, response, orderId) {
 
   let snapshot = order.snapshot;
   if (!snapshot) {
-    snapshot = await prisma.orderSnapshot.create({
-      data: {
+    snapshot = await prisma.orderSnapshot.upsert({
+      where: { orderId },
+      update: {},
+      create: {
         orderId,
         version: 1,
         payload: buildOrderSnapshot(order),
