@@ -7,13 +7,11 @@ import { handleOrderListRoutes } from './order-list.js';
 import { handleOrderRoutes } from './orders.js';
 import { handleProjectRoutes } from './projects.js';
 import { handlePublicRoutes } from './public.js';
-import { handleUploadRoutes } from './uploads.js';
 
 const routeHandlers = [
   handlePublicRoutes,
   handleAuthRoutes,
   handleMeRoutes,
-  handleUploadRoutes,
   handleProjectRoutes,
   handleManagerRoutes,
   handleMaterialRoutes,
