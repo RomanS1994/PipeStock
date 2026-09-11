@@ -1,0 +1,12 @@
+.materialShortcutSection { display: grid; gap: 9px; }
+.materialShortcutHeading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.materialShortcutHeading > span { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: var(--weight-semibold); }
+.materialShortcutHeading small { color: var(--muted); }
+.materialShortcutList { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(145px, 1fr); gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.materialShortcutList::-webkit-scrollbar { display: none; }
+.materialShortcutList button { display: grid; min-height: 64px; align-content: center; gap: 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); text-align: left; }
+.materialShortcutList strong { font-size: 13px; }
+.materialShortcutList span { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.selectedMaterialCard { position: relative; padding-right: 58px; }
+.materialFavoriteButton { position: absolute; top: 50%; right: 12px; display: grid; width: 38px; height: 38px; min-height: 0; padding: 0; place-items: center; border: 0; border-radius: 50%; color: var(--muted); background: var(--surface-subtle); }
+.materialFavoriteButton.is-active { color: var(--warning); background: #fff7df; }
