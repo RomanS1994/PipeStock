@@ -17,6 +17,8 @@ import { CreateOrderPage } from './pages/CreateOrderPage/CreateOrderPage.jsx';
 import { ObjectDetailPage } from './pages/ObjectDetailPage/ObjectDetailPage.jsx';
 import { ObjectsPage } from './pages/ObjectsPage/ObjectsPage.jsx';
 import { OrderDetailPage } from './pages/OrderDetailPage/OrderDetailPage.jsx';
+import { OrdersPage } from './pages/OrdersPage/OrdersPage.jsx';
+import { ProfilePage } from './pages/ProfilePage/ProfilePage.jsx';
 
 export const router = createBrowserRouter([
   {
@@ -32,8 +34,10 @@ export const router = createBrowserRouter([
       { path: 'objects/new', element: <ProtectedRoute requireManager><CreateObjectPage /></ProtectedRoute> },
       { path: 'objects/:projectId', element: <ProtectedRoute><ObjectDetailPage /></ProtectedRoute> },
       { path: 'objects/:projectId/orders/new', element: <ProtectedRoute><CreateOrderPage /></ProtectedRoute> },
+      { path: 'orders', element: <ProtectedRoute><OrdersPage /></ProtectedRoute> },
       { path: 'orders/:orderId', element: <ProtectedRoute><OrderDetailPage /></ProtectedRoute> },
       { path: 'orders/:orderId/materials/new', element: <ProtectedRoute><AddMaterialPage /></ProtectedRoute> },
+      { path: 'profile', element: <ProtectedRoute><ProfilePage /></ProtectedRoute> },
     ],
   },
 ]);
