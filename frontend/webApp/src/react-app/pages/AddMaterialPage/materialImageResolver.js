@@ -18,6 +18,18 @@ const EXTRA_MATERIAL_IMAGES = {
   'ht|koleno 45°': '/materials/ht-elbow-45.webp',
   'ht|koleno 87°': '/materials/ht-elbow-87.webp',
   'ht|t-kus': '/materials/ht-tee.webp',
+  'kg|trubka': '/materials/kg-pipe.webp',
+  'kg|koleno 45°': '/materials/kg-elbow-45.webp',
+  'steel|trubka': '/materials/steel-pipe.webp',
+  'valves|kulový ventil': '/materials/valve-ball.webp',
+  'valves|kulovy ventil': '/materials/valve-ball.webp',
+};
+
+const EXTRA_CATEGORY_IMAGES = {
+  pex_mlcp: '/materials/pex-pipe.webp',
+  kg: '/materials/kg-pipe.webp',
+  steel: '/materials/steel-pipe.webp',
+  valves: '/materials/valve-ball.webp',
 };
 
 export function getMaterialImage(item) {
@@ -30,5 +42,8 @@ export function getMaterialImage(item) {
 }
 
 export function getMaterialCategoryImage(categoryKey) {
-  return getBaseCategoryImage(categoryKey);
+  const base = getBaseCategoryImage(categoryKey);
+  if (base) return base;
+  const key = String(categoryKey || '').trim().toLowerCase();
+  return EXTRA_CATEGORY_IMAGES[key] || null;
 }
