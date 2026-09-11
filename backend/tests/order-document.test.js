@@ -17,14 +17,17 @@ test('buildOrderSnapshot freezes order metadata and material quantities', () => 
     project: { id: 'project-1', name: 'Objekt A', address: 'Praha 8' },
     createdByMembership: { user: { id: 'user-1', name: 'Roman', email: 'roman@example.com' } },
     items: [{
-      materialKey: 'cu-22-elbow-90',
-      materialName: 'Cu 22 koleno 90°',
-      categoryKey: 'cu',
+      materialKey: 'geberit-mapress-cu-22-bend',
+      materialName: 'Geberit Mapress Copper bend 22 mm',
+      categoryKey: 'CU',
       categoryLabel: 'Cu',
       diameter: '22 mm',
-      type: 'Koleno 90°',
+      type: 'Oblouk',
       unit: 'ks',
-      sku: null,
+      sku: '52224',
+      brand: 'Geberit',
+      manufacturerSku: '52224',
+      sourceUrl: 'https://catalog.international.geberit.com/en-GB/product/PRO_103342',
       quantity: { valueOf: () => 3 },
     }],
   }, { status: 'SUBMITTED', submittedAt });
@@ -32,6 +35,8 @@ test('buildOrderSnapshot freezes order metadata and material quantities', () => 
   assert.equal(snapshot.order.status, 'SUBMITTED');
   assert.equal(snapshot.order.submittedAt, submittedAt.toISOString());
   assert.equal(snapshot.items[0].quantity, 3);
+  assert.equal(snapshot.items[0].brand, 'Geberit');
+  assert.equal(snapshot.items[0].manufacturerSku, '52224');
   assert.equal(snapshot.worker.name, 'Roman');
 });
 
@@ -50,7 +55,7 @@ test('createOrderPdf returns a valid PDF buffer with Unicode content', async () 
     company: { name: 'PipeStock Test' },
     project: { name: 'Об’єкт A', address: 'Praha 8' },
     worker: { name: 'Роман', email: 'roman@example.com' },
-    items: [{ categoryLabel: 'Cu', diameter: '22 mm', type: 'Колено 90°', quantity: 3, unit: 'ks' }],
+    items: [{ categoryLabel: 'Cu', diameter: '22 mm', type: 'Oblouk', brand: 'Geberit', manufacturerSku: '52224', quantity: 3, unit: 'ks' }],
   };
 
   const pdf = await createOrderPdf(snapshot);
