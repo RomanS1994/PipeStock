@@ -213,21 +213,24 @@ model Order {
 }
 
 model OrderItem {
-  id            String   @id @default(cuid())
-  orderId       String
-  catalogItemId String?
-  materialKey   String
-  materialName  String
-  categoryKey   String
-  categoryLabel String
-  diameter      String
-  type          String
-  unit          String
-  sku           String?
-  imageUrl      String?
-  quantity      Decimal  @db.Decimal(10, 2)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String   @id @default(cuid())
+  orderId         String
+  catalogItemId   String?
+  materialKey     String
+  materialName    String
+  categoryKey     String
+  categoryLabel   String
+  diameter        String
+  type            String
+  unit            String
+  sku             String?
+  imageUrl        String?
+  brand           String?
+  manufacturerSku String?
+  sourceUrl       String?
+  quantity        Decimal  @db.Decimal(10, 2)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   order       Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
   catalogItem MaterialCatalogItem? @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
