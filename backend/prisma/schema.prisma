@@ -43,8 +43,9 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  sessions    Session[]
-  memberships CompanyMembership[]
+  sessions         Session[]
+  memberships      CompanyMembership[]
+  materialFavorites MaterialFavorite[]
 
   @@index([deletedAt])
   @@map("users")
@@ -154,10 +155,25 @@ model MaterialCatalogItem {
   updatedAt     DateTime @updatedAt
 
   orderItems OrderItem[]
+  favorites  MaterialFavorite[]
 
   @@index([categoryKey, diameter, isActive])
   @@index([isActive, sortOrder])
   @@map("material_catalog_items")
+}
+
+model MaterialFavorite {
+  id            String   @id @default(cuid())
+  userId        String
+  catalogItemId String
+  createdAt     DateTime @default(now())
+
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  catalogItem MaterialCatalogItem @relation(fields: [catalogItemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, catalogItemId])
+  @@index([userId, createdAt])
+  @@map("material_favorites")
 }
 
 model Order {
