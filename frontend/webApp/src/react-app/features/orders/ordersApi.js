@@ -40,6 +40,14 @@ export const ordersApi = baseApi.injectEndpoints({
         ...(result?.order?.project?.id ? [{ type: 'Orders', id: `PROJECT-${result.order.project.id}` }] : []),
       ],
     }),
+    downloadOrderPdf: builder.mutation({
+      query: orderId => ({
+        url: `/orders/${encodeURIComponent(orderId)}/pdf`,
+        method: 'GET',
+        responseHandler: response => response.blob(),
+        cache: 'no-store',
+      }),
+    }),
     getMaterialCatalog: builder.query({
       query: () => '/material-catalog',
       transformResponse: response => response?.items || [],
@@ -115,6 +123,7 @@ export const {
   useCreateOrderMutation,
   useGetOrderQuery,
   useUpdateOrderMutation,
+  useDownloadOrderPdfMutation,
   useGetMaterialCatalogQuery,
   useGetFavoriteMaterialsQuery,
   useGetRecentMaterialsQuery,
