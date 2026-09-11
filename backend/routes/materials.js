@@ -1,7 +1,7 @@
 import { requireAuth } from '../auth/current-user.js';
 import { prisma } from '../db/prisma.js';
 import { HttpError } from '../lib/errors.js';
-import { readJsonBody, sendJson } from '../lib/http.js';
+import { sendJson } from '../lib/http.js';
 
 function getActiveMembership(user) {
   return (user.memberships || []).find(
@@ -14,17 +14,6 @@ function requireMembership(user, role) {
   if (!membership) throw new HttpError(403, 'Company access is required');
   if (role && membership.role !== role) throw new HttpError(403, 'Manager access is required');
   return membership;
-}
-
-function normalizeText(value) {
-  return String(value ?? '').trim();
-}
-
-function assertHttpsUrl(value) {
-  if (!value) return null;
-  if (value.length > 2000) throw new HttpError(400, 'Image URL is too long');
-  if (!/^https:\/\//i.test(value)) throw new HttpError(400, 'Image URL must use HTTPS');
-  return value;
 }
 
 function serializeCatalogItem(item, extra = {}) {
@@ -115,25 +104,6 @@ async function removeFavorite(request, response, catalogItemId) {
   sendJson(response, 200, { ok: true });
 }
 
-async function updateCatalogImage(request, response, catalogItemId) {
-  const user = await requireAuth(request);
-  requireMembership(user, 'MANAGER');
-
-  const current = await prisma.materialCatalogItem.findFirst({
-    where: { id: catalogItemId, isActive: true },
-  });
-  if (!current) throw new HttpError(404, 'Material was not found');
-
-  const body = await readJsonBody(request);
-  const imageUrl = assertHttpsUrl(normalizeText(body.imageUrl));
-  const item = await prisma.materialCatalogItem.update({
-    where: { id: catalogItemId },
-    data: { imageUrl },
-  });
-
-  sendJson(response, 200, { item: serializeCatalogItem(item) });
-}
-
 export async function handleMaterialRoutes(request, response, { pathName }) {
   if (request.method === 'GET' && pathName === '/api/materials/favorites') {
     await listFavorites(request, response);
@@ -142,12 +112,6 @@ export async function handleMaterialRoutes(request, response, { pathName }) {
 
   if (request.method === 'GET' && pathName === '/api/materials/recent') {
     await listRecent(request, response);
-    return true;
-  }
-
-  const imageMatch = pathName.match(/^\/api\/material-catalog\/([^/]+)\/image$/);
-  if (imageMatch && request.method === 'PATCH') {
-    await updateCatalogImage(request, response, decodeURIComponent(imageMatch[1]));
     return true;
   }
 
