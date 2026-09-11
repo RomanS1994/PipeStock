@@ -6,12 +6,29 @@ import { selectUser } from '../../features/auth/authSlice.js';
 import {
   useCompleteOrderMutation,
   useDeleteOrderItemMutation,
+  useGetOrderHistoryQuery,
   useGetOrderQuery,
   useSubmitOrderMutation,
 } from '../../features/orders/ordersApi.js';
 import '../OrderFlow/OrderFlow.css';
 
 const STATUS_LABELS = { DRAFT: 'Draft', SUBMITTED: 'Submitted', COMPLETED: 'Completed' };
+const EVENT_LABELS = {
+  CREATED: 'Заказ створено',
+  SUBMITTED: 'Відправлено менеджеру',
+  COMPLETED: 'Заказ завершено',
+};
+
+function formatEventDate(value) {
+  if (!value) return '';
+  return new Intl.DateTimeFormat('uk-UA', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value));
+}
 
 export function OrderDetailPage() {
   const { orderId } = useParams();
@@ -19,6 +36,7 @@ export function OrderDetailPage() {
   const membership = (user?.memberships || []).find(item => item.status === 'ACTIVE');
   const manager = membership?.role === 'MANAGER';
   const { data: order, isLoading, isError, refetch } = useGetOrderQuery(orderId);
+  const { data: history = [] } = useGetOrderHistoryQuery(orderId);
   const [submitOrder, submitState] = useSubmitOrderMutation();
   const [completeOrder, completeState] = useCompleteOrderMutation();
   const [deleteItem] = useDeleteOrderItemMutation();
@@ -72,6 +90,26 @@ export function OrderDetailPage() {
 
         {canEdit ? <Link className="psButton psButton--primary psButton--full orderButtonLink" to={`/orders/${order.id}/materials/new`}>+ Додати матеріал</Link> : null}
       </section>
+
+      {order.status !== 'DRAFT' && history.length ? (
+        <section className="screenCard orderHistoryCard">
+          <div className="orderSectionHeader">
+            <div><strong>Історія</strong><span>Основні етапи заказу</span></div>
+          </div>
+          <div className="orderTimeline">
+            {history.map(event => (
+              <div className="orderTimelineItem" key={event.id}>
+                <span className={`orderTimelineDot is-${event.type.toLowerCase()}`} />
+                <div>
+                  <strong>{EVENT_LABELS[event.type] || event.type}</strong>
+                  <span>{event.actor?.name || 'Система'}</span>
+                </div>
+                <time dateTime={event.createdAt}>{formatEventDate(event.createdAt)}</time>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {submitState.error ? <p className="orderError">{submitState.error?.data?.error}</p> : null}
       {completeState.error ? <p className="orderError">{completeState.error?.data?.error}</p> : null}
