@@ -25,6 +25,18 @@ function MaterialThumb({ item, className = 'materialTypeMark' }) {
     : <span className={className}>{item?.categoryLabel?.slice(0, 2).toUpperCase()}</span>;
 }
 
+function MaterialShortcut({ item, onClick }) {
+  return (
+    <button type="button" className="materialShortcutCard" onClick={() => onClick(item)}>
+      <MaterialThumb item={item} className="materialShortcutMark" />
+      <span className="materialShortcutCopy">
+        <strong>{item.categoryLabel} {item.diameter}</strong>
+        <span>{item.type}</span>
+      </span>
+    </button>
+  );
+}
+
 export function AddMaterialPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
@@ -131,7 +143,7 @@ export function AddMaterialPage() {
             <div className="materialShortcutSection">
               <div className="materialShortcutHeading"><span><Icon name="star" size={16} /> Обране</span><small>{favorites.length}</small></div>
               <div className="materialShortcutList">
-                {favorites.slice(0, 6).map(item => <button key={item.id} type="button" onClick={() => selectShortcut(item)}><strong>{item.categoryLabel} {item.diameter}</strong><span>{item.type}</span></button>)}
+                {favorites.slice(0, 6).map(item => <MaterialShortcut key={item.id} item={item} onClick={selectShortcut} />)}
               </div>
             </div>
           ) : null}
@@ -140,7 +152,7 @@ export function AddMaterialPage() {
             <div className="materialShortcutSection">
               <div className="materialShortcutHeading"><span><Icon name="clock" size={16} /> Нещодавні</span><small>{recent.length}</small></div>
               <div className="materialShortcutList">
-                {recent.slice(0, 6).map(item => <button key={item.id} type="button" onClick={() => selectShortcut(item)}><strong>{item.categoryLabel} {item.diameter}</strong><span>{item.type}</span></button>)}
+                {recent.slice(0, 6).map(item => <MaterialShortcut key={item.id} item={item} onClick={selectShortcut} />)}
               </div>
             </div>
           ) : null}
