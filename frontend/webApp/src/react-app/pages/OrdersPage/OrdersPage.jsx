@@ -8,15 +8,15 @@ import './OrdersPage.css';
 
 const STATUS_LABELS = {
   DRAFT: 'Draft',
-  SUBMITTED: 'Відправлено',
-  COMPLETED: 'Завершено',
+  SUBMITTED: 'Submitted',
+  COMPLETED: 'Completed',
 };
 
 const FILTERS = [
   ['ALL', 'Усі'],
   ['DRAFT', 'Draft'],
-  ['SUBMITTED', 'Відправлені'],
-  ['COMPLETED', 'Завершені'],
+  ['SUBMITTED', 'Submitted'],
+  ['COMPLETED', 'Completed'],
 ];
 
 export function OrdersPage() {
