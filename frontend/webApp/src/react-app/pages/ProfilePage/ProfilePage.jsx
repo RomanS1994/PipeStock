@@ -1,5 +1,4 @@
 import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
 import { Button } from '@shared/app/components/ui/PipeStockUI.jsx';
 import { WorkspaceNavigation } from '../../components/WorkspaceNavigation/WorkspaceNavigation.jsx';
 import { selectUser } from '../../features/auth/authSlice.js';
@@ -32,7 +31,6 @@ export function ProfilePage() {
         </dl>
       </section>
 
-      {manager ? <Link className="psButton psButton--secondary psButton--full" to="/materials">Каталог матеріалів</Link> : null}
       <Button variant="text" disabled={isLoading} onClick={() => logout()}>{isLoading ? 'Виходимо…' : 'Вийти з аккаунту'}</Button>
       <WorkspaceNavigation />
     </div>
