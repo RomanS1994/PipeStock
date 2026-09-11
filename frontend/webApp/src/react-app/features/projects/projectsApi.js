@@ -17,7 +17,10 @@ export const projectsApi = baseApi.injectEndpoints({
     }),
     createProject: builder.mutation({
       query: body => ({ url: '/projects', method: 'POST', body }),
-      invalidatesTags: [{ type: 'Projects', id: 'LIST' }],
+      invalidatesTags: [
+        { type: 'Projects', id: 'LIST' },
+        { type: 'Dashboard', id: 'SUMMARY' },
+      ],
     }),
     updateProject: builder.mutation({
       query: ({ projectId, ...body }) => ({
@@ -28,6 +31,7 @@ export const projectsApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, { projectId }) => [
         { type: 'Projects', id: projectId },
         { type: 'Projects', id: 'LIST' },
+        { type: 'Dashboard', id: 'SUMMARY' },
       ],
     }),
     getEmployees: builder.query({
