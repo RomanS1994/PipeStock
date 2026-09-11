@@ -58,13 +58,6 @@ export function ObjectsPage() {
           </div>
           {manager ? <IconButton icon="plus" label="Створити об’єкт" onClick={() => navigate('/objects/new')} /> : null}
         </div>
-
-        {manager && membership?.company?.joinCode ? (
-          <div className="companyCodeCard">
-            <span>Код для приєднання працівників</span>
-            <strong>{membership.company.joinCode}</strong>
-          </div>
-        ) : null}
       </section>
 
       <SearchField value={search} onChange={event => setSearch(event.target.value)} placeholder="Пошук об’єктів..." aria-label="Пошук об’єктів" />
