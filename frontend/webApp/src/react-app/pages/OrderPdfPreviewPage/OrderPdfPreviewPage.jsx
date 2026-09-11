@@ -5,6 +5,16 @@ import { OrderDocumentActions } from '../../components/OrderDocumentActions/Orde
 import { useDownloadOrderPdfMutation, useGetOrderQuery } from '../../features/orders/ordersApi.js';
 import './OrderPdfPreviewPage.css';
 
+function formatDocumentDate(order) {
+  const value = order?.completedAt || order?.submittedAt || order?.createdAt;
+  if (!value) return '—';
+  return new Intl.DateTimeFormat('uk-UA', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(new Date(value));
+}
+
 export function OrderPdfPreviewPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
@@ -65,7 +75,9 @@ export function OrderPdfPreviewPage() {
 
       <section className="orderPdfPreviewMeta">
         <div><span>Об’єкт</span><strong>{order.project?.name || '—'}</strong></div>
+        <div><span>Заказ</span><strong>#{order.number}</strong></div>
         <div><span>Працівник</span><strong>{order.worker?.name || '—'}</strong></div>
+        <div><span>Дата</span><strong>{formatDocumentDate(order)}</strong></div>
       </section>
 
       <section className="screenCard orderPdfPreviewCard">
