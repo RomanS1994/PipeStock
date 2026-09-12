@@ -46,7 +46,7 @@ export const router = createBrowserRouter([
       { path: 'orders/:orderId/materials/new', element: <ProtectedRoute><AddMaterialPage /></ProtectedRoute> },
       { path: 'employees', element: <ProtectedRoute requireManager><EmployeesPage /></ProtectedRoute> },
       { path: 'employees/invite', element: <ProtectedRoute requireManager><InviteEmployeePage /></ProtectedRoute> },
-      { path: 'history', element: <ProtectedRoute><HistoryPage /></ProtectedRoute> },
+      { path: 'history', element: <ProtectedRoute requireEmployee><HistoryPage /></ProtectedRoute> },
       { path: 'profile', element: <ProtectedRoute><ProfilePage /></ProtectedRoute> },
     ],
   },
