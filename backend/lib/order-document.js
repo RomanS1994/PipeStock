@@ -142,7 +142,6 @@ function createDefinition(snapshot) {
             [{ text: 'Категорія', style: 'label' }, text(order.category)],
             [{ text: 'Відправлено', style: 'label' }, formatDate(order.submittedAt)],
             [{ text: 'Завершено', style: 'label' }, formatDate(order.completedAt)],
-            [{ text: 'Примітка', style: 'label' }, text(order.note)],
           ],
         },
         layout: 'lightHorizontalLines',
@@ -181,6 +180,22 @@ function createDefinition(snapshot) {
           paddingTop: () => 6,
           paddingBottom: () => 6,
         },
+      },
+      {
+        stack: [
+          { text: 'Remarks', style: 'sectionTitle', margin: [0, 0, 0, 8] },
+          {
+            table: {
+              widths: ['*'],
+              body: [[{ text: text(order.note), margin: [8, 8, 8, 8] }]],
+            },
+            layout: {
+              hLineColor: '#E5E7EB',
+              vLineColor: '#E5E7EB',
+            },
+          },
+        ],
+        margin: [0, 18, 0, 0],
       },
       {
         columns: [
