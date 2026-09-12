@@ -14,12 +14,11 @@ export function DashboardPage() {
   return (
     <div className="pageStack dashboardPage">
       <header className="compactHeader">
-        <span className="sectionEyebrow">Manager workspace</span>
         <h1>Головна</h1>
         <p>Короткий стан компанії та остання активність.</p>
       </header>
 
-      {isLoading ? <section className="screenCard">Завантажуємо dashboard…</section> : null}
+      {isLoading ? <section className="screenCard">Завантажуємо дані…</section> : null}
       {isError ? <section className="screenCard dashboardState"><strong>Не вдалося завантажити дані</strong><button type="button" onClick={refetch}>Спробувати ще раз</button></section> : null}
 
       {!isLoading && !isError ? (
