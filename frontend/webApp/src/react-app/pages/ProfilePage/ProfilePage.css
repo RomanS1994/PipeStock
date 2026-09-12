@@ -1,11 +1,15 @@
-.profilePage { padding-bottom: 88px; }
+.profilePage { padding-bottom: var(--workspace-nav-clearance); }
 .profileCard { display: grid; grid-template-columns: 54px minmax(0, 1fr); align-items: center; gap: 12px; }
 .profileAvatar { display: grid; width: 54px; height: 54px; place-items: center; border-radius: 50%; color: var(--primary); background: var(--primary-soft); font-size: 20px; font-weight: var(--weight-bold); }
-.profileCard > div { display: grid; gap: 3px; }
-.profileCard strong { font-size: 16px; }
-.profileCard span { color: var(--muted); font-size: 12px; }
+.profileCard > div { display: grid; gap: 3px; min-width: 0; }
+.profileCard strong { overflow-wrap: anywhere; font-size: 16px; }
+.profileCard span { overflow-wrap: anywhere; color: var(--muted); font-size: 12px; }
 .profileDetails dl { display: grid; gap: 0; margin: 0; }
 .profileDetails dl > div { display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 12px; padding: 11px 0; border-top: 1px solid var(--line); }
 .profileDetails dl > div:first-child { border-top: 0; }
 .profileDetails dt { color: var(--muted); font-size: 12px; }
-.profileDetails dd { margin: 0; font-size: 13px; }
+.profileDetails dd { min-width: 0; margin: 0; overflow-wrap: anywhere; font-size: 13px; }
+
+@media (max-width: 420px) {
+  .profileDetails dl > div { grid-template-columns: 78px minmax(0, 1fr); gap: 10px; }
+}
