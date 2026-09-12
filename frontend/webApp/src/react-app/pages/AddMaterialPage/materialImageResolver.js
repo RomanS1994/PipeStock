@@ -79,6 +79,14 @@ const EXTRA_MATERIAL_IMAGES = {
   'sanita|zavesne wc': '/materials/sanita-wall-hung-wc.svg',
   'sanita|pisoár': '/materials/sanita-urinal.svg',
   'sanita|pisoar': '/materials/sanita-urinal.svg',
+  'sanita|umyvadlo': '/materials/sanita-washbasin.svg',
+  'sanita|umyvadlová baterie': '/materials/sanita-basin-mixer.svg',
+  'sanita|umyvadlova baterie': '/materials/sanita-basin-mixer.svg',
+  'sanita|sprchová baterie': '/materials/sanita-shower-mixer.svg',
+  'sanita|sprchova baterie': '/materials/sanita-shower-mixer.svg',
+  'sanita|vana': '/materials/sanita-bathtub.svg',
+  'sanita|podlahová vpusť': '/materials/sanita-floor-drain.svg',
+  'sanita|podlahova vpust': '/materials/sanita-floor-drain.svg',
 };
 
 const EXTRA_CATEGORY_IMAGES = {
