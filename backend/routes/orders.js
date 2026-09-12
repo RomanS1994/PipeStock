@@ -129,6 +129,23 @@ function assertDraftEditAccess(order, membership) {
   }
 }
 
+async function lockOrderState(tx, orderId) {
+  const rows = await tx.$queryRaw`
+    SELECT "id", "status", "createdByMembershipId"
+    FROM "orders"
+    WHERE "id" = ${orderId}
+    FOR UPDATE
+  `;
+  if (!rows.length) throw new HttpError(404, 'Order not found');
+  return rows[0];
+}
+
+async function lockDraftForWrite(tx, orderId, membership) {
+  const state = await lockOrderState(tx, orderId);
+  assertDraftEditAccess(state, membership);
+  return state;
+}
+
 function parseQuantity(value) {
   const quantity = Number(value);
   if (!Number.isFinite(quantity) || quantity <= 0 || quantity > 99999) {
@@ -241,48 +258,55 @@ async function listOrderHistory(request, response, orderId) {
 async function updateOrder(request, response, orderId) {
   const user = await requireAuth(request);
   const membership = requireMembership(user);
-  const current = await findOrder(orderId, membership);
-  assertDraftEditAccess(current, membership);
+  await findOrder(orderId, membership);
   const body = await readJsonBody(request);
   const data = {};
   if (body.title !== undefined) {
     const title = normalizeText(body.title);
     if (!title) throw new HttpError(400, 'Order title is required');
+    if (title.length > 120) throw new HttpError(400, 'Order title is too long');
     data.title = title;
   }
   if (body.category !== undefined) data.category = normalizeText(body.category) || null;
   if (body.note !== undefined) data.note = normalizeText(body.note) || null;
-  const order = await prisma.order.update({ where: { id: orderId }, data, include: orderInclude });
+
+  const order = await prisma.$transaction(async tx => {
+    await lockDraftForWrite(tx, orderId, membership);
+    return tx.order.update({ where: { id: orderId }, data, include: orderInclude });
+  });
   sendJson(response, 200, { order: serializeOrder(order) });
 }
 
 async function addItem(request, response, orderId) {
   const user = await requireAuth(request);
   const membership = requireMembership(user);
-  const order = await findOrder(orderId, membership);
-  assertDraftEditAccess(order, membership);
+  await findOrder(orderId, membership);
   const body = await readJsonBody(request);
   const catalogItemId = normalizeText(body.catalogItemId);
   if (!catalogItemId) throw new HttpError(400, 'Material is required');
+  const quantity = parseQuantity(body.quantity);
   const catalogItem = await prisma.materialCatalogItem.findFirst({
     where: { id: catalogItemId, isActive: true },
   });
   if (!catalogItem) throw new HttpError(404, 'Material was not found');
 
-  const item = await prisma.orderItem.create({
-    data: {
-      orderId,
-      catalogItemId: catalogItem.id,
-      materialKey: catalogItem.key,
-      materialName: catalogItem.name,
-      categoryKey: catalogItem.categoryKey,
-      categoryLabel: catalogItem.categoryLabel,
-      diameter: catalogItem.diameter,
-      type: catalogItem.type,
-      unit: catalogItem.unit,
-      imageUrl: catalogItem.imageUrl,
-      quantity: parseQuantity(body.quantity),
-    },
+  const item = await prisma.$transaction(async tx => {
+    await lockDraftForWrite(tx, orderId, membership);
+    return tx.orderItem.create({
+      data: {
+        orderId,
+        catalogItemId: catalogItem.id,
+        materialKey: catalogItem.key,
+        materialName: catalogItem.name,
+        categoryKey: catalogItem.categoryKey,
+        categoryLabel: catalogItem.categoryLabel,
+        diameter: catalogItem.diameter,
+        type: catalogItem.type,
+        unit: catalogItem.unit,
+        imageUrl: catalogItem.imageUrl,
+        quantity,
+      },
+    });
   });
   sendJson(response, 201, { item: serializeItem(item) });
 }
@@ -290,14 +314,18 @@ async function addItem(request, response, orderId) {
 async function updateItem(request, response, orderId, itemId) {
   const user = await requireAuth(request);
   const membership = requireMembership(user);
-  const order = await findOrder(orderId, membership);
-  assertDraftEditAccess(order, membership);
-  const existing = await prisma.orderItem.findFirst({ where: { id: itemId, orderId } });
-  if (!existing) throw new HttpError(404, 'Order item not found');
+  await findOrder(orderId, membership);
   const body = await readJsonBody(request);
-  const item = await prisma.orderItem.update({
-    where: { id: itemId },
-    data: { quantity: parseQuantity(body.quantity) },
+  const quantity = parseQuantity(body.quantity);
+
+  const item = await prisma.$transaction(async tx => {
+    await lockDraftForWrite(tx, orderId, membership);
+    const existing = await tx.orderItem.findFirst({ where: { id: itemId, orderId } });
+    if (!existing) throw new HttpError(404, 'Order item not found');
+    return tx.orderItem.update({
+      where: { id: itemId },
+      data: { quantity },
+    });
   });
   sendJson(response, 200, { item: serializeItem(item) });
 }
@@ -305,27 +333,32 @@ async function updateItem(request, response, orderId, itemId) {
 async function deleteItem(request, response, orderId, itemId) {
   const user = await requireAuth(request);
   const membership = requireMembership(user);
-  const order = await findOrder(orderId, membership);
-  assertDraftEditAccess(order, membership);
-  const result = await prisma.orderItem.deleteMany({ where: { id: itemId, orderId } });
-  if (!result.count) throw new HttpError(404, 'Order item not found');
+  await findOrder(orderId, membership);
+
+  await prisma.$transaction(async tx => {
+    await lockDraftForWrite(tx, orderId, membership);
+    const result = await tx.orderItem.deleteMany({ where: { id: itemId, orderId } });
+    if (!result.count) throw new HttpError(404, 'Order item not found');
+  });
   sendJson(response, 200, { ok: true });
 }
 
 async function submitOrder(request, response, orderId) {
   const user = await requireAuth(request);
   const membership = requireMembership(user);
-  const order = await findOrder(orderId, membership);
-  assertDraftEditAccess(order, membership);
-  if (!order.items?.length) throw new HttpError(409, 'Add at least one material before submitting');
+  await findOrder(orderId, membership);
 
   const submittedAt = new Date();
-  const snapshotPayload = buildOrderSnapshot(order, {
-    status: 'SUBMITTED',
-    submittedAt,
-  });
-
   const updated = await prisma.$transaction(async tx => {
+    await lockDraftForWrite(tx, orderId, membership);
+    const order = await tx.order.findUnique({ where: { id: orderId }, include: orderInclude });
+    if (!order?.items?.length) throw new HttpError(409, 'Add at least one material before submitting');
+
+    const snapshotPayload = buildOrderSnapshot(order, {
+      status: 'SUBMITTED',
+      submittedAt,
+    });
+
     await tx.orderSnapshot.upsert({
       where: { orderId },
       update: {},
@@ -360,11 +393,14 @@ async function submitOrder(request, response, orderId) {
 async function completeOrder(request, response, orderId) {
   const user = await requireAuth(request);
   const membership = requireMembership(user, 'MANAGER');
-  const order = await findOrder(orderId, membership);
-  if (order.status !== 'SUBMITTED') throw new HttpError(409, 'Only submitted orders can be completed');
+  await findOrder(orderId, membership);
 
   const completedAt = new Date();
   const updated = await prisma.$transaction(async tx => {
+    const state = await lockOrderState(tx, orderId);
+    if (state.status !== 'SUBMITTED') throw new HttpError(409, 'Only submitted orders can be completed');
+
+    const order = await tx.order.findUnique({ where: { id: orderId }, include: orderInclude });
     if (!order.snapshot) {
       await tx.orderSnapshot.upsert({
         where: { orderId },
