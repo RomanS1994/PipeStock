@@ -1,0 +1,1 @@
+Generated material assets are imported through Git blob/tree writes to preserve binary WebP data.
