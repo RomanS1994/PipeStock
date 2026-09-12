@@ -45,6 +45,7 @@
   --space-10: 40px;
   --space-page: var(--space-4);
   --page-inline: 18px;
+  --workspace-nav-clearance: calc(80px + env(safe-area-inset-bottom));
 
   --radius-xs: 8px;
   --radius-sm: 10px;
