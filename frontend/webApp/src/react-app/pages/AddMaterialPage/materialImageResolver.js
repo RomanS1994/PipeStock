@@ -46,12 +46,23 @@ const EXTRA_CATEGORY_IMAGES = {
 };
 
 export function getMaterialImage(item) {
-  const base = getBaseMaterialImage(item);
-  if (base) return base;
   if (!item) return null;
+
   const category = String(item.categoryKey || item.categoryLabel || '').trim().toLowerCase();
   const type = String(item.type || '').trim().toLowerCase();
-  return EXTRA_MATERIAL_IMAGES[`${category}|${type}`] || null;
+  const extraImage = EXTRA_MATERIAL_IMAGES[`${category}|${type}`] || null;
+
+  // PipeStock uses one consistent white PPR visual language. For PPR we always
+  // prefer bundled/generated assets over a legacy catalog imageUrl so a stale
+  // green manufacturer image cannot leak back into the material picker.
+  if (category === 'ppr') {
+    if (extraImage) return extraImage;
+    return getBaseMaterialImage({ ...item, imageUrl: null });
+  }
+
+  const base = getBaseMaterialImage(item);
+  if (base) return base;
+  return extraImage;
 }
 
 export function getMaterialCategoryImage(categoryKey) {
