@@ -56,6 +56,23 @@ async function loadUser(tx, userId) {
   });
 }
 
+async function lockCompanyInvite(tx, joinCode) {
+  const rows = await tx.$queryRaw`
+    SELECT "id", "joinCodeExpiresAt", "joinCodeRevokedAt"
+    FROM "companies"
+    WHERE "joinCode" = ${joinCode}
+    FOR UPDATE
+  `;
+  if (!rows.length) throw new HttpError(404, 'Company code was not found');
+
+  const company = rows[0];
+  if (company.joinCodeRevokedAt) throw new HttpError(410, 'Company code was revoked');
+  if (!company.joinCodeExpiresAt || company.joinCodeExpiresAt <= new Date()) {
+    throw new HttpError(410, 'Company code has expired');
+  }
+  return company;
+}
+
 async function issueSession(tx, userId) {
   const refreshToken = createRefreshToken();
   const session = await tx.session.create({
@@ -156,13 +173,7 @@ async function joinCompany(request, response) {
       throw new HttpError(409, 'User already belongs to an active company');
     }
 
-    const company = await tx.company.findUnique({ where: { joinCode } });
-    if (!company) throw new HttpError(404, 'Company code was not found');
-    if (company.joinCodeRevokedAt) throw new HttpError(410, 'Company code was revoked');
-    if (!company.joinCodeExpiresAt || company.joinCodeExpiresAt <= new Date()) {
-      throw new HttpError(410, 'Company code has expired');
-    }
-
+    const company = await lockCompanyInvite(tx, joinCode);
     const existing = await tx.companyMembership.findUnique({ where: { companyId_userId: { companyId: company.id, userId: current.id } } });
     if (!existing) await tx.companyMembership.create({ data: { companyId: company.id, userId: current.id, role: 'EMPLOYEE' } });
     else if (existing.deletedAt || existing.status !== 'ACTIVE') await tx.companyMembership.update({ where: { id: existing.id }, data: { deletedAt: null, status: 'ACTIVE', role: 'EMPLOYEE' } });
