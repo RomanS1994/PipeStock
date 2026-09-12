@@ -1,0 +1,1 @@
+White PPR product assets are maintained as local WebP files in this directory and mapped by AddMaterialPage/materialImageResolver.js. Do not replace PPR assets with green variants.
