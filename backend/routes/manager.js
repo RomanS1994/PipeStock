@@ -156,7 +156,14 @@ async function updateTeamMember(request, response, membershipId) {
     throw new HttpError(409, 'Employee already belongs to another active company');
   }
 
+  const statusChanged = status !== member.status;
   const updated = await prisma.$transaction(async tx => {
+    if (statusChanged) {
+      // Access to projects never survives a membership status transition. This keeps
+      // reactivation explicit: a manager must assign the employee to projects again.
+      await tx.projectAssignment.deleteMany({ where: { membershipId } });
+    }
+
     const nextMember = await tx.companyMembership.update({
       where: { id: membershipId },
       data: { status },
@@ -166,7 +173,7 @@ async function updateTeamMember(request, response, membershipId) {
       },
     });
 
-    if (status === 'INACTIVE' && member.status !== 'INACTIVE') {
+    if (status === 'INACTIVE' && statusChanged) {
       await tx.session.deleteMany({ where: { userId: member.userId } });
     }
 
