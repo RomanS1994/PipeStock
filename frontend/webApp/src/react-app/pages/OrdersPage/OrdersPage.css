@@ -1,4 +1,4 @@
-.ordersPage { padding-bottom: 88px; }
+.ordersPage { padding-bottom: var(--workspace-nav-clearance); }
 .ordersPage-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .ordersFilters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
 .ordersFilters::-webkit-scrollbar { display: none; }
