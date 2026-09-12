@@ -2,7 +2,7 @@ import { prisma } from '../db/prisma.js';
 import { HttpError } from '../lib/errors.js';
 import { readJsonBody, sendJson } from '../lib/http.js';
 import { createInviteCode } from '../lib/invite-code.js';
-import { hasActiveCompanyMembership } from '../auth/membership-policy.js';
+import { hasActiveCompanyMembership, hasActiveCompanyMembershipInTx, lockUserForMembershipChange } from '../auth/membership-policy.js';
 import { clearRefreshCookie, readRefreshToken, setRefreshCookie } from '../auth/session-cookie.js';
 import { createAccessToken, createRefreshToken, getRefreshExpiry, hashPassword, hashToken, verifyPassword } from '../auth/tokens.js';
 import { requireAuth, serializeUser } from '../auth/current-user.js';
@@ -149,6 +149,13 @@ async function joinCompany(request, response) {
   if (!joinCode) throw new HttpError(400, 'Company code is required');
 
   const user = await prisma.$transaction(async tx => {
+    if (!(await lockUserForMembershipChange(tx, current.id))) {
+      throw new HttpError(404, 'User not found');
+    }
+    if (await hasActiveCompanyMembershipInTx(tx, current.id)) {
+      throw new HttpError(409, 'User already belongs to an active company');
+    }
+
     const company = await tx.company.findUnique({ where: { joinCode } });
     if (!company) throw new HttpError(404, 'Company code was not found');
     if (company.joinCodeRevokedAt) throw new HttpError(410, 'Company code was revoked');
