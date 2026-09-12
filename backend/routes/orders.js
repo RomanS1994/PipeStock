@@ -23,6 +23,20 @@ function requireMembership(user, role) {
   return membership;
 }
 
+async function lockMembershipAccess(tx, membership) {
+  const rows = await tx.$queryRaw`
+    SELECT "id", "status", "deletedAt"
+    FROM "company_memberships"
+    WHERE "id" = ${membership.id} AND "companyId" = ${membership.companyId}
+    FOR UPDATE
+  `;
+  const state = rows[0];
+  if (!state || state.status !== 'ACTIVE' || state.deletedAt) {
+    throw new HttpError(403, 'Company access is required');
+  }
+  return state;
+}
+
 async function requireProjectAccess(projectId, membership) {
   const project = await prisma.project.findFirst({
     where: { id: projectId, companyId: membership.companyId },
@@ -224,6 +238,7 @@ async function createOrder(request, response, projectId) {
   if (title.length > 120) throw new HttpError(400, 'Order title is too long');
 
   const order = await prisma.$transaction(async tx => {
+    await lockMembershipAccess(tx, membership);
     const project = await lockProjectAccess(tx, projectId, membership);
     if (project.status === 'COMPLETED') {
       throw new HttpError(409, 'Completed projects cannot accept new orders');
@@ -300,6 +315,7 @@ async function updateOrder(request, response, orderId) {
   if (body.note !== undefined) data.note = normalizeText(body.note) || null;
 
   const order = await prisma.$transaction(async tx => {
+    await lockMembershipAccess(tx, membership);
     await lockProjectAccess(tx, accessibleOrder.project.id, membership);
     await lockDraftForWrite(tx, orderId, membership);
     return tx.order.update({ where: { id: orderId }, data, include: orderInclude });
@@ -321,6 +337,7 @@ async function addItem(request, response, orderId) {
   if (!catalogItem) throw new HttpError(404, 'Material was not found');
 
   const item = await prisma.$transaction(async tx => {
+    await lockMembershipAccess(tx, membership);
     await lockProjectAccess(tx, accessibleOrder.project.id, membership);
     await lockDraftForWrite(tx, orderId, membership);
     return tx.orderItem.create({
@@ -350,6 +367,7 @@ async function updateItem(request, response, orderId, itemId) {
   const quantity = parseQuantity(body.quantity);
 
   const item = await prisma.$transaction(async tx => {
+    await lockMembershipAccess(tx, membership);
     await lockProjectAccess(tx, accessibleOrder.project.id, membership);
     await lockDraftForWrite(tx, orderId, membership);
     const existing = await tx.orderItem.findFirst({ where: { id: itemId, orderId } });
@@ -368,6 +386,7 @@ async function deleteItem(request, response, orderId, itemId) {
   const accessibleOrder = await findOrder(orderId, membership);
 
   await prisma.$transaction(async tx => {
+    await lockMembershipAccess(tx, membership);
     await lockProjectAccess(tx, accessibleOrder.project.id, membership);
     await lockDraftForWrite(tx, orderId, membership);
     const result = await tx.orderItem.deleteMany({ where: { id: itemId, orderId } });
@@ -383,6 +402,7 @@ async function submitOrder(request, response, orderId) {
 
   const submittedAt = new Date();
   const updated = await prisma.$transaction(async tx => {
+    await lockMembershipAccess(tx, membership);
     await lockProjectAccess(tx, accessibleOrder.project.id, membership);
     await lockDraftForWrite(tx, orderId, membership);
     const order = await tx.order.findUnique({ where: { id: orderId }, include: orderInclude });
@@ -431,6 +451,7 @@ async function completeOrder(request, response, orderId) {
 
   const completedAt = new Date();
   const updated = await prisma.$transaction(async tx => {
+    await lockMembershipAccess(tx, membership);
     const state = await lockOrderState(tx, orderId);
     if (state.status !== 'SUBMITTED') throw new HttpError(409, 'Only submitted orders can be completed');
 
