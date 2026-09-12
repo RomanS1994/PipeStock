@@ -52,6 +52,20 @@ const EXTRA_MATERIAL_IMAGES = {
   'steel|trubka': '/materials/steel-pipe.webp',
   'valves|kulový ventil': '/materials/valve-ball.webp',
   'valves|kulovy ventil': '/materials/valve-ball.webp',
+  'valves|rohový ventil': '/materials/valve-angle.svg',
+  'valves|rohovy ventil': '/materials/valve-angle.svg',
+  'valves|zpětná klapka': '/materials/valve-check.svg',
+  'valves|zpetna klapka': '/materials/valve-check.svg',
+  'valves|filtr': '/materials/valve-filter.svg',
+  'valves|pojistný ventil': '/materials/valve-safety.svg',
+  'valves|pojistny ventil': '/materials/valve-safety.svg',
+  'valves|manometr': '/materials/valve-manometer.svg',
+  'valves|odvzdušňovací ventil': '/materials/valve-airvent.svg',
+  'valves|odvzdusnovaci ventil': '/materials/valve-airvent.svg',
+  'valves|automatický odvzdušňovací ventil': '/materials/valve-airvent.svg',
+  'valves|automaticky odvzdusnovaci ventil': '/materials/valve-airvent.svg',
+  'valves|expanzní nádoba': '/materials/valve-expansion.svg',
+  'valves|expanzni nadoba': '/materials/valve-expansion.svg',
 };
 
 const EXTRA_CATEGORY_IMAGES = {
