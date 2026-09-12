@@ -1,5 +1,6 @@
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../auth/current-user.js';
+import { hasActiveCompanyMembership } from '../auth/membership-policy.js';
 import { HttpError } from '../lib/errors.js';
 import { readJsonBody, sendJson } from '../lib/http.js';
 import { createInviteCode } from '../lib/invite-code.js';
@@ -138,8 +139,22 @@ async function updateTeamMember(request, response, membershipId) {
       role: 'EMPLOYEE',
       deletedAt: null,
     },
+    include: {
+      user: {
+        include: {
+          memberships: {
+            where: { deletedAt: null },
+            include: { company: true },
+          },
+        },
+      },
+    },
   });
   if (!member) throw new HttpError(404, 'Employee not found');
+
+  if (status === 'ACTIVE' && member.status !== 'ACTIVE' && hasActiveCompanyMembership(member.user)) {
+    throw new HttpError(409, 'Employee already belongs to another active company');
+  }
 
   const updated = await prisma.companyMembership.update({
     where: { id: membershipId },
