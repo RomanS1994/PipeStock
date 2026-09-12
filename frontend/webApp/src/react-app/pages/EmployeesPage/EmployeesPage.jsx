@@ -57,7 +57,7 @@ export function EmployeesPage() {
         ))}
       </div>
 
-      {statusError ? <p className="orderError" role="alert">{statusError}</p> : null}
+      {statusError ? <p className="employeesStatusError" role="alert">{statusError}</p> : null}
       {isLoading ? <section className="screenCard">Завантажуємо працівників…</section> : null}
       {isError ? <section className="screenCard employeesState"><strong>Не вдалося завантажити команду</strong><button type="button" onClick={refetch}>Спробувати ще раз</button></section> : null}
 
