@@ -1,1 +1,2 @@
-Generated material assets are imported through Git blob/tree writes to preserve binary WebP data.
+PipeStock local material assets.
+HT elbow thumbnails now use cropped product photos from the approved generated catalog sheet.
