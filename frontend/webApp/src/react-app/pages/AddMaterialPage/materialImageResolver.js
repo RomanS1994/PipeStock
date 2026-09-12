@@ -40,6 +40,15 @@ const EXTRA_MATERIAL_IMAGES = {
   'kg|trubka': '/materials/kg-pipe.webp',
   'kg|koleno 90°': '/materials/kg-elbow-90.svg',
   'kg|koleno 45°': '/materials/kg-elbow-45.webp',
+  'kg|t-kus': '/materials/kg-tee.webp',
+  'kg|odbočka 45°': '/materials/kg-branch-45.webp',
+  'kg|odbocka 45°': '/materials/kg-branch-45.webp',
+  'kg|spojka': '/materials/kg-coupling.webp',
+  'kg|redukce': '/materials/kg-reducer.webp',
+  'kg|zátka': '/materials/kg-cap.webp',
+  'kg|zatka': '/materials/kg-cap.webp',
+  'kg|přechod ht/kg': '/materials/kg-transition.webp',
+  'kg|prechod ht/kg': '/materials/kg-transition.webp',
   'steel|trubka': '/materials/steel-pipe.webp',
   'valves|kulový ventil': '/materials/valve-ball.webp',
   'valves|kulovy ventil': '/materials/valve-ball.webp',
@@ -59,9 +68,6 @@ export function getMaterialImage(item) {
   const type = String(item.type || '').trim().toLowerCase();
   const extraImage = EXTRA_MATERIAL_IMAGES[`${category}|${type}`] || null;
 
-  // PipeStock uses one consistent white PPR visual language. For PPR we always
-  // prefer bundled/generated assets over a legacy catalog imageUrl so a stale
-  // green manufacturer image cannot leak back into the material picker.
   if (category === 'ppr') {
     if (extraImage) return extraImage;
     return getBaseMaterialImage({ ...item, imageUrl: null });
