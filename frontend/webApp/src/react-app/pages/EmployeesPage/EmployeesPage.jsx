@@ -13,6 +13,7 @@ export function EmployeesPage() {
   const [updateMember, { isLoading: updating }] = useUpdateTeamMemberMutation();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('ALL');
+  const [statusError, setStatusError] = useState('');
 
   const visibleMembers = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -26,10 +27,15 @@ export function EmployeesPage() {
   }, [members, search, filter]);
 
   async function toggleStatus(member) {
-    await updateMember({
-      membershipId: member.membershipId,
-      status: member.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE',
-    });
+    setStatusError('');
+    try {
+      await updateMember({
+        membershipId: member.membershipId,
+        status: member.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE',
+      }).unwrap();
+    } catch (error) {
+      setStatusError(error?.data?.error || 'Не вдалося змінити статус працівника.');
+    }
   }
 
   return (
@@ -51,6 +57,7 @@ export function EmployeesPage() {
         ))}
       </div>
 
+      {statusError ? <p className="orderError" role="alert">{statusError}</p> : null}
       {isLoading ? <section className="screenCard">Завантажуємо працівників…</section> : null}
       {isError ? <section className="screenCard employeesState"><strong>Не вдалося завантажити команду</strong><button type="button" onClick={refetch}>Спробувати ще раз</button></section> : null}
 
