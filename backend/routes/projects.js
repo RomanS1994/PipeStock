@@ -24,6 +24,16 @@ function requireMembership(user, role) {
   return membership;
 }
 
+async function lockProjectRow(tx, projectId, companyId) {
+  const rows = await tx.$queryRaw`
+    SELECT "id"
+    FROM "projects"
+    WHERE "id" = ${projectId} AND "companyId" = ${companyId}
+    FOR UPDATE
+  `;
+  if (!rows.length) throw new HttpError(404, 'Project not found');
+}
+
 function normalizeStatus(value, fallback = 'ACTIVE') {
   const status = normalizeText(value || fallback).toUpperCase();
   if (!PROJECT_STATUSES.has(status)) throw new HttpError(400, 'Invalid project status');
@@ -198,6 +208,8 @@ async function updateProject(request, response, projectId) {
   const employeeMembershipIds = normalizeEmployeeMembershipIds(body.employeeMembershipIds);
 
   const project = await prisma.$transaction(async tx => {
+    await lockProjectRow(tx, projectId, membership.companyId);
+
     if (employeeMembershipIds !== undefined) {
       const validatedEmployeeIds = await validateEmployeeMembershipIds(
         tx,
