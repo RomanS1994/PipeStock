@@ -1,4 +1,4 @@
-.objectsPage { padding-bottom: 88px; }
+.objectsPage { padding-bottom: var(--workspace-nav-clearance); }
 .objectsHeader { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .objectsHeader-account { display: grid; justify-items: end; gap: 2px; }
 .objectsHeader-account span { color: var(--muted); font-size: 12px; }
