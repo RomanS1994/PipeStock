@@ -49,22 +49,25 @@ function normalizeEmployeeMembershipIds(value) {
 async function validateEmployeeMembershipIds(tx, companyId, ids) {
   if (!ids?.length) return [];
 
-  const memberships = await tx.companyMembership.findMany({
-    where: {
-      id: { in: ids },
-      companyId,
-      role: 'EMPLOYEE',
-      status: 'ACTIVE',
-      deletedAt: null,
-    },
-    select: { id: true },
-  });
-
-  if (memberships.length !== ids.length) {
-    throw new HttpError(400, 'One or more selected employees are not available in this company');
+  const lockedIds = [];
+  for (const id of [...ids].sort()) {
+    const rows = await tx.$queryRaw`
+      SELECT "id"
+      FROM "company_memberships"
+      WHERE "id" = ${id}
+        AND "companyId" = ${companyId}
+        AND "role" = 'EMPLOYEE'
+        AND "status" = 'ACTIVE'
+        AND "deletedAt" IS NULL
+      FOR UPDATE
+    `;
+    if (!rows.length) {
+      throw new HttpError(400, 'One or more selected employees are not available in this company');
+    }
+    lockedIds.push(rows[0].id);
   }
 
-  return memberships.map(item => item.id);
+  return lockedIds;
 }
 
 const projectInclude = {
