@@ -1,6 +1,6 @@
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../auth/current-user.js';
-import { hasActiveCompanyMembership } from '../auth/membership-policy.js';
+import { hasActiveCompanyMembershipInTx, lockUserForMembershipChange } from '../auth/membership-policy.js';
 import { HttpError } from '../lib/errors.js';
 import { readJsonBody, sendJson } from '../lib/http.js';
 import { createInviteCode } from '../lib/invite-code.js';
@@ -132,32 +132,42 @@ async function updateTeamMember(request, response, membershipId) {
   const status = String(body.status || '').trim().toUpperCase();
   if (!['ACTIVE', 'INACTIVE'].includes(status)) throw new HttpError(400, 'Invalid member status');
 
-  const member = await prisma.companyMembership.findFirst({
+  const target = await prisma.companyMembership.findFirst({
     where: {
       id: membershipId,
       companyId: manager.companyId,
       role: 'EMPLOYEE',
       deletedAt: null,
     },
-    include: {
-      user: {
-        include: {
-          memberships: {
-            where: { deletedAt: null },
-            include: { company: true },
-          },
-        },
-      },
-    },
+    select: { id: true, userId: true },
   });
-  if (!member) throw new HttpError(404, 'Employee not found');
+  if (!target) throw new HttpError(404, 'Employee not found');
 
-  if (status === 'ACTIVE' && member.status !== 'ACTIVE' && hasActiveCompanyMembership(member.user)) {
-    throw new HttpError(409, 'Employee already belongs to another active company');
-  }
-
-  const statusChanged = status !== member.status;
   const updated = await prisma.$transaction(async tx => {
+    if (!(await lockUserForMembershipChange(tx, target.userId))) {
+      throw new HttpError(404, 'Employee not found');
+    }
+
+    const member = await tx.companyMembership.findFirst({
+      where: {
+        id: membershipId,
+        companyId: manager.companyId,
+        role: 'EMPLOYEE',
+        deletedAt: null,
+      },
+      select: { id: true, userId: true, status: true },
+    });
+    if (!member) throw new HttpError(404, 'Employee not found');
+
+    if (
+      status === 'ACTIVE' &&
+      member.status !== 'ACTIVE' &&
+      await hasActiveCompanyMembershipInTx(tx, member.userId, member.id)
+    ) {
+      throw new HttpError(409, 'Employee already belongs to another active company');
+    }
+
+    const statusChanged = status !== member.status;
     if (statusChanged) {
       // Access to projects never survives a membership status transition. This keeps
       // reactivation explicit: a manager must assign the employee to projects again.
