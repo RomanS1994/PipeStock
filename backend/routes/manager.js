@@ -156,13 +156,21 @@ async function updateTeamMember(request, response, membershipId) {
     throw new HttpError(409, 'Employee already belongs to another active company');
   }
 
-  const updated = await prisma.companyMembership.update({
-    where: { id: membershipId },
-    data: { status },
-    include: {
-      user: { select: { id: true, name: true, email: true, phone: true } },
-      _count: { select: { assignments: true, createdOrders: true } },
-    },
+  const updated = await prisma.$transaction(async tx => {
+    const nextMember = await tx.companyMembership.update({
+      where: { id: membershipId },
+      data: { status },
+      include: {
+        user: { select: { id: true, name: true, email: true, phone: true } },
+        _count: { select: { assignments: true, createdOrders: true } },
+      },
+    });
+
+    if (status === 'INACTIVE' && member.status !== 'INACTIVE') {
+      await tx.session.deleteMany({ where: { userId: member.userId } });
+    }
+
+    return nextMember;
   });
 
   sendJson(response, 200, {
