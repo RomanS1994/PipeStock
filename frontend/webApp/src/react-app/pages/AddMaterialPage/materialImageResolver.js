@@ -150,6 +150,9 @@ const CATEGORY_TYPE_IMAGES = {
     pisoár: '/materials/sanita-urinal.svg',
     'wc manžeta': '/materials/sanita-wc-connector.svg',
   },
+  other: {
+    jiné: '/materials/other-material.svg',
+  },
 };
 
 const EXTRA_CATEGORY_IMAGES = {
@@ -161,6 +164,7 @@ const EXTRA_CATEGORY_IMAGES = {
   valves: '/materials/valve-ball.webp',
   geberit: '/materials/geberit-frame.svg',
   sanita: '/materials/sanita-wall-hung-wc.svg',
+  other: '/materials/other-material.svg',
 };
 
 function normalize(value) {
