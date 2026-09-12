@@ -18,7 +18,7 @@ const CATEGORY_TYPE_IMAGES = {
     spojka: '/materials/ppr-coupling.webp',
     redukce: '/materials/ppr-reducer.webp',
     příruba: '/materials/fitting-flange.svg',
-    'přechodka': '/materials/ppr-male-adapter.webp',
+    přechodka: '/materials/ppr-male-adapter.webp',
     'přechodka m': '/materials/ppr-male-adapter.webp',
     'přechodka f': '/materials/ppr-male-adapter.webp',
     'nástěnné koleno': '/materials/fitting-wall-elbow.svg',
@@ -156,12 +156,12 @@ const CATEGORY_TYPE_IMAGES = {
 };
 
 const EXTRA_CATEGORY_IMAGES = {
-  mlcp: '/materials/pex-pipe.webp',
-  pex: '/materials/pex-pipe.webp',
-  kg: '/materials/kg-pipe.webp',
-  steel: '/materials/steel-pipe.webp',
+  mlcp: '/materials/category-mlcp.svg',
+  pex: '/materials/category-pex.svg',
+  kg: '/materials/category-kg.svg',
+  steel: '/materials/category-steel.svg',
   brass: '/materials/brass-fitting.svg',
-  valves: '/materials/valve-ball.webp',
+  valves: '/materials/category-valves.svg',
   geberit: '/materials/geberit-frame.svg',
   sanita: '/materials/sanita-wall-hung-wc.svg',
   other: '/materials/other-material.svg',
@@ -202,7 +202,8 @@ export function getMaterialImage(item) {
 }
 
 export function getMaterialCategoryImage(categoryKey) {
-  const base = getBaseCategoryImage(categoryKey);
-  if (base) return base;
-  return EXTRA_CATEGORY_IMAGES[normalize(categoryKey)] || null;
+  const key = normalize(categoryKey);
+  const extra = EXTRA_CATEGORY_IMAGES[key];
+  if (extra) return extra;
+  return getBaseCategoryImage(categoryKey);
 }
