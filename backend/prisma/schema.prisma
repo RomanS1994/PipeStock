@@ -254,6 +254,7 @@ model OrderEvent {
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
   actor CompanyMembership? @relation("OrderEventActor", fields: [actorMembershipId], references: [id], onDelete: SetNull)
 
+  @@unique([orderId, type])
   @@index([orderId, createdAt])
   @@index([actorMembershipId])
   @@map("order_events")
