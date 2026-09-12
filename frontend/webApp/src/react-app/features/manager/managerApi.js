@@ -37,6 +37,7 @@ export const managerApi = baseApi.injectEndpoints({
         { type: 'Team', id: membershipId },
         { type: 'Team', id: 'LIST' },
         { type: 'Employees', id: 'LIST' },
+        'Projects',
         { type: 'Dashboard', id: 'SUMMARY' },
       ],
     }),
