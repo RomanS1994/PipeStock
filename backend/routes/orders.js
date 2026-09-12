@@ -191,8 +191,7 @@ async function listProjectOrders(request, response, projectId) {
 async function createOrder(request, response, projectId) {
   const user = await requireAuth(request);
   const membership = requireMembership(user);
-  const project = await requireProjectAccess(projectId, membership);
-  if (project.status === 'COMPLETED') throw new HttpError(409, 'Completed projects cannot accept new orders');
+  await requireProjectAccess(projectId, membership);
 
   const body = await readJsonBody(request);
   const title = normalizeText(body.title);
@@ -200,6 +199,17 @@ async function createOrder(request, response, projectId) {
   if (title.length > 120) throw new HttpError(400, 'Order title is too long');
 
   const order = await prisma.$transaction(async tx => {
+    const projectRows = await tx.$queryRaw`
+      SELECT "status"
+      FROM "projects"
+      WHERE "id" = ${projectId} AND "companyId" = ${membership.companyId}
+      FOR UPDATE
+    `;
+    if (!projectRows.length) throw new HttpError(404, 'Project not found');
+    if (projectRows[0].status === 'COMPLETED') {
+      throw new HttpError(409, 'Completed projects cannot accept new orders');
+    }
+
     const created = await tx.order.create({
       data: {
         companyId: membership.companyId,
