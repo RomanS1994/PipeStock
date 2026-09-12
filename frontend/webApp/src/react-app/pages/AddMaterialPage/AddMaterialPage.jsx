@@ -14,8 +14,36 @@ import '../OrderFlow/OrderFlow.css';
 import './AddMaterialPage.css';
 import { getMaterialCategoryImage, getMaterialImage } from './materialImageResolver.js';
 
-const CATEGORY_ORDER = ['Cu', 'PPR', 'PEX/MLCP', 'HT', 'KG', 'Steel', 'Ventily', 'Інше'];
-const TYPE_ORDER = ['Trubka', 'Koleno 90°', 'Koleno 45°', 'T-kus', 'Spojka', 'Redukce', 'Přechodka'];
+const CATEGORY_ORDER = ['Cu', 'PPR', 'MLCP', 'PEX', 'HT', 'KG', 'Steel', 'Mosaz', 'Ventily', 'Geberit', 'Sanita', 'Jiné'];
+const TYPE_ORDER = [
+  'Trubka',
+  'Koleno 15°',
+  'Koleno 30°',
+  'Koleno 45°',
+  'Koleno 67°',
+  'Koleno 87°',
+  'Koleno 90°',
+  'Oblouk 90°',
+  'T-kus',
+  'Odbočka 45°',
+  'Odbočka 67°',
+  'Odbočka 87°',
+  'Dvojitá odbočka',
+  'Spojka',
+  'Přesuvná spojka',
+  'Přesuvné hrdlo',
+  'Redukce',
+  'Přechodka M',
+  'Přechodka F',
+  'Nástěnné koleno',
+  'Šroubení',
+  'Příruba',
+  'Křížení',
+  'Kompenzační smyčka',
+  'Zátka',
+  'Revizní kus',
+  'Přechod HT/KG',
+];
 
 function unique(values) {
   return [...new Set(values)];
