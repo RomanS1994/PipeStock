@@ -34,7 +34,7 @@ export const router = createBrowserRouter([
       { path: 'role', element: <RoleSelectionPage /> },
       { path: 'register/manager', element: <ManagerRegistrationPage /> },
       { path: 'register/employee', element: <EmployeeRegistrationPage /> },
-      { path: 'join-company', element: <ProtectedRoute requireCompany={false}><JoinCompanyPage /></ProtectedRoute> },
+      { path: 'join-company', element: <ProtectedRoute requireCompany={false} requireNoCompany><JoinCompanyPage /></ProtectedRoute> },
       { path: 'dashboard', element: <ProtectedRoute requireManager><DashboardPage /></ProtectedRoute> },
       { path: 'objects', element: <ProtectedRoute><ObjectsPage /></ProtectedRoute> },
       { path: 'objects/new', element: <ProtectedRoute requireManager><CreateObjectPage /></ProtectedRoute> },
