@@ -66,6 +66,19 @@ const EXTRA_MATERIAL_IMAGES = {
   'valves|automaticky odvzdusnovaci ventil': '/materials/valve-airvent.svg',
   'valves|expanzní nádoba': '/materials/valve-expansion.svg',
   'valves|expanzni nadoba': '/materials/valve-expansion.svg',
+  'geberit|duofix rám': '/materials/geberit-frame.svg',
+  'geberit|duofix ram': '/materials/geberit-frame.svg',
+  'geberit|instalační rám': '/materials/geberit-frame.svg',
+  'geberit|instalacni ram': '/materials/geberit-frame.svg',
+  'geberit|ovládací tlačítko': '/materials/geberit-flush-plate.svg',
+  'geberit|ovladaci tlacitko': '/materials/geberit-flush-plate.svg',
+  'sanita|sifon': '/materials/sanita-siphon.svg',
+  'sanita|sprchový žlab': '/materials/sanita-shower-drain.svg',
+  'sanita|sprchovy zlab': '/materials/sanita-shower-drain.svg',
+  'sanita|závěsné wc': '/materials/sanita-wall-hung-wc.svg',
+  'sanita|zavesne wc': '/materials/sanita-wall-hung-wc.svg',
+  'sanita|pisoár': '/materials/sanita-urinal.svg',
+  'sanita|pisoar': '/materials/sanita-urinal.svg',
 };
 
 const EXTRA_CATEGORY_IMAGES = {
@@ -73,6 +86,8 @@ const EXTRA_CATEGORY_IMAGES = {
   kg: '/materials/kg-pipe.webp',
   steel: '/materials/steel-pipe.webp',
   valves: '/materials/valve-ball.webp',
+  geberit: '/materials/geberit-frame.svg',
+  sanita: '/materials/sanita-wall-hung-wc.svg',
 };
 
 export function getMaterialImage(item) {
