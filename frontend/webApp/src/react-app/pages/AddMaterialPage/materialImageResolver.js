@@ -38,6 +38,7 @@ const EXTRA_MATERIAL_IMAGES = {
   'ht|revizní kus': '/materials/ht-cleanout.webp',
   'ht|revizni kus': '/materials/ht-cleanout.webp',
   'kg|trubka': '/materials/kg-pipe.webp',
+  'kg|koleno 90°': '/materials/kg-elbow-90.svg',
   'kg|koleno 45°': '/materials/kg-elbow-45.webp',
   'steel|trubka': '/materials/steel-pipe.webp',
   'valves|kulový ventil': '/materials/valve-ball.webp',
