@@ -2,7 +2,13 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectAuth } from './authSlice.js';
 
-export function ProtectedRoute({ children, requireCompany = true, requireManager = false, requireEmployee = false }) {
+export function ProtectedRoute({
+  children,
+  requireCompany = true,
+  requireManager = false,
+  requireEmployee = false,
+  requireNoCompany = false,
+}) {
   const location = useLocation();
   const { token, user, hydrated } = useSelector(selectAuth);
 
@@ -17,6 +23,10 @@ export function ProtectedRoute({ children, requireCompany = true, requireManager
   const activeMembership = (user.memberships || []).find(
     item => item.status === 'ACTIVE' && item.company,
   );
+
+  if (requireNoCompany && activeMembership) {
+    return <Navigate to={activeMembership.role === 'MANAGER' ? '/dashboard' : '/objects'} replace />;
+  }
 
   if (requireCompany && !activeMembership) {
     return <Navigate to="/join-company" replace />;
