@@ -5,13 +5,21 @@
 .ordersFilters button { min-height: 34px; padding: 0 12px; border-radius: var(--radius-full); border: 1px solid var(--line); color: var(--muted); background: var(--surface); white-space: nowrap; }
 .ordersFilters button.is-active { color: var(--primary); border-color: #c9dcff; background: var(--primary-soft); }
 .ordersList { display: grid; gap: 10px; }
-.orderListCard { display: grid; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-md); color: var(--text); background: var(--surface); box-shadow: var(--shadow-sm); }
-.orderListCard-link { display: grid; gap: 12px; color: var(--text); text-decoration: none; }
-.orderListCard-top { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.orderListCard { display: grid; gap: 12px; min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-md); color: var(--text); background: var(--surface); box-shadow: var(--shadow-sm); }
+.orderListCard-link { display: grid; min-width: 0; gap: 12px; color: var(--text); text-decoration: none; }
+.orderListCard-top { display: flex; min-width: 0; align-items: start; justify-content: space-between; gap: 12px; }
 .orderListCard-top > div { display: grid; min-width: 0; gap: 3px; }
+.orderListCard-top > .psStatusChip { flex: 0 0 auto; }
 .orderListCard-top span { color: var(--muted); font-size: 11px; }
 .orderListCard-top strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }
-.orderListCard-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+.orderListCard-meta { display: flex; min-width: 0; flex-wrap: wrap; gap: 6px 12px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+.orderListCard-meta span { min-width: 0; overflow-wrap: anywhere; }
 .ordersState { justify-items: center; text-align: center; }
 .ordersState p { margin: 0; color: var(--muted); font-size: 12px; }
 .ordersState button { border: 0; color: var(--primary); background: transparent; }
+
+@media (max-width: 420px) {
+  .orderListCard { padding: 12px; }
+  .orderListCard-top { gap: 8px; }
+  .orderListCard-top strong { display: -webkit-box; overflow: hidden; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+}
