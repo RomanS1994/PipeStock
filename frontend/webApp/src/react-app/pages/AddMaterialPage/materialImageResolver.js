@@ -25,7 +25,7 @@ const CATEGORY_TYPE_IMAGES = {
     šroubení: '/materials/ppr-male-adapter.webp',
     křížení: '/materials/ppr-tee.webp',
     'kompenzační smyčka': '/materials/ppr-pipe.webp',
-    zátka: '/materials/ppr-coupling.webp',
+    zátka: '/materials/ppr-cap.svg',
   },
   mlcp: {
     trubka: '/materials/pex-pipe.webp',
@@ -36,7 +36,7 @@ const CATEGORY_TYPE_IMAGES = {
     'přechodka m': '/materials/pex-adapter.webp',
     'přechodka f': '/materials/pex-adapter.webp',
     šroubení: '/materials/pex-adapter.webp',
-    zátka: '/materials/pex-coupling.webp',
+    zátka: '/materials/pex-cap.svg',
     'nástěnné koleno': '/materials/fitting-wall-elbow.svg',
   },
   pex: {
@@ -48,7 +48,7 @@ const CATEGORY_TYPE_IMAGES = {
     'přechodka m': '/materials/pex-adapter.webp',
     'přechodka f': '/materials/pex-adapter.webp',
     šroubení: '/materials/pex-adapter.webp',
-    zátka: '/materials/pex-coupling.webp',
+    zátka: '/materials/pex-cap.svg',
     'nástěnné koleno': '/materials/fitting-wall-elbow.svg',
   },
   ht: {
@@ -88,15 +88,15 @@ const CATEGORY_TYPE_IMAGES = {
   },
   steel: {
     trubka: '/materials/steel-pipe.webp',
-    'koleno 90°': '/materials/pex-elbow-90.webp',
-    'koleno 45°': '/materials/pex-elbow-90.webp',
-    't-kus': '/materials/pex-tee.webp',
-    spojka: '/materials/pex-coupling.webp',
-    redukce: '/materials/pex-reducer.webp',
-    'přechodka m': '/materials/pex-adapter.webp',
-    'přechodka f': '/materials/pex-adapter.webp',
-    šroubení: '/materials/pex-adapter.webp',
-    zátka: '/materials/pex-coupling.webp',
+    'koleno 90°': '/materials/steel-fitting.svg',
+    'koleno 45°': '/materials/steel-fitting.svg',
+    't-kus': '/materials/steel-fitting.svg',
+    spojka: '/materials/steel-fitting.svg',
+    redukce: '/materials/steel-fitting.svg',
+    'přechodka m': '/materials/steel-fitting.svg',
+    'přechodka f': '/materials/steel-fitting.svg',
+    šroubení: '/materials/steel-fitting.svg',
+    zátka: '/materials/steel-fitting.svg',
   },
   brass: {
     vsuvka: '/materials/brass-fitting.svg',
@@ -146,9 +146,9 @@ const CATEGORY_TYPE_IMAGES = {
     'závěsné wc': '/materials/sanita-wall-hung-wc.svg',
     'stojící wc': '/materials/sanita-floor-wc.svg',
     umyvadlo: '/materials/sanita-washbasin.svg',
-    bidet: '/materials/sanita-washbasin.svg',
+    bidet: '/materials/sanita-bidet.svg',
     pisoár: '/materials/sanita-urinal.svg',
-    'wc manžeta': '/materials/sanita-siphon.svg',
+    'wc manžeta': '/materials/sanita-wc-connector.svg',
   },
 };
 
@@ -187,8 +187,6 @@ export function getMaterialImage(item) {
   const type = String(item.type || '').trim().toLowerCase();
   const mappedImage = findMappedImage(category, type);
 
-  // Keep PipeStock's approved white PPR visual language and do not allow stale
-  // catalog URLs to reintroduce manufacturer-specific green PPR artwork.
   if (category === 'ppr') {
     if (mappedImage) return mappedImage;
     return getBaseMaterialImage({ ...item, imageUrl: null });
