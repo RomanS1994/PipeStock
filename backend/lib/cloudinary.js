@@ -3,6 +3,7 @@ import { createHash, randomUUID } from 'node:crypto';
 const IMAGE_KINDS = new Set(['project', 'material']);
 const ALLOWED_IMAGE_FORMATS = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'];
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const CLOUDINARY_REQUEST_TIMEOUT_MS = 8_000;
 
 function requiredEnv(name) {
   const value = String(process.env[name] || '').trim();
@@ -134,6 +135,7 @@ export async function verifyStoredImageAsset({ url, kind, companyId, fetchImpl =
     response = await fetchImpl(resourceUrl, {
       method: 'GET',
       headers: { Authorization: `Basic ${authorization}` },
+      signal: AbortSignal.timeout(CLOUDINARY_REQUEST_TIMEOUT_MS),
     });
   } catch {
     throw new Error('Could not verify uploaded image');
@@ -202,6 +204,7 @@ export async function destroyStoredImage({ url, kind, companyId, now = Date.now(
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body,
+        signal: AbortSignal.timeout(CLOUDINARY_REQUEST_TIMEOUT_MS),
       },
     );
   } catch {
