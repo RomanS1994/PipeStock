@@ -1,6 +1,6 @@
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../auth/current-user.js';
-import { validateStoredImageUrl } from '../lib/cloudinary.js';
+import { verifyStoredImageAsset } from '../lib/cloudinary.js';
 import { HttpError } from '../lib/errors.js';
 import { readJsonBody, sendJson } from '../lib/http.js';
 
@@ -41,11 +41,12 @@ function normalizeStatus(value, fallback = 'ACTIVE') {
   return status;
 }
 
-function normalizeProjectImageUrl(value, companyId) {
+async function verifyProjectImageUrl(value, companyId) {
   const imageUrl = normalizeText(value);
   if (!imageUrl) return null;
   try {
-    return validateStoredImageUrl({ url: imageUrl, kind: 'project', companyId });
+    const asset = await verifyStoredImageAsset({ url: imageUrl, kind: 'project', companyId });
+    return asset?.url || null;
   } catch (error) {
     throw new HttpError(400, error?.message || 'Invalid project image');
   }
@@ -174,6 +175,7 @@ async function createProject(request, response) {
   if (!name) throw new HttpError(400, 'Project name is required');
   if (name.length > 120) throw new HttpError(400, 'Project name is too long');
 
+  const imageUrl = await verifyProjectImageUrl(body.imageUrl, membership.companyId);
   const employeeMembershipIds = normalizeEmployeeMembershipIds(body.employeeMembershipIds) || [];
   const project = await prisma.$transaction(async tx => {
     const validatedEmployeeIds = await validateEmployeeMembershipIds(
@@ -188,7 +190,7 @@ async function createProject(request, response) {
         name,
         address: normalizeText(body.address) || null,
         description: normalizeText(body.description) || null,
-        imageUrl: normalizeProjectImageUrl(body.imageUrl, membership.companyId),
+        imageUrl,
         status: normalizeStatus(body.status),
         assignments: {
           create: validatedEmployeeIds.map(membershipId => ({ membershipId })),
@@ -204,7 +206,7 @@ async function createProject(request, response) {
 async function updateProject(request, response, projectId) {
   const user = await requireAuth(request);
   const membership = requireMembership(user, 'MANAGER');
-  await getProjectForMembership(projectId, membership);
+  const existingProject = await getProjectForMembership(projectId, membership);
   const body = await readJsonBody(request);
 
   const data = {};
@@ -216,7 +218,13 @@ async function updateProject(request, response, projectId) {
   }
   if (body.address !== undefined) data.address = normalizeText(body.address) || null;
   if (body.description !== undefined) data.description = normalizeText(body.description) || null;
-  if (body.imageUrl !== undefined) data.imageUrl = normalizeProjectImageUrl(body.imageUrl, membership.companyId);
+  if (body.imageUrl !== undefined) {
+    const nextImageUrl = normalizeText(body.imageUrl);
+    if (!nextImageUrl) data.imageUrl = null;
+    else if (nextImageUrl !== existingProject.imageUrl) {
+      data.imageUrl = await verifyProjectImageUrl(nextImageUrl, membership.companyId);
+    }
+  }
   if (body.status !== undefined) data.status = normalizeStatus(body.status);
 
   const employeeMembershipIds = normalizeEmployeeMembershipIds(body.employeeMembershipIds);
