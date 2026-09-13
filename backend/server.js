@@ -6,7 +6,7 @@ import { loadEnvFile } from './config/load-env.js';
 import { assertRuntimeEnv } from './config/runtime-env.js';
 import { prisma } from './db/prisma.js';
 import { sendHttpError } from './lib/errors.js';
-import { handleCors, sendJson } from './lib/http.js';
+import { applySecurityHeaders, handleCors, sendJson } from './lib/http.js';
 import { routeRequest } from './routes/index.js';
 
 const serverDir = path.dirname(fileURLToPath(import.meta.url));
@@ -23,6 +23,8 @@ try {
 }
 
 const server = http.createServer(async (request, response) => {
+  applySecurityHeaders(response);
+
   try {
     if (handleCors(request, response)) return;
 
