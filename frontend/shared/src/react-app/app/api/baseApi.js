@@ -26,6 +26,11 @@ function isAuthRequest(args) {
   return String(url || '').startsWith('/auth/');
 }
 
+function authScope(user) {
+  const membership = (user?.memberships || []).find(item => item.status === 'ACTIVE' && item.company);
+  return [user?.id || '', membership?.id || '', membership?.role || '', membership?.company?.id || ''].join(':');
+}
+
 function readConcurrentTabSession(previousToken) {
   if (typeof localStorage === 'undefined') return null;
   try {
@@ -37,12 +42,19 @@ function readConcurrentTabSession(previousToken) {
   }
 }
 
+function clearAuthAndApiCache(api) {
+  api.dispatch({ type: 'auth/clearSession' });
+  api.dispatch(baseApi.util.resetApiState());
+}
+
 async function baseQueryWithReauth(args, api, extraOptions) {
   let result = await rawBaseQuery(args, api, extraOptions);
 
   if (result.error?.status !== 401 || isAuthRequest(args)) return result;
 
-  const tokenBeforeRefresh = api.getState()?.auth?.token || '';
+  const authBeforeRefresh = api.getState()?.auth || {};
+  const tokenBeforeRefresh = authBeforeRefresh.token || '';
+  const scopeBeforeRefresh = authScope(authBeforeRefresh.user);
 
   if (!refreshRequest) {
     refreshRequest = rawBaseQuery({ url: '/auth/refresh', method: 'POST' }, api, extraOptions)
@@ -58,11 +70,18 @@ async function baseQueryWithReauth(args, api, extraOptions) {
   if (!token || !user) {
     const concurrentSession = readConcurrentTabSession(tokenBeforeRefresh);
     if (concurrentSession) {
+      const concurrentScope = authScope(concurrentSession.user);
       api.dispatch({ type: 'auth/setSession', payload: concurrentSession });
+
+      if (concurrentScope !== scopeBeforeRefresh) {
+        api.dispatch(baseApi.util.resetApiState());
+        return result;
+      }
+
       return rawBaseQuery(args, api, extraOptions);
     }
 
-    api.dispatch({ type: 'auth/clearSession' });
+    clearAuthAndApiCache(api);
     return result;
   }
 
