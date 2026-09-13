@@ -11,6 +11,11 @@ function requiredEnv(name) {
   return value;
 }
 
+function formatsMatch(extension, format) {
+  if (extension === format) return true;
+  return new Set([extension, format]).size === 2 && ['jpg', 'jpeg'].includes(extension) && ['jpg', 'jpeg'].includes(format);
+}
+
 export function isImageStorageConfigured() {
   return Boolean(
     String(process.env.CLOUDINARY_CLOUD_NAME || '').trim() &&
@@ -154,6 +159,9 @@ export async function verifyStoredImageAsset({ url, kind, companyId, fetchImpl =
 
   const format = String(asset.format || '').toLowerCase();
   if (!ALLOWED_IMAGE_FORMATS.includes(format)) throw new Error('Unsupported image format');
+  if (!formatsMatch(stored.extension, format)) {
+    throw new Error('Uploaded image URL does not match the original file format');
+  }
   if (!Number.isFinite(Number(asset.bytes)) || Number(asset.bytes) <= 0) {
     throw new Error('Uploaded image metadata is invalid');
   }
