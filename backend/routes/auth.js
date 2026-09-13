@@ -99,6 +99,11 @@ async function lockCompanyInvite(tx, joinCode) {
   return company;
 }
 
+async function revokeRefreshSession(tx, refreshToken) {
+  if (!refreshToken) return;
+  await tx.session.deleteMany({ where: { tokenHash: hashToken(refreshToken) } });
+}
+
 async function issueSession(tx, userId) {
   const refreshToken = createRefreshToken();
   const session = await tx.session.create({
@@ -119,6 +124,7 @@ function authResponse(response, status, session, user) {
 }
 
 async function registerManager(request, response) {
+  const previousRefreshToken = readRefreshToken(request);
   const body = await readJsonBody(request);
   const email = normalizeEmail(body.email);
   const password = String(body.password || '');
@@ -155,6 +161,7 @@ async function registerManager(request, response) {
       },
     });
     await tx.companyMembership.create({ data: { userId: user.id, companyId: company.id, role: 'MANAGER' } });
+    await revokeRefreshSession(tx, previousRefreshToken);
     const session = await issueSession(tx, user.id);
     return { session, user: await loadUser(tx, user.id) };
   });
@@ -163,6 +170,7 @@ async function registerManager(request, response) {
 }
 
 async function registerEmployee(request, response) {
+  const previousRefreshToken = readRefreshToken(request);
   const body = await readJsonBody(request);
   const email = normalizeEmail(body.email);
   const password = String(body.password || '');
@@ -186,6 +194,7 @@ async function registerEmployee(request, response) {
     const user = await tx.user.create({
       data: { email, passwordHash: hashPassword(password), name, firstName: name.split(/\s+/)[0] || name, lastName: name.split(/\s+/).slice(1).join(' '), phone },
     });
+    await revokeRefreshSession(tx, previousRefreshToken);
     const session = await issueSession(tx, user.id);
     return { session, user: await loadUser(tx, user.id) };
   });
@@ -229,6 +238,7 @@ async function joinCompany(request, response) {
 }
 
 async function login(request, response) {
+  const previousRefreshToken = readRefreshToken(request);
   const body = await readJsonBody(request);
   const email = normalizeEmail(body.email);
   const password = String(body.password || '');
@@ -251,7 +261,10 @@ async function login(request, response) {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (!existing || existing.deletedAt || !verifyPassword(password, existing.passwordHash)) throw new HttpError(401, 'Invalid email or password');
 
-  const result = await prisma.$transaction(async tx => ({ session: await issueSession(tx, existing.id), user: await loadUser(tx, existing.id) }));
+  const result = await prisma.$transaction(async tx => {
+    await revokeRefreshSession(tx, previousRefreshToken);
+    return { session: await issueSession(tx, existing.id), user: await loadUser(tx, existing.id) };
+  });
   resetRateLimit({ scope: 'auth:login:identity', key: `${clientKey}:${email}` });
   authResponse(response, 200, result.session, result.user);
 }
@@ -307,12 +320,15 @@ async function logout(request, response) {
   const refreshToken = readRefreshToken(request);
   const access = verifyAccessToken(readBearerToken(request), { allowExpired: true });
 
-  if (access) {
-    await prisma.session.deleteMany({
-      where: { id: access.sessionId, userId: access.userId },
+  if (access || refreshToken) {
+    await prisma.$transaction(async tx => {
+      if (access) {
+        await tx.session.deleteMany({
+          where: { id: access.sessionId, userId: access.userId },
+        });
+      }
+      await revokeRefreshSession(tx, refreshToken);
     });
-  } else if (refreshToken) {
-    await prisma.session.deleteMany({ where: { tokenHash: hashToken(refreshToken) } });
   }
 
   clearRefreshCookie(response);
