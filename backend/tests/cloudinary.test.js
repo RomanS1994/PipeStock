@@ -52,7 +52,7 @@ test('creates a signed Cloudinary image upload without exposing the secret', asy
   assert.equal(upload.signature, expected);
 }));
 
-test('accepts only original images stored in the current company project folder', async () => withCloudinaryEnv(async () => {
+test('accepts only original canonical images stored in the current company project folder', async () => withCloudinaryEnv(async () => {
   const url = 'https://res.cloudinary.com/pipe-stock-test/image/upload/v1700000000/pipestock/projects/company-1/photo.webp';
   assert.equal(validateStoredImageUrl({ url, kind: 'project', companyId: 'company-1' }), url);
 
@@ -84,6 +84,14 @@ test('accepts only original images stored in the current company project folder'
     }),
     /PipeStock image storage/,
   );
+  assert.throws(
+    () => validateStoredImageUrl({
+      url: `${url}?download=1`,
+      kind: 'project',
+      companyId: 'company-1',
+    }),
+    /PipeStock image storage/,
+  );
 }));
 
 test('verifies stored image metadata with Cloudinary before persistence', async () => withCloudinaryEnv(async () => {
@@ -102,6 +110,7 @@ test('verifies stored image metadata with Cloudinary before persistence', async 
             public_id: 'pipestock/projects/company-1/photo',
             resource_type: 'image',
             type: 'upload',
+            version: 1700000000,
             format: 'webp',
             bytes: 123456,
             width: 1200,
@@ -114,31 +123,33 @@ test('verifies stored image metadata with Cloudinary before persistence', async 
 
   assert.equal(result.url, url);
   assert.equal(result.publicId, 'pipestock/projects/company-1/photo');
+  assert.equal(result.version, 1700000000);
   assert.equal(result.bytes, 123456);
   assert.equal(result.format, 'webp');
   assert.match(request.requestUrl, /\/resources\/image\/upload\/pipestock\/projects\/company-1\/photo$/);
   assert.match(request.options.headers.Authorization, /^Basic /);
 }));
 
-test('rejects oversized or mismatched Cloudinary assets', async () => withCloudinaryEnv(async () => {
+test('rejects oversized, mismatched, or wrong-version Cloudinary assets', async () => withCloudinaryEnv(async () => {
   const url = 'https://res.cloudinary.com/pipe-stock-test/image/upload/v1700000000/pipestock/projects/company-1/photo.webp';
   const responseFor = asset => async () => ({
     ok: true,
     async json() { return asset; },
   });
+  const validBase = {
+    public_id: 'pipestock/projects/company-1/photo',
+    resource_type: 'image',
+    type: 'upload',
+    version: 1700000000,
+    format: 'webp',
+  };
 
   await assert.rejects(
     verifyStoredImageAsset({
       url,
       kind: 'project',
       companyId: 'company-1',
-      fetchImpl: responseFor({
-        public_id: 'pipestock/projects/company-1/photo',
-        resource_type: 'image',
-        type: 'upload',
-        format: 'webp',
-        bytes: IMAGE_UPLOAD_MAX_BYTES + 1,
-      }),
+      fetchImpl: responseFor({ ...validBase, bytes: IMAGE_UPLOAD_MAX_BYTES + 1 }),
     }),
     /too large/,
   );
@@ -148,13 +159,17 @@ test('rejects oversized or mismatched Cloudinary assets', async () => withCloudi
       url,
       kind: 'project',
       companyId: 'company-1',
-      fetchImpl: responseFor({
-        public_id: 'pipestock/projects/company-1/other-photo',
-        resource_type: 'image',
-        type: 'upload',
-        format: 'webp',
-        bytes: 1000,
-      }),
+      fetchImpl: responseFor({ ...validBase, public_id: 'pipestock/projects/company-1/other-photo', bytes: 1000 }),
+    }),
+    /does not match PipeStock storage/,
+  );
+
+  await assert.rejects(
+    verifyStoredImageAsset({
+      url,
+      kind: 'project',
+      companyId: 'company-1',
+      fetchImpl: responseFor({ ...validBase, version: 1700000001, bytes: 1000 }),
     }),
     /does not match PipeStock storage/,
   );
