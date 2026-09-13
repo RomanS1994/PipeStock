@@ -2,7 +2,7 @@ import { getMaterialCategoryImage as getBaseCategoryImage, getMaterialImage as g
 
 const CATEGORY_TYPE_IMAGES = {
   cu: {
-    trubka: '/materials/category-cu.webp',
+    trubka: '/materials/cu-elbow-45.webp',
     'koleno 90°': '/materials/cu-elbow-90.webp',
     'koleno 45°': '/materials/cu-elbow-45.webp',
     'oblouk 90°': '/materials/cu-elbow-45.webp',
@@ -18,23 +18,23 @@ const CATEGORY_TYPE_IMAGES = {
   },
   ppr: {
     trubka: '/materials/ppr-pipe.webp',
-    'koleno 90°': '/materials/category-ppr.webp',
+    'koleno 90°': '/materials/ppr-elbow-45.webp',
     'koleno 45°': '/materials/ppr-elbow-45.webp',
     't-kus': '/materials/ppr-tee.webp',
     spojka: '/materials/ppr-coupling.webp',
     redukce: '/materials/ppr-reducer.webp',
-    příruba: '/materials/category-ppr.webp',
+    příruba: '/materials/ppr-pipe.webp',
     přechodka: '/materials/ppr-male-adapter.webp',
     'přechodka m': '/materials/ppr-male-adapter.webp',
     'přechodka f': '/materials/ppr-male-adapter.webp',
-    'nástěnné koleno': '/materials/category-ppr.webp',
+    'nástěnné koleno': '/materials/ppr-elbow-45.webp',
     šroubení: '/materials/ppr-male-adapter.webp',
     křížení: '/materials/ppr-tee.webp',
     'kompenzační smyčka': '/materials/ppr-pipe.webp',
     zátka: '/materials/ppr-cap.svg',
   },
   mlcp: {
-    trubka: '/materials/category-mlcp.webp',
+    trubka: '/materials/pex-pipe.webp',
     'koleno 90°': '/materials/pex-elbow-90.webp',
     'koleno 45°': '/materials/pex-elbow-90.webp',
     't-kus': '/materials/pex-tee.webp',
@@ -47,7 +47,7 @@ const CATEGORY_TYPE_IMAGES = {
     'nástěnné koleno': '/materials/pex-elbow-90.webp',
   },
   pex: {
-    trubka: '/materials/category-pex.webp',
+    trubka: '/materials/pex-pipe.webp',
     'koleno 90°': '/materials/pex-elbow-90.webp',
     'koleno 45°': '/materials/pex-elbow-90.webp',
     't-kus': '/materials/pex-tee.webp',
@@ -60,7 +60,7 @@ const CATEGORY_TYPE_IMAGES = {
     'nástěnné koleno': '/materials/pex-elbow-90.webp',
   },
   ht: {
-    trubka: '/materials/ht-pipe.webp',
+    trubka: '/materials/ht-elbow-87.webp',
     'koleno 15°': '/materials/ht-elbow-45.webp',
     'koleno 30°': '/materials/ht-elbow-45.webp',
     'koleno 45°': '/materials/ht-elbow-45.webp',
@@ -82,8 +82,8 @@ const CATEGORY_TYPE_IMAGES = {
     'koleno 15°': '/materials/kg-elbow-45.webp',
     'koleno 30°': '/materials/kg-elbow-45.webp',
     'koleno 45°': '/materials/kg-elbow-45.webp',
-    'koleno 67°': '/materials/category-kg.webp',
-    'koleno 87°': '/materials/category-kg.webp',
+    'koleno 67°': '/materials/kg-elbow-45.webp',
+    'koleno 87°': '/materials/kg-elbow-45.webp',
     't-kus': '/materials/kg-tee.webp',
     'odbočka 45°': '/materials/kg-branch-45.webp',
     'odbočka 87°': '/materials/kg-tee.webp',
@@ -95,7 +95,7 @@ const CATEGORY_TYPE_IMAGES = {
     'přechod ht/kg': '/materials/kg-transition.webp',
   },
   steel: {
-    trubka: '/materials/category-steel.webp',
+    trubka: '/materials/steel-pipe.webp',
     'koleno 90°': '/materials/category-steel.webp',
     'koleno 45°': '/materials/category-steel.webp',
     't-kus': '/materials/category-steel.webp',
@@ -117,12 +117,12 @@ const CATEGORY_TYPE_IMAGES = {
     zátka: '/materials/category-brass.webp',
   },
   valves: {
-    'kulový ventil': '/materials/category-valves.webp',
-    'rohový ventil': '/materials/category-valves.webp',
+    'kulový ventil': '/materials/valve-ball.webp',
+    'rohový ventil': '/materials/valve-ball.webp',
     'zpětná klapka': '/materials/valve-check.svg',
     filtr: '/materials/valve-filter.svg',
     'pojistný ventil': '/materials/valve-safety.svg',
-    'vypouštěcí ventil': '/materials/category-valves.webp',
+    'vypouštěcí ventil': '/materials/valve-ball.webp',
     'redukční ventil': '/materials/valve-safety.svg',
     manometr: '/materials/valve-manometer.svg',
     'odvzdušňovací ventil': '/materials/valve-airvent.svg',
@@ -151,7 +151,7 @@ const CATEGORY_TYPE_IMAGES = {
     'sifon sprchový': '/materials/sanita-siphon.svg',
     'sprchový žlab': '/materials/sanita-shower-drain.svg',
     'podlahová vpusť': '/materials/sanita-floor-drain.svg',
-    'závěsné wc': '/materials/category-sanita.webp',
+    'závěsné wc': '/materials/sanita-wall-hung-wc.svg',
     'stojící wc': '/materials/sanita-floor-wc.svg',
     umyvadlo: '/materials/sanita-washbasin.svg',
     bidet: '/materials/sanita-bidet.svg',
@@ -164,17 +164,17 @@ const CATEGORY_TYPE_IMAGES = {
 };
 
 const EXTRA_CATEGORY_IMAGES = {
-  cu: '/materials/category-cu.webp',
-  ppr: '/materials/category-ppr.webp',
-  mlcp: '/materials/category-mlcp.webp',
-  pex: '/materials/category-pex.webp',
-  ht: '/materials/ht-pipe.webp',
-  kg: '/materials/category-kg.webp',
-  steel: '/materials/category-steel.webp',
+  cu: '/materials/cu-elbow-45.webp',
+  ppr: '/materials/ppr-pipe.webp',
+  mlcp: '/materials/pex-pipe.webp',
+  pex: '/materials/pex-pipe.webp',
+  ht: '/materials/ht-elbow-87.webp',
+  kg: '/materials/kg-pipe.webp',
+  steel: '/materials/steel-pipe.webp',
   brass: '/materials/category-brass.webp',
-  valves: '/materials/category-valves.webp',
+  valves: '/materials/valve-ball.webp',
   geberit: '/materials/category-geberit.webp',
-  sanita: '/materials/category-sanita.webp',
+  sanita: '/materials/sanita-wall-hung-wc.svg',
   other: '/materials/other-material.svg',
 };
 
@@ -202,8 +202,6 @@ export function getMaterialImage(item) {
   const type = String(item.type || '').trim().toLowerCase();
   const mappedImage = findMappedImage(category, type);
 
-  // Project-owned assets always win over catalog URLs. This keeps the field UI
-  // consistent even if an old database record still carries a legacy imageUrl.
   if (mappedImage) return mappedImage;
 
   return getBaseMaterialImage(item);
