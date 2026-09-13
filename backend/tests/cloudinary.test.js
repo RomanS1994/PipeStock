@@ -40,10 +40,11 @@ test('creates a signed Cloudinary image upload without exposing the secret', () 
   assert.match(upload.uploadUrl, /pipe-stock-test\/image\/upload$/);
   assert.match(upload.publicId, /^pipestock\/projects\/company-1\//);
   assert.equal(upload.allowedFormats, IMAGE_UPLOAD_ALLOWED_FORMATS.join(','));
+  assert.equal(upload.overwrite, 'false');
   assert.equal('apiSecret' in upload, false);
 
   const expected = createHash('sha1')
-    .update(`allowed_formats=${upload.allowedFormats}&public_id=${upload.publicId}&timestamp=${upload.timestamp}super-secret`)
+    .update(`allowed_formats=${upload.allowedFormats}&overwrite=false&public_id=${upload.publicId}&timestamp=${upload.timestamp}super-secret`)
     .digest('hex');
   assert.equal(upload.signature, expected);
 }));
