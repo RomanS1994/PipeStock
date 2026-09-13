@@ -36,10 +36,12 @@ export function OrderDetailPage() {
   const membership = (user?.memberships || []).find(item => item.status === 'ACTIVE');
   const manager = membership?.role === 'MANAGER';
   const { data: order, isLoading, isError, refetch } = useGetOrderQuery(orderId);
-  const { data: history = [] } = useGetOrderHistoryQuery(orderId);
+  const { data: history = [] } = useGetOrderHistoryQuery(orderId, {
+    skip: !order || order.status === 'DRAFT',
+  });
   const [submitOrder, submitState] = useSubmitOrderMutation();
   const [completeOrder, completeState] = useCompleteOrderMutation();
-  const [deleteItem] = useDeleteOrderItemMutation();
+  const [deleteItem, deleteState] = useDeleteOrderItemMutation();
 
   if (isLoading) return <section className="screenCard">Завантажуємо заказ…</section>;
   if (isError || !order) return <section className="screenCard"><strong>Не вдалося відкрити заказ</strong><button type="button" onClick={refetch}>Спробувати ще раз</button></section>;
@@ -81,12 +83,23 @@ export function OrderDetailPage() {
                 </div>
                 <div className="orderItemCopy"><strong>{item.categoryLabel} {item.diameter}</strong><span>{item.type}</span></div>
                 <strong className="orderItemQty">{item.quantity} {item.unit}</strong>
-                {canEdit ? <button className="orderRemoveItem" type="button" aria-label="Видалити матеріал" onClick={() => deleteItem({ orderId: order.id, itemId: item.id })}>×</button> : null}
+                {canEdit ? (
+                  <button
+                    className="orderRemoveItem"
+                    type="button"
+                    aria-label="Видалити матеріал"
+                    disabled={deleteState.isLoading}
+                    onClick={() => deleteItem({ orderId: order.id, itemId: item.id })}
+                  >
+                    ×
+                  </button>
+                ) : null}
               </div>
             ))}
           </div>
         ) : <div className="orderEmptyMaterials"><strong>Матеріалів ще немає</strong><p>Додайте перший матеріал до заказа.</p></div>}
 
+        {deleteState.error ? <p className="orderError">{deleteState.error?.data?.error || 'Не вдалося видалити матеріал'}</p> : null}
         {canEdit ? <Link className="psButton psButton--primary psButton--full orderButtonLink" to={`/orders/${order.id}/materials/new`}>+ Додати матеріал</Link> : null}
       </section>
 
@@ -124,7 +137,7 @@ export function OrderDetailPage() {
       {completeState.error ? <p className="orderError">{completeState.error?.data?.error}</p> : null}
 
       {canEdit ? (
-        <Button variant="secondary" fullWidth disabled={submitState.isLoading || !order.items.length} onClick={() => submitOrder(order.id)}>
+        <Button variant="secondary" fullWidth disabled={submitState.isLoading || deleteState.isLoading || !order.items.length} onClick={() => submitOrder(order.id)}>
           {submitState.isLoading ? 'Відправляємо…' : manager ? 'Відправити' : 'Відправити менеджеру'}
         </Button>
       ) : null}
