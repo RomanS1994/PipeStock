@@ -26,6 +26,7 @@ export async function uploadImageFile(file, upload) {
   body.append('api_key', upload.apiKey);
   body.append('timestamp', String(upload.timestamp));
   body.append('public_id', upload.publicId);
+  if (upload.allowedFormats) body.append('allowed_formats', upload.allowedFormats);
   body.append('signature', upload.signature);
 
   const response = await fetch(upload.uploadUrl, { method: 'POST', body });
