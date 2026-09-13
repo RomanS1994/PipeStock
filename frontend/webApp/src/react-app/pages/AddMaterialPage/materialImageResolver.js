@@ -164,18 +164,18 @@ const CATEGORY_TYPE_IMAGES = {
 };
 
 const EXTRA_CATEGORY_IMAGES = {
-  cu: '/materials/cu-pipe.webp',
+  cu: '/materials/category-cu.webp',
   ppr: '/materials/category-ppr.webp',
   mlcp: '/materials/category-mlcp.webp',
   pex: '/materials/category-pex.webp',
-  ht: '/materials/ht-pipe.webp',
+  ht: '/materials/category-ht.webp',
   kg: '/materials/category-kg.webp',
   steel: '/materials/category-steel.webp',
   brass: '/materials/category-brass.webp',
   valves: '/materials/category-valves.webp',
   geberit: '/materials/category-geberit.webp',
-  sanita: '/materials/sanita-wall-hung-wc.svg',
-  other: '/materials/other-material.svg',
+  sanita: '/materials/category-sanita.webp',
+  other: '/materials/category-other.webp',
 };
 
 function normalize(value) {
