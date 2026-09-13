@@ -1,7 +1,11 @@
 import { requireAuth } from '../auth/current-user.js';
+import { consumeRateLimit } from '../auth/rate-limit.js';
 import { createSignedImageUpload, isImageStorageConfigured } from '../lib/cloudinary.js';
 import { HttpError } from '../lib/errors.js';
 import { readJsonBody, sendJson } from '../lib/http.js';
+
+const UPLOAD_SIGNATURE_WINDOW_MS = 10 * 60_000;
+const UPLOAD_SIGNATURE_LIMIT = 30;
 
 function getActiveMembership(user) {
   return (user.memberships || []).find(
@@ -18,6 +22,16 @@ export async function handleUploadRoutes(request, response, { pathName }) {
   if (membership.role !== 'MANAGER') throw new HttpError(403, 'Manager access is required');
   if (!isImageStorageConfigured()) {
     throw new HttpError(503, 'Image storage is not configured');
+  }
+
+  const rateLimit = consumeRateLimit({
+    scope: 'image-upload-signature',
+    key: membership.id,
+    limit: UPLOAD_SIGNATURE_LIMIT,
+    windowMs: UPLOAD_SIGNATURE_WINDOW_MS,
+  });
+  if (!rateLimit.allowed) {
+    throw new HttpError(429, 'Too many image uploads. Please try again later.');
   }
 
   const body = await readJsonBody(request);
