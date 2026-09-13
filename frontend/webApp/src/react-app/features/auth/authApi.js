@@ -42,7 +42,8 @@ export const authApi = baseApi.injectEndpoints({
           const { data } = await queryFulfilled;
           applySession(dispatch, data);
         } catch {
-          dispatch(clearSession());
+          // A concurrent browser tab may have already rotated the shared refresh cookie.
+          // baseApi/storage synchronization decides whether the local session should clear.
         }
       },
     }),
