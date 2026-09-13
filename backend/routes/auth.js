@@ -3,11 +3,16 @@ import { HttpError } from '../lib/errors.js';
 import { readJsonBody, sendJson } from '../lib/http.js';
 import { createInviteCode } from '../lib/invite-code.js';
 import { hasActiveCompanyMembership, hasActiveCompanyMembershipInTx, lockUserForMembershipChange } from '../auth/membership-policy.js';
+import { consumeRateLimit, resetRateLimit } from '../auth/rate-limit.js';
 import { clearRefreshCookie, readRefreshToken, setRefreshCookie } from '../auth/session-cookie.js';
 import { createAccessToken, createRefreshToken, getRefreshExpiry, hashPassword, hashToken, verifyAccessToken, verifyPassword } from '../auth/tokens.js';
 import { requireAuth, serializeUser } from '../auth/current-user.js';
 
 const JOIN_CODE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const MINUTE_MS = 60_000;
+const LOGIN_WINDOW_MS = 10 * MINUTE_MS;
+const REGISTER_WINDOW_MS = 60 * MINUTE_MS;
+const JOIN_WINDOW_MS = 15 * MINUTE_MS;
 
 function normalizeEmail(value) {
   return String(value || '').trim().toLowerCase();
@@ -20,6 +25,22 @@ function normalizeText(value) {
 function readBearerToken(request) {
   const value = String(request.headers.authorization || '');
   return value.startsWith('Bearer ') ? value.slice(7).trim() : '';
+}
+
+function getClientRateKey(request) {
+  const forwardedHeader = request.headers['x-forwarded-for'];
+  const forwarded = String(Array.isArray(forwardedHeader) ? forwardedHeader[0] : forwardedHeader || '')
+    .split(',')[0]
+    .trim();
+  const remote = String(request.socket?.remoteAddress || '').trim();
+  return forwarded || remote || 'unknown';
+}
+
+function enforceRateLimit({ scope, key, limit, windowMs }) {
+  const result = consumeRateLimit({ scope, key, limit, windowMs });
+  if (result.allowed) return;
+  const retryAfterSeconds = Math.max(1, Math.ceil(result.retryAfterMs / 1000));
+  throw new HttpError(429, `Too many attempts. Try again in ${retryAfterSeconds} seconds`);
 }
 
 function assertEmail(email) {
@@ -109,6 +130,12 @@ async function registerManager(request, response) {
   assertPassword(password);
   if (!name) throw new HttpError(400, 'Name is required');
   if (!companyName) throw new HttpError(400, 'Company name is required');
+  enforceRateLimit({
+    scope: 'auth:register:client',
+    key: getClientRateKey(request),
+    limit: 10,
+    windowMs: REGISTER_WINDOW_MS,
+  });
 
   const result = await prisma.$transaction(async tx => {
     if (await tx.user.findUnique({ where: { email } })) throw new HttpError(409, 'An account with this email already exists');
@@ -145,6 +172,12 @@ async function registerEmployee(request, response) {
   assertEmail(email);
   assertPassword(password);
   if (!name) throw new HttpError(400, 'Name is required');
+  enforceRateLimit({
+    scope: 'auth:register:client',
+    key: getClientRateKey(request),
+    limit: 10,
+    windowMs: REGISTER_WINDOW_MS,
+  });
 
   const result = await prisma.$transaction(async tx => {
     if (await tx.user.findUnique({ where: { email } })) throw new HttpError(409, 'An account with this email already exists');
@@ -169,6 +202,12 @@ async function joinCompany(request, response) {
   const body = await readJsonBody(request);
   const joinCode = normalizeText(body.joinCode).toUpperCase();
   if (!joinCode) throw new HttpError(400, 'Company code is required');
+  enforceRateLimit({
+    scope: 'auth:join:user',
+    key: current.id,
+    limit: 15,
+    windowMs: JOIN_WINDOW_MS,
+  });
 
   const user = await prisma.$transaction(async tx => {
     if (!(await lockUserForMembershipChange(tx, current.id))) {
@@ -185,6 +224,7 @@ async function joinCompany(request, response) {
     return loadUser(tx, current.id);
   });
 
+  resetRateLimit({ scope: 'auth:join:user', key: current.id });
   sendJson(response, 200, { user: serializeUser(user) });
 }
 
@@ -192,10 +232,27 @@ async function login(request, response) {
   const body = await readJsonBody(request);
   const email = normalizeEmail(body.email);
   const password = String(body.password || '');
+  assertEmail(email);
+
+  const clientKey = getClientRateKey(request);
+  enforceRateLimit({
+    scope: 'auth:login:client',
+    key: clientKey,
+    limit: 60,
+    windowMs: LOGIN_WINDOW_MS,
+  });
+  enforceRateLimit({
+    scope: 'auth:login:identity',
+    key: `${clientKey}:${email}`,
+    limit: 10,
+    windowMs: LOGIN_WINDOW_MS,
+  });
+
   const existing = await prisma.user.findUnique({ where: { email } });
   if (!existing || existing.deletedAt || !verifyPassword(password, existing.passwordHash)) throw new HttpError(401, 'Invalid email or password');
 
   const result = await prisma.$transaction(async tx => ({ session: await issueSession(tx, existing.id), user: await loadUser(tx, existing.id) }));
+  resetRateLimit({ scope: 'auth:login:identity', key: `${clientKey}:${email}` });
   authResponse(response, 200, result.session, result.user);
 }
 
