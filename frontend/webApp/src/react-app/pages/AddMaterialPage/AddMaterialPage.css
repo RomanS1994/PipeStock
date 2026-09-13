@@ -24,14 +24,17 @@
 .materialFavoriteButton { position: absolute; top: 50%; right: 12px; display: grid; width: 38px; height: 38px; min-height: 0; padding: 0; place-items: center; border: 0; border-radius: 50%; color: var(--muted); background: var(--surface-subtle); }
 .materialFavoriteButton.is-active { color: var(--warning); background: #fff7df; }
 
+/* Approved PipeStock mockup — shared wizard typography */
+.materialWizardStage > .compactHeader { display: grid; gap: 6px; margin: 0; }
+.materialWizardStage > .compactHeader h1 { margin: 0; color: #111827; font-size: clamp(28px, 6.6vw, 36px); line-height: 1.06; letter-spacing: -0.035em; font-weight: 800; }
+.materialWizardStage > .compactHeader p { margin: 0; color: #6b778c; font-size: clamp(16px, 4vw, 20px); line-height: 1.35; }
+
 /* Approved PipeStock mockup — category step */
 .materialWizardStage:has(.materialCategoryGrid) { gap: 20px; }
-.materialWizardStage:has(.materialCategoryGrid) > .compactHeader { display: grid; gap: 6px; margin: 0; }
-.materialWizardStage:has(.materialCategoryGrid) > .compactHeader h1 { margin: 0; color: #111827; font-size: clamp(30px, 7vw, 38px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; }
-.materialWizardStage:has(.materialCategoryGrid) > .compactHeader p { margin: 0; color: #6b778c; font-size: clamp(17px, 4.1vw, 21px); line-height: 1.35; }
+.materialWizardStage:has(.materialCategoryGrid) > .compactHeader h1 { font-size: clamp(30px, 7vw, 38px); }
 .materialWizardStage:has(.materialCategoryGrid) > .compactHeader p { font-size: 0; }
 .materialWizardStage:has(.materialCategoryGrid) > .compactHeader p::after { content: 'Оберіть тип матеріалу'; font-size: clamp(17px, 4.1vw, 21px); }
-.materialCategoryGrid { gap: 12px 12px; }
+.materialCategoryGrid { gap: 12px; }
 .materialCategoryCard { min-height: 156px; padding: 15px 14px 14px; gap: 9px; border: 1px solid #dfe4eb; border-radius: 18px; background: #fff; box-shadow: 0 1px 2px rgba(15,23,42,.035); transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease; }
 .materialCategoryCard:active { transform: scale(.985); }
 .materialCategoryCard > span,
@@ -45,10 +48,58 @@
 .materialCategoryCard:nth-child(11) { order: 10; }
 .materialCategoryCard:nth-child(12) { order: 11; }
 
+/* Approved PipeStock mockup — diameter / variant steps */
+.materialWizardStage:has(.materialDiameterGrid) { gap: 20px; }
+.materialDiameterGrid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 11px; }
+.materialDiameterGrid button { min-height: 70px; padding: 10px 8px; border: 1px solid #dfe4eb; border-radius: 16px; background: #fff; color: #111827; font-size: 18px; line-height: 1.15; font-weight: 750; box-shadow: 0 1px 2px rgba(15,23,42,.025); }
+.materialDiameterGrid button:active { transform: scale(.98); }
+.materialDiameterGrid button.is-selected { border: 2px solid #0a84ff; color: #0a84ff; background: #eef6ff; box-shadow: 0 0 0 2px rgba(10,132,255,.06); }
+
+/* Approved PipeStock mockup — type step */
+.materialWizardStage:has(.materialTypeList) { gap: 18px; }
+.materialTypeList { gap: 10px; }
+.materialTypeRow { grid-template-columns: 72px minmax(0,1fr) 24px; min-height: 92px; gap: 14px; padding: 10px 12px; border: 1px solid #dfe4eb; border-radius: 16px; background: #fff; box-shadow: 0 1px 2px rgba(15,23,42,.025); }
+.materialTypeRow:last-child { border-bottom: 1px solid #dfe4eb; }
+.materialTypeMark,
+.materialTypeMark.has-image { width: 72px; height: 72px; border: 0; border-radius: 12px; background: #fff; }
+.materialTypeMark.has-image img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+.materialTypeRow strong { color: #111827; font-size: 16px; line-height: 1.2; font-weight: 750; }
+.materialTypeRow small { margin-top: 2px; color: #7b8799; font-size: 12px; }
+.materialTypeRow b { color: #9aa5b5; font-size: 25px; font-weight: 400; }
+
+/* Approved PipeStock mockup — quantity step */
+.materialQuantityStage { gap: 20px; }
+.selectedMaterialCard { min-height: 104px; gap: 15px; padding: 14px 60px 14px 14px; border: 1px solid #dfe4eb; border-radius: 18px; background: #fff; box-shadow: 0 1px 2px rgba(15,23,42,.03); }
+.selectedMaterialMark,
+.selectedMaterialMark.has-image { width: 76px; height: 76px; flex-basis: 76px; border: 0; border-radius: 14px; background: #fff; }
+.selectedMaterialMark.has-image img { width: 100%; height: 100%; object-fit: contain; padding: 2px; }
+.selectedMaterialCard > div strong { color: #111827; font-size: 17px; font-weight: 800; }
+.selectedMaterialCard > div span { color: #6f7c90; font-size: 14px; }
+.materialFavoriteButton { right: 14px; width: 40px; height: 40px; background: #f4f7fb; }
+.quantityStepper { grid-template-columns: 72px minmax(0,1fr) 72px; gap: 16px; align-items: center; padding-top: 4px; }
+.quantityStepper button { height: 72px; border: 0; border-radius: 20px; background: #eaf4ff; color: #0a84ff; font-size: 34px; font-weight: 400; }
+.quantityStepper strong { color: #111827; font-size: 48px; line-height: 1; font-weight: 800; letter-spacing: -.035em; }
+.quantityUnit { margin-top: -12px; color: #7b8799; font-size: 15px; font-weight: 600; }
+.quantityQuickButtons { grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; }
+.quantityQuickButtons button { min-height: 48px; border: 1px solid #d9e9fb; border-radius: 14px; background: #f2f8ff; color: #0a84ff; font-size: 15px; font-weight: 700; }
+.materialQuantityStage > .psButton { min-height: 54px; border-radius: 16px; font-size: 16px; font-weight: 750; }
+
 @media (max-width: 420px) {
   .materialCategoryGrid { gap: 10px; }
   .materialCategoryCard { min-height: 146px; padding: 13px 12px 12px; border-radius: 17px; }
   .materialCategoryCard > span,
   .materialCategoryCard > span.has-image { height: 88px; }
   .materialCategoryCard > strong { font-size: 16px; }
+  .materialDiameterGrid { gap: 9px; }
+  .materialDiameterGrid button { min-height: 64px; border-radius: 15px; font-size: 17px; }
+  .materialTypeRow { grid-template-columns: 64px minmax(0,1fr) 22px; min-height: 84px; gap: 12px; padding: 9px 10px; }
+  .materialTypeMark,
+  .materialTypeMark.has-image { width: 64px; height: 64px; }
+  .quantityStepper { grid-template-columns: 66px minmax(0,1fr) 66px; gap: 12px; }
+  .quantityStepper button { height: 66px; border-radius: 18px; }
+  .quantityStepper strong { font-size: 44px; }
+}
+
+@media (max-width: 350px) {
+  .materialDiameterGrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
