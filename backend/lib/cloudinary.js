@@ -28,7 +28,8 @@ export function createSignedImageUpload({ kind, companyId, now = Date.now() }) {
   const timestamp = Math.floor(now / 1000);
   const publicId = `pipestock/${normalizedKind}s/${companyId}/${randomUUID()}`;
   const allowedFormats = ALLOWED_IMAGE_FORMATS.join(',');
-  const stringToSign = `allowed_formats=${allowedFormats}&public_id=${publicId}&timestamp=${timestamp}`;
+  const overwrite = 'false';
+  const stringToSign = `allowed_formats=${allowedFormats}&overwrite=${overwrite}&public_id=${publicId}&timestamp=${timestamp}`;
   const signature = createHash('sha1').update(`${stringToSign}${apiSecret}`).digest('hex');
 
   return {
@@ -39,6 +40,7 @@ export function createSignedImageUpload({ kind, companyId, now = Date.now() }) {
     publicId,
     signature,
     allowedFormats,
+    overwrite,
     maxBytes: MAX_IMAGE_BYTES,
   };
 }
