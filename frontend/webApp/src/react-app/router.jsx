@@ -2,7 +2,7 @@ import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 
 import { App } from '@shared/app/App.jsx';
-import { ProtectedRoute } from './features/auth/ProtectedRoute.jsx';
+import { GuestRoute, ProtectedRoute } from './features/auth/ProtectedRoute.jsx';
 import {
   EmployeeRegistrationPage,
   JoinCompanyPage,
@@ -29,11 +29,11 @@ export const router = createBrowserRouter([
   {
     element: <App />,
     children: [
-      { index: true, element: <WelcomePage /> },
-      { path: 'sign-in', element: <SignInPage /> },
-      { path: 'role', element: <RoleSelectionPage /> },
-      { path: 'register/manager', element: <ManagerRegistrationPage /> },
-      { path: 'register/employee', element: <EmployeeRegistrationPage /> },
+      { index: true, element: <GuestRoute><WelcomePage /></GuestRoute> },
+      { path: 'sign-in', element: <GuestRoute><SignInPage /></GuestRoute> },
+      { path: 'role', element: <GuestRoute><RoleSelectionPage /></GuestRoute> },
+      { path: 'register/manager', element: <GuestRoute><ManagerRegistrationPage /></GuestRoute> },
+      { path: 'register/employee', element: <GuestRoute><EmployeeRegistrationPage /></GuestRoute> },
       { path: 'join-company', element: <ProtectedRoute requireCompany={false} requireNoCompany><JoinCompanyPage /></ProtectedRoute> },
       { path: 'dashboard', element: <ProtectedRoute requireManager><DashboardPage /></ProtectedRoute> },
       { path: 'objects', element: <ProtectedRoute><ObjectsPage /></ProtectedRoute> },
