@@ -5,34 +5,43 @@ function applySession(dispatch, payload) {
   if (payload?.token && payload?.user) dispatch(setSession({ token: payload.token, user: payload.user }));
 }
 
+function applyFreshSession(dispatch, payload) {
+  if (!payload?.token || !payload?.user) return;
+  dispatch(baseApi.util.resetApiState());
+  dispatch(setSession({ token: payload.token, user: payload.user }));
+}
+
 export const authApi = baseApi.injectEndpoints({
   endpoints: builder => ({
     login: builder.mutation({
       query: body => ({ url: '/auth/login', method: 'POST', body }),
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
         const { data } = await queryFulfilled;
-        applySession(dispatch, data);
+        applyFreshSession(dispatch, data);
       },
     }),
     registerManager: builder.mutation({
       query: body => ({ url: '/auth/register-manager', method: 'POST', body }),
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
         const { data } = await queryFulfilled;
-        applySession(dispatch, data);
+        applyFreshSession(dispatch, data);
       },
     }),
     registerEmployee: builder.mutation({
       query: body => ({ url: '/auth/register-employee', method: 'POST', body }),
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
         const { data } = await queryFulfilled;
-        applySession(dispatch, data);
+        applyFreshSession(dispatch, data);
       },
     }),
     joinCompany: builder.mutation({
       query: body => ({ url: '/auth/join-company', method: 'POST', body }),
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
         const { data } = await queryFulfilled;
-        if (data?.user) dispatch(setUser(data.user));
+        if (data?.user) {
+          dispatch(baseApi.util.resetApiState());
+          dispatch(setUser(data.user));
+        }
       },
     }),
     refreshSession: builder.mutation({
@@ -62,7 +71,12 @@ export const authApi = baseApi.injectEndpoints({
     logout: builder.mutation({
       query: () => ({ url: '/auth/logout', method: 'POST' }),
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
-        try { await queryFulfilled; } finally { dispatch(clearSession()); }
+        try {
+          await queryFulfilled;
+        } finally {
+          dispatch(clearSession());
+          dispatch(baseApi.util.resetApiState());
+        }
       },
     }),
   }),
