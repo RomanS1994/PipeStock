@@ -18,7 +18,12 @@ function formatDocumentDate(order) {
 export function OrderPdfPreviewPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
-  const { data: order, isLoading: orderLoading, isError: orderError } = useGetOrderQuery(orderId);
+  const {
+    data: order,
+    isLoading: orderLoading,
+    isError: orderError,
+    refetch: refetchOrder,
+  } = useGetOrderQuery(orderId);
   const [downloadOrderPdf] = useDownloadOrderPdfMutation();
   const [pdfUrl, setPdfUrl] = useState('');
   const [pdfError, setPdfError] = useState('');
@@ -60,7 +65,13 @@ export function OrderPdfPreviewPage() {
   }
 
   if (orderError || !order) {
-    return <section className="screenCard orderPdfPreviewState"><strong>Не вдалося відкрити заказ</strong><Button variant="text" onClick={() => navigate('/orders')}>До заказів</Button></section>;
+    return (
+      <section className="screenCard orderPdfPreviewState">
+        <strong>Не вдалося відкрити заказ</strong>
+        <Button variant="text" onClick={refetchOrder}>Спробувати ще раз</Button>
+        <Button variant="text" onClick={() => navigate('/orders')}>До заказів</Button>
+      </section>
+    );
   }
 
   if (!order.documentAvailable) {
