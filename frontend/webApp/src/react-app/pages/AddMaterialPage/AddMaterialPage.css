@@ -80,7 +80,7 @@
 .quantityStepper button { height: 72px; border: 0; border-radius: 20px; background: #eaf4ff; color: #0a84ff; font-size: 34px; font-weight: 400; }
 .quantityStepper strong { color: #111827; font-size: 48px; line-height: 1; font-weight: 800; letter-spacing: -.035em; }
 .quantityUnit { margin-top: -12px; color: #7b8799; font-size: 15px; font-weight: 600; }
-.quantityQuickButtons { grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; }
+.quantityQuickButtons { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
 .quantityQuickButtons button { min-height: 48px; border: 1px solid #d9e9fb; border-radius: 14px; background: #f2f8ff; color: #0a84ff; font-size: 15px; font-weight: 700; }
 .materialQuantityStage > .psButton { min-height: 54px; border-radius: 16px; font-size: 16px; font-weight: 750; }
 
