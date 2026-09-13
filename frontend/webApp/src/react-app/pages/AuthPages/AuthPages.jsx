@@ -22,24 +22,24 @@ const ONBOARDING_SLIDES = [
     kicker: 'Матеріали під контролем',
     title: 'Швидкий облік матеріалів на об’єкті',
     description: 'Виберіть систему, діаметр і потрібний елемент за кілька натискань — прямо під час монтажу.',
-    image: '/materials/ppr-pipe.webp',
-    secondaryImage: '/materials/ppr-coupling.webp',
-    alt: 'PPR труба та фітинг',
+    image: '/materials/ht-branch-45-photo.svg',
+    secondaryImage: '/materials/ht-cleanout-photo.svg',
+    alt: 'Сантехнічні труби та фітинги',
   },
   {
     kicker: 'Заказ без зайвих записів',
     title: 'Збирайте матеріали в один заказ',
     description: 'Працівник створює заказ на об’єкті, швидко додає фітинги й кількість, а команда бачить актуальний список.',
-    image: '/materials/pex-tee.webp',
-    secondaryImage: '/materials/valve-ball.webp',
-    alt: 'Сантехнічні фітинги для заказу',
+    image: '/materials/category-pex.svg',
+    secondaryImage: '/materials/category-valves.svg',
+    alt: 'Сантехнічні матеріали для заказу',
   },
   {
     kicker: 'Вся історія в PipeStock',
     title: 'Переглядайте історію та готовий PDF',
     description: 'Збережені закази залишаються прив’язаними до об’єкта. Перевіряйте матеріали та відкривайте PDF без паперових списків.',
-    image: '/materials/category-geberit.webp',
-    secondaryImage: '/materials/ht-branch-45.webp',
+    image: '/materials/geberit-frame.svg',
+    secondaryImage: '/materials/ht-branch-45-photo.svg',
     alt: 'Матеріали та обладнання для сантехнічного об’єкта',
   },
 ];
@@ -88,10 +88,10 @@ export function WelcomePage() {
       <div className="welcomePage-hero" key={`hero-${slideIndex}`}>
         <span className="welcomePage-heroGlow" aria-hidden="true" />
         <div className="welcomePage-photo welcomePage-photoPrimary">
-          <img src={slide.image} alt={slide.alt} />
+          <img src={slide.image} alt={slide.alt} loading="eager" decoding="async" draggable="false" />
         </div>
         <div className="welcomePage-photo welcomePage-photoSecondary" aria-hidden="true">
-          <img src={slide.secondaryImage} alt="" />
+          <img src={slide.secondaryImage} alt="" loading="eager" decoding="async" draggable="false" />
         </div>
         <span className="welcomePage-heroBadge">{slideIndex + 1} / {ONBOARDING_SLIDES.length}</span>
       </div>
