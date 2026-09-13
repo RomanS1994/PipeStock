@@ -5,11 +5,13 @@ import test from 'node:test';
 import {
   createSignedImageUpload,
   IMAGE_UPLOAD_ALLOWED_FORMATS,
+  IMAGE_UPLOAD_MAX_BYTES,
   isImageStorageConfigured,
   validateStoredImageUrl,
+  verifyStoredImageAsset,
 } from '../lib/cloudinary.js';
 
-function withCloudinaryEnv(run) {
+async function withCloudinaryEnv(run) {
   const previous = {
     cloudName: process.env.CLOUDINARY_CLOUD_NAME,
     apiKey: process.env.CLOUDINARY_API_KEY,
@@ -21,7 +23,7 @@ function withCloudinaryEnv(run) {
   process.env.CLOUDINARY_API_SECRET = 'super-secret';
 
   try {
-    return run();
+    return await run();
   } finally {
     if (previous.cloudName === undefined) delete process.env.CLOUDINARY_CLOUD_NAME;
     else process.env.CLOUDINARY_CLOUD_NAME = previous.cloudName;
@@ -32,7 +34,7 @@ function withCloudinaryEnv(run) {
   }
 }
 
-test('creates a signed Cloudinary image upload without exposing the secret', () => withCloudinaryEnv(() => {
+test('creates a signed Cloudinary image upload without exposing the secret', async () => withCloudinaryEnv(async () => {
   assert.equal(isImageStorageConfigured(), true);
   const upload = createSignedImageUpload({ kind: 'project', companyId: 'company-1', now: 1_700_000_000_000 });
   assert.equal(upload.timestamp, 1_700_000_000);
@@ -49,7 +51,7 @@ test('creates a signed Cloudinary image upload without exposing the secret', () 
   assert.equal(upload.signature, expected);
 }));
 
-test('accepts only images stored in the current company project folder', () => withCloudinaryEnv(() => {
+test('accepts only original images stored in the current company project folder', async () => withCloudinaryEnv(async () => {
   const url = 'https://res.cloudinary.com/pipe-stock-test/image/upload/v1700000000/pipestock/projects/company-1/photo.webp';
   assert.equal(validateStoredImageUrl({ url, kind: 'project', companyId: 'company-1' }), url);
 
@@ -72,5 +74,87 @@ test('accepts only images stored in the current company project folder', () => w
       companyId: 'company-1',
     }),
     /Unsupported image format/,
+  );
+  assert.throws(
+    () => validateStoredImageUrl({
+      url: 'https://res.cloudinary.com/pipe-stock-test/image/upload/c_fill,w_400/v1700000000/pipestock/projects/company-1/photo.webp',
+      kind: 'project',
+      companyId: 'company-1',
+    }),
+    /PipeStock image storage/,
+  );
+}));
+
+test('verifies stored image metadata with Cloudinary before persistence', async () => withCloudinaryEnv(async () => {
+  const url = 'https://res.cloudinary.com/pipe-stock-test/image/upload/v1700000000/pipestock/projects/company-1/photo.webp';
+  let request = null;
+  const result = await verifyStoredImageAsset({
+    url,
+    kind: 'project',
+    companyId: 'company-1',
+    fetchImpl: async (requestUrl, options) => {
+      request = { requestUrl, options };
+      return {
+        ok: true,
+        async json() {
+          return {
+            public_id: 'pipestock/projects/company-1/photo',
+            resource_type: 'image',
+            type: 'upload',
+            format: 'webp',
+            bytes: 123456,
+            width: 1200,
+            height: 800,
+          };
+        },
+      };
+    },
+  });
+
+  assert.equal(result.url, url);
+  assert.equal(result.publicId, 'pipestock/projects/company-1/photo');
+  assert.equal(result.bytes, 123456);
+  assert.equal(result.format, 'webp');
+  assert.match(request.requestUrl, /\/resources\/image\/upload\/pipestock\/projects\/company-1\/photo$/);
+  assert.match(request.options.headers.Authorization, /^Basic /);
+}));
+
+test('rejects oversized or mismatched Cloudinary assets', async () => withCloudinaryEnv(async () => {
+  const url = 'https://res.cloudinary.com/pipe-stock-test/image/upload/v1700000000/pipestock/projects/company-1/photo.webp';
+  const responseFor = asset => async () => ({
+    ok: true,
+    async json() { return asset; },
+  });
+
+  await assert.rejects(
+    verifyStoredImageAsset({
+      url,
+      kind: 'project',
+      companyId: 'company-1',
+      fetchImpl: responseFor({
+        public_id: 'pipestock/projects/company-1/photo',
+        resource_type: 'image',
+        type: 'upload',
+        format: 'webp',
+        bytes: IMAGE_UPLOAD_MAX_BYTES + 1,
+      }),
+    }),
+    /too large/,
+  );
+
+  await assert.rejects(
+    verifyStoredImageAsset({
+      url,
+      kind: 'project',
+      companyId: 'company-1',
+      fetchImpl: responseFor({
+        public_id: 'pipestock/projects/company-1/other-photo',
+        resource_type: 'image',
+        type: 'upload',
+        format: 'webp',
+        bytes: 1000,
+      }),
+    }),
+    /does not match PipeStock storage/,
   );
 }));
