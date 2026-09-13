@@ -6,10 +6,27 @@ import './ImageUploadField.css';
 const MAX_BYTES = 10 * 1024 * 1024;
 const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif']);
 const ACCEPTED_FILES = '.jpg,.jpeg,.png,.webp,.heic,.heif,image/jpeg,image/png,image/webp,image/heic,image/heif';
+const MIME_EXTENSIONS = new Map([
+  ['image/jpeg', new Set(['jpg', 'jpeg'])],
+  ['image/png', new Set(['png'])],
+  ['image/webp', new Set(['webp'])],
+  ['image/heic', new Set(['heic'])],
+  ['image/heif', new Set(['heif'])],
+]);
+
+function getExtension(file) {
+  const name = String(file?.name || '');
+  if (!name.includes('.')) return '';
+  return name.split('.').pop().toLowerCase();
+}
 
 function isAllowedImageFile(file) {
-  const extension = String(file?.name || '').split('.').pop().toLowerCase();
-  return ALLOWED_EXTENSIONS.has(extension);
+  const extension = getExtension(file);
+  if (!ALLOWED_EXTENSIONS.has(extension)) return false;
+
+  const mimeType = String(file?.type || '').trim().toLowerCase();
+  if (!mimeType) return true;
+  return MIME_EXTENSIONS.get(mimeType)?.has(extension) || false;
 }
 
 export function ImageUploadField({ value = '', label = 'Фото', disabled = false, onUpload, onChange }) {
@@ -28,7 +45,7 @@ export function ImageUploadField({ value = '', label = 'Фото', disabled = fa
     }
 
     if (!isAllowedImageFile(file)) {
-      setError('Підтримуються JPG, PNG, WebP та HEIC/HEIF.');
+      setError('Підтримуються JPG, PNG, WebP та HEIC/HEIF. Перевірте тип файлу.');
       return;
     }
 
