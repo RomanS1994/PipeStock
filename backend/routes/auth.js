@@ -2,6 +2,14 @@ import { prisma } from '../db/prisma.js';
 import { HttpError } from '../lib/errors.js';
 import { readJsonBody, sendJson } from '../lib/http.js';
 import { createInviteCode } from '../lib/invite-code.js';
+import {
+  assertAuthEmail,
+  assertAuthPassword,
+  assertCompanyName,
+  assertJoinCode,
+  assertPersonName,
+  assertPhone,
+} from '../auth/input-validation.js';
 import { hasActiveCompanyMembership, hasActiveCompanyMembershipInTx, lockUserForMembershipChange } from '../auth/membership-policy.js';
 import { consumeRateLimit, resetRateLimit } from '../auth/rate-limit.js';
 import { clearRefreshCookie, readRefreshToken, setRefreshCookie } from '../auth/session-cookie.js';
@@ -41,14 +49,6 @@ function enforceRateLimit({ scope, key, limit, windowMs }) {
   if (result.allowed) return;
   const retryAfterSeconds = Math.max(1, Math.ceil(result.retryAfterMs / 1000));
   throw new HttpError(429, `Too many attempts. Try again in ${retryAfterSeconds} seconds`);
-}
-
-function assertEmail(email) {
-  if (!/^\S+@\S+\.\S+$/.test(email)) throw new HttpError(400, 'Enter a valid email address');
-}
-
-function assertPassword(password) {
-  if (String(password || '').length < 8) throw new HttpError(400, 'Password must contain at least 8 characters');
 }
 
 function slugify(value) {
@@ -132,10 +132,11 @@ async function registerManager(request, response) {
   const companyName = normalizeText(body.companyName);
   const phone = normalizeText(body.phone) || null;
 
-  assertEmail(email);
-  assertPassword(password);
-  if (!name) throw new HttpError(400, 'Name is required');
-  if (!companyName) throw new HttpError(400, 'Company name is required');
+  assertAuthEmail(email);
+  assertAuthPassword(password);
+  assertPersonName(name);
+  assertCompanyName(companyName);
+  assertPhone(phone);
   enforceRateLimit({
     scope: 'auth:register:client',
     key: getClientRateKey(request),
@@ -177,9 +178,10 @@ async function registerEmployee(request, response) {
   const name = normalizeText(body.name);
   const phone = normalizeText(body.phone) || null;
 
-  assertEmail(email);
-  assertPassword(password);
-  if (!name) throw new HttpError(400, 'Name is required');
+  assertAuthEmail(email);
+  assertAuthPassword(password);
+  assertPersonName(name);
+  assertPhone(phone);
   enforceRateLimit({
     scope: 'auth:register:client',
     key: getClientRateKey(request),
@@ -210,7 +212,7 @@ async function joinCompany(request, response) {
 
   const body = await readJsonBody(request);
   const joinCode = normalizeText(body.joinCode).toUpperCase();
-  if (!joinCode) throw new HttpError(400, 'Company code is required');
+  assertJoinCode(joinCode);
   enforceRateLimit({
     scope: 'auth:join:user',
     key: current.id,
@@ -242,7 +244,8 @@ async function login(request, response) {
   const body = await readJsonBody(request);
   const email = normalizeEmail(body.email);
   const password = String(body.password || '');
-  assertEmail(email);
+  assertAuthEmail(email);
+  assertAuthPassword(password);
 
   const clientKey = getClientRateKey(request);
   enforceRateLimit({
