@@ -4,8 +4,26 @@ import { HttpError } from '../lib/errors.js';
 import { readJsonBody, sendJson } from '../lib/http.js';
 import { buildOrderSnapshot, createOrderPdf } from '../lib/order-document.js';
 
+const ORDER_TITLE_MAX_LENGTH = 120;
+const ORDER_NOTE_MAX_LENGTH = 500;
+const ORDER_CATEGORIES = new Set(['Опалення', 'Водопостачання', 'Каналізація', 'Сантехніка', 'Інше']);
+const MAX_QUANTITY = 99999;
+
 function normalizeText(value) {
   return String(value ?? '').trim();
+}
+
+function normalizeOrderCategory(value) {
+  const category = normalizeText(value);
+  if (!category) return null;
+  if (!ORDER_CATEGORIES.has(category)) throw new HttpError(400, 'Invalid order category');
+  return category;
+}
+
+function normalizeOrderNote(value) {
+  const note = normalizeText(value);
+  if (note.length > ORDER_NOTE_MAX_LENGTH) throw new HttpError(400, 'Order note is too long');
+  return note || null;
 }
 
 function getActiveMembership(user) {
@@ -187,8 +205,8 @@ async function lockDraftForWrite(tx, orderId, membership) {
 
 function parseQuantity(value) {
   const quantity = Number(value);
-  if (!Number.isFinite(quantity) || quantity <= 0 || quantity > 99999) {
-    throw new HttpError(400, 'Quantity must be greater than zero');
+  if (!Number.isFinite(quantity) || quantity <= 0 || quantity > MAX_QUANTITY) {
+    throw new HttpError(400, `Quantity must be greater than zero and at most ${MAX_QUANTITY}`);
   }
   return quantity;
 }
@@ -235,7 +253,9 @@ async function createOrder(request, response, projectId) {
   const body = await readJsonBody(request);
   const title = normalizeText(body.title);
   if (!title) throw new HttpError(400, 'Order title is required');
-  if (title.length > 120) throw new HttpError(400, 'Order title is too long');
+  if (title.length > ORDER_TITLE_MAX_LENGTH) throw new HttpError(400, 'Order title is too long');
+  const category = normalizeOrderCategory(body.category);
+  const note = normalizeOrderNote(body.note);
 
   const order = await prisma.$transaction(async tx => {
     await lockMembershipAccess(tx, membership);
@@ -250,8 +270,8 @@ async function createOrder(request, response, projectId) {
         projectId,
         createdByMembershipId: membership.id,
         title,
-        category: normalizeText(body.category) || null,
-        note: normalizeText(body.note) || null,
+        category,
+        note,
       },
       include: orderInclude,
     });
@@ -308,11 +328,11 @@ async function updateOrder(request, response, orderId) {
   if (body.title !== undefined) {
     const title = normalizeText(body.title);
     if (!title) throw new HttpError(400, 'Order title is required');
-    if (title.length > 120) throw new HttpError(400, 'Order title is too long');
+    if (title.length > ORDER_TITLE_MAX_LENGTH) throw new HttpError(400, 'Order title is too long');
     data.title = title;
   }
-  if (body.category !== undefined) data.category = normalizeText(body.category) || null;
-  if (body.note !== undefined) data.note = normalizeText(body.note) || null;
+  if (body.category !== undefined) data.category = normalizeOrderCategory(body.category);
+  if (body.note !== undefined) data.note = normalizeOrderNote(body.note);
 
   const order = await prisma.$transaction(async tx => {
     await lockMembershipAccess(tx, membership);
