@@ -108,10 +108,25 @@ function MaterialShortcut({ item, onClick }) {
   );
 }
 
+function WizardTopbar({ orderId, onBack }) {
+  return (
+    <header className="materialWizardTopbar">
+      <button type="button" className="materialWizardBack" onClick={onBack} aria-label="Назад"><span>‹</span></button>
+      <strong>Додати матеріал</strong>
+      <span />
+    </header>
+  );
+}
+
 export function AddMaterialPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
-  const { data: order } = useGetOrderQuery(orderId);
+  const {
+    data: order,
+    isLoading: orderLoading,
+    isError: orderError,
+    refetch: refetchOrder,
+  } = useGetOrderQuery(orderId);
   const { data: catalog = [], isLoading } = useGetMaterialCatalogQuery();
   const { data: favorites = [] } = useGetFavoriteMaterialsQuery();
   const { data: recent = [] } = useGetRecentMaterialsQuery();
@@ -262,7 +277,7 @@ export function AddMaterialPage() {
   }
 
   async function handleAdd() {
-    if (!catalogItemId || quantity <= 0 || quantity > MAX_QUANTITY) return;
+    if (!catalogItemId || quantity <= 0 || quantity > MAX_QUANTITY || order?.status !== 'DRAFT') return;
     try {
       await addItem({ orderId, catalogItemId, quantity }).unwrap();
       resetForNextMaterial();
@@ -271,15 +286,47 @@ export function AddMaterialPage() {
     }
   }
 
+  if (orderLoading) {
+    return (
+      <div className="pageStack materialWizard">
+        <WizardTopbar orderId={orderId} onBack={() => navigate(`/orders/${orderId}`)} />
+        <section className="screenCard">Завантажуємо заказ…</section>
+      </div>
+    );
+  }
+
+  if (orderError || !order) {
+    return (
+      <div className="pageStack materialWizard">
+        <WizardTopbar orderId={orderId} onBack={() => navigate('/orders')} />
+        <section className="screenCard">
+          <p className="orderError">Не вдалося відкрити заказ.</p>
+          <Button type="button" fullWidth onClick={refetchOrder}>Спробувати ще раз</Button>
+        </section>
+      </div>
+    );
+  }
+
+  if (order.status !== 'DRAFT') {
+    return (
+      <div className="pageStack materialWizard">
+        <WizardTopbar orderId={orderId} onBack={() => navigate(`/orders/${orderId}`)} />
+        <section className="screenCard">
+          <div className="compactHeader">
+            <h1>Заказ уже відправлений</h1>
+            <p>Матеріали можна змінювати тільки поки заказ має статус Draft.</p>
+          </div>
+          <Button type="button" fullWidth onClick={() => navigate(`/orders/${orderId}`, { replace: true })}>Повернутися до заказа</Button>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="pageStack materialWizard">
-      <header className="materialWizardTopbar">
-        <button type="button" className="materialWizardBack" onClick={goBackStep} aria-label="Назад"><span>‹</span></button>
-        <strong>Додати матеріал</strong>
-        <span />
-      </header>
+      <WizardTopbar orderId={orderId} onBack={goBackStep} />
       <StepIndicator current={step} total={variantRequired ? 5 : 4} />
-      <p className="materialWizardOrder">Заказ #{order?.number || '…'} · {order?.title || ''}</p>
+      <p className="materialWizardOrder">Заказ #{order.number} · {order.title || ''}</p>
 
       {isLoading ? <section className="screenCard">Завантажуємо каталог…</section> : null}
 
