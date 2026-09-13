@@ -2,7 +2,7 @@ import { getMaterialCategoryImage as getBaseCategoryImage, getMaterialImage as g
 
 const CATEGORY_TYPE_IMAGES = {
   cu: {
-    trubka: '/materials/cu-elbow-45.webp',
+    trubka: '/materials/cu-pipe.webp',
     'koleno 90°': '/materials/cu-elbow-90.webp',
     'koleno 45°': '/materials/cu-elbow-45.webp',
     'oblouk 90°': '/materials/cu-elbow-45.webp',
@@ -18,7 +18,7 @@ const CATEGORY_TYPE_IMAGES = {
   },
   ppr: {
     trubka: '/materials/ppr-pipe.webp',
-    'koleno 90°': '/materials/ppr-elbow-45.webp',
+    'koleno 90°': '/materials/ppr-elbow-90.webp',
     'koleno 45°': '/materials/ppr-elbow-45.webp',
     't-kus': '/materials/ppr-tee.webp',
     spojka: '/materials/ppr-coupling.webp',
@@ -34,7 +34,7 @@ const CATEGORY_TYPE_IMAGES = {
     zátka: '/materials/ppr-cap.svg',
   },
   mlcp: {
-    trubka: '/materials/pex-pipe.webp',
+    trubka: '/materials/category-mlcp.webp',
     'koleno 90°': '/materials/pex-elbow-90.webp',
     'koleno 45°': '/materials/pex-elbow-90.webp',
     't-kus': '/materials/pex-tee.webp',
@@ -60,7 +60,7 @@ const CATEGORY_TYPE_IMAGES = {
     'nástěnné koleno': '/materials/pex-elbow-90.webp',
   },
   ht: {
-    trubka: '/materials/ht-elbow-87.webp',
+    trubka: '/materials/ht-pipe.webp',
     'koleno 15°': '/materials/ht-elbow-45.webp',
     'koleno 30°': '/materials/ht-elbow-45.webp',
     'koleno 45°': '/materials/ht-elbow-45.webp',
@@ -164,15 +164,15 @@ const CATEGORY_TYPE_IMAGES = {
 };
 
 const EXTRA_CATEGORY_IMAGES = {
-  cu: '/materials/cu-elbow-45.webp',
-  ppr: '/materials/ppr-pipe.webp',
-  mlcp: '/materials/pex-pipe.webp',
-  pex: '/materials/pex-pipe.webp',
-  ht: '/materials/ht-elbow-87.webp',
-  kg: '/materials/kg-pipe.webp',
-  steel: '/materials/steel-pipe.webp',
+  cu: '/materials/cu-pipe.webp',
+  ppr: '/materials/category-ppr.webp',
+  mlcp: '/materials/category-mlcp.webp',
+  pex: '/materials/category-pex.webp',
+  ht: '/materials/ht-pipe.webp',
+  kg: '/materials/category-kg.webp',
+  steel: '/materials/category-steel.webp',
   brass: '/materials/category-brass.webp',
-  valves: '/materials/valve-ball.webp',
+  valves: '/materials/category-valves.webp',
   geberit: '/materials/category-geberit.webp',
   sanita: '/materials/sanita-wall-hung-wc.svg',
   other: '/materials/other-material.svg',
