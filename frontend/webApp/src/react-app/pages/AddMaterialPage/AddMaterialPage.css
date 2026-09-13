@@ -23,3 +23,32 @@
 .selectedMaterialMark.has-image img { padding: 3px; }
 .materialFavoriteButton { position: absolute; top: 50%; right: 12px; display: grid; width: 38px; height: 38px; min-height: 0; padding: 0; place-items: center; border: 0; border-radius: 50%; color: var(--muted); background: var(--surface-subtle); }
 .materialFavoriteButton.is-active { color: var(--warning); background: #fff7df; }
+
+/* Approved PipeStock mockup — category step */
+.materialWizardStage:has(.materialCategoryGrid) { gap: 20px; }
+.materialWizardStage:has(.materialCategoryGrid) > .compactHeader { display: grid; gap: 6px; margin: 0; }
+.materialWizardStage:has(.materialCategoryGrid) > .compactHeader h1 { margin: 0; color: #111827; font-size: clamp(30px, 7vw, 38px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; }
+.materialWizardStage:has(.materialCategoryGrid) > .compactHeader p { margin: 0; color: #6b778c; font-size: clamp(17px, 4.1vw, 21px); line-height: 1.35; }
+.materialWizardStage:has(.materialCategoryGrid) > .compactHeader p { font-size: 0; }
+.materialWizardStage:has(.materialCategoryGrid) > .compactHeader p::after { content: 'Оберіть тип матеріалу'; font-size: clamp(17px, 4.1vw, 21px); }
+.materialCategoryGrid { gap: 12px 12px; }
+.materialCategoryCard { min-height: 156px; padding: 15px 14px 14px; gap: 9px; border: 1px solid #dfe4eb; border-radius: 18px; background: #fff; box-shadow: 0 1px 2px rgba(15,23,42,.035); transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease; }
+.materialCategoryCard:active { transform: scale(.985); }
+.materialCategoryCard > span,
+.materialCategoryCard > span.has-image { width: 100%; height: 96px; border: 0; border-radius: 0; background: transparent; overflow: hidden; }
+.materialCategoryCard > span.has-image img { width: 100%; height: 100%; object-fit: contain; padding: 0; filter: none; }
+.materialCategoryCard > strong { color: #0a84ff; font-size: 17px; line-height: 1.15; font-weight: 750; letter-spacing: -.01em; }
+.materialCategoryCard:nth-child(7) { order: 12; }
+.materialCategoryCard:nth-child(8) { order: 7; }
+.materialCategoryCard:nth-child(9) { order: 8; }
+.materialCategoryCard:nth-child(10) { order: 9; }
+.materialCategoryCard:nth-child(11) { order: 10; }
+.materialCategoryCard:nth-child(12) { order: 11; }
+
+@media (max-width: 420px) {
+  .materialCategoryGrid { gap: 10px; }
+  .materialCategoryCard { min-height: 146px; padding: 13px 12px 12px; border-radius: 17px; }
+  .materialCategoryCard > span,
+  .materialCategoryCard > span.has-image { height: 88px; }
+  .materialCategoryCard > strong { font-size: 16px; }
+}
