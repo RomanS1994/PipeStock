@@ -17,3 +17,14 @@ test('access tokens are signed and verifiable', () => {
   assert.deepEqual(verifyAccessToken(token)?.userId, 'user-1');
   assert.equal(verifyAccessToken(`${token}tampered`), null);
 });
+
+test('expired access tokens stay invalid unless explicitly allowed for session revocation', () => {
+  const { token } = createAccessToken({ userId: 'user-2', sessionId: 'session-2' }, 0);
+  assert.equal(verifyAccessToken(token), null);
+  assert.deepEqual(verifyAccessToken(token, { allowExpired: true }), {
+    userId: 'user-2',
+    sessionId: 'session-2',
+    expiresAt: verifyAccessToken(token, { allowExpired: true }).expiresAt,
+  });
+  assert.equal(verifyAccessToken(`${token}tampered`, { allowExpired: true }), null);
+});
