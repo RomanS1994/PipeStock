@@ -9,6 +9,14 @@ import {
 } from '../../features/auth/authApi.js';
 import './AuthPages.css';
 
+const AUTH_LIMITS = Object.freeze({
+  name: 120,
+  companyName: 120,
+  email: 254,
+  password: 128,
+  phone: 32,
+});
+
 const ONBOARDING_SLIDES = [
   {
     kicker: 'Матеріали під контролем',
@@ -134,8 +142,8 @@ export function SignInPage() {
     <AuthShell backTo="/">
       <AuthHeading title="Вхід до аккаунту" description="Увійдіть, щоб продовжити роботу з PipeStock." />
       <form className="authForm" onSubmit={submit}>
-        <TextField icon="mail" type="email" placeholder="Email" autoComplete="email" value={form.email} onChange={event => setForm(value => ({ ...value, email: event.target.value }))} />
-        <TextField icon="lock" type="password" placeholder="Пароль" autoComplete="current-password" value={form.password} onChange={event => setForm(value => ({ ...value, password: event.target.value }))} />
+        <TextField icon="mail" type="email" placeholder="Email" autoComplete="email" maxLength={AUTH_LIMITS.email} value={form.email} onChange={event => setForm(value => ({ ...value, email: event.target.value }))} />
+        <TextField icon="lock" type="password" placeholder="Пароль" autoComplete="current-password" maxLength={AUTH_LIMITS.password} value={form.password} onChange={event => setForm(value => ({ ...value, password: event.target.value }))} />
         {error ? <p className="authError">{error}</p> : null}
         <Button type="submit" fullWidth disabled={isLoading}>{isLoading ? 'Входимо…' : 'Увійти'}</Button>
       </form>
@@ -191,11 +199,11 @@ function RegistrationForm({ mode }) {
         description={manager ? 'Створіть аккаунт, щоб керувати об’єктами та командою.' : 'Створіть аккаунт, щоб приєднатися до компанії.'}
       />
       <form className="authForm" onSubmit={submit}>
-        <TextField icon="user" placeholder="Ім’я та прізвище" autoComplete="name" value={form.name} onChange={event => setForm(value => ({ ...value, name: event.target.value }))} required />
-        <TextField icon="mail" type="email" placeholder="Email" autoComplete="email" value={form.email} onChange={event => setForm(value => ({ ...value, email: event.target.value }))} required />
-        <TextField icon="lock" type="password" placeholder="Пароль" autoComplete="new-password" value={form.password} onChange={event => setForm(value => ({ ...value, password: event.target.value }))} hint="Мінімум 8 символів" required />
-        {manager ? <TextField icon="building" placeholder="Назва компанії" value={form.companyName} onChange={event => setForm(value => ({ ...value, companyName: event.target.value }))} required /> : null}
-        <TextField icon="phone" type="tel" placeholder="Номер телефону" autoComplete="tel" value={form.phone} onChange={event => setForm(value => ({ ...value, phone: event.target.value }))} />
+        <TextField icon="user" placeholder="Ім’я та прізвище" autoComplete="name" maxLength={AUTH_LIMITS.name} value={form.name} onChange={event => setForm(value => ({ ...value, name: event.target.value }))} required />
+        <TextField icon="mail" type="email" placeholder="Email" autoComplete="email" maxLength={AUTH_LIMITS.email} value={form.email} onChange={event => setForm(value => ({ ...value, email: event.target.value }))} required />
+        <TextField icon="lock" type="password" placeholder="Пароль" autoComplete="new-password" maxLength={AUTH_LIMITS.password} value={form.password} onChange={event => setForm(value => ({ ...value, password: event.target.value }))} hint="Мінімум 8 символів" required />
+        {manager ? <TextField icon="building" placeholder="Назва компанії" maxLength={AUTH_LIMITS.companyName} value={form.companyName} onChange={event => setForm(value => ({ ...value, companyName: event.target.value }))} required /> : null}
+        <TextField icon="phone" type="tel" placeholder="Номер телефону" autoComplete="tel" maxLength={AUTH_LIMITS.phone} value={form.phone} onChange={event => setForm(value => ({ ...value, phone: event.target.value }))} />
         {error ? <p className="authError">{error}</p> : null}
         <Button type="submit" fullWidth disabled={isLoading}>{isLoading ? 'Створюємо…' : 'Зареєструватися'}</Button>
       </form>
