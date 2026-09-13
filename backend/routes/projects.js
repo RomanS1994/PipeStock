@@ -56,9 +56,13 @@ async function verifyProjectImageUrl(value, companyId) {
 async function cleanupProjectImage(imageUrl, companyId) {
   if (!imageUrl) return;
   try {
+    const stillReferenced = await prisma.project.count({
+      where: { companyId, imageUrl },
+    });
+    if (stillReferenced) return;
     await destroyStoredImage({ url: imageUrl, kind: 'project', companyId });
   } catch (error) {
-    console.error('Could not clean up replaced project image', error);
+    console.error('Could not clean up project image', error);
   }
 }
 
@@ -187,28 +191,35 @@ async function createProject(request, response) {
 
   const imageUrl = await verifyProjectImageUrl(body.imageUrl, membership.companyId);
   const employeeMembershipIds = normalizeEmployeeMembershipIds(body.employeeMembershipIds) || [];
-  const project = await prisma.$transaction(async tx => {
-    const validatedEmployeeIds = await validateEmployeeMembershipIds(
-      tx,
-      membership.companyId,
-      employeeMembershipIds,
-    );
 
-    return tx.project.create({
-      data: {
-        companyId: membership.companyId,
-        name,
-        address: normalizeText(body.address) || null,
-        description: normalizeText(body.description) || null,
-        imageUrl,
-        status: normalizeStatus(body.status),
-        assignments: {
-          create: validatedEmployeeIds.map(membershipId => ({ membershipId })),
+  let project;
+  try {
+    project = await prisma.$transaction(async tx => {
+      const validatedEmployeeIds = await validateEmployeeMembershipIds(
+        tx,
+        membership.companyId,
+        employeeMembershipIds,
+      );
+
+      return tx.project.create({
+        data: {
+          companyId: membership.companyId,
+          name,
+          address: normalizeText(body.address) || null,
+          description: normalizeText(body.description) || null,
+          imageUrl,
+          status: normalizeStatus(body.status),
+          assignments: {
+            create: validatedEmployeeIds.map(membershipId => ({ membershipId })),
+          },
         },
-      },
-      include: projectInclude,
+        include: projectInclude,
+      });
     });
-  });
+  } catch (error) {
+    await cleanupProjectImage(imageUrl, membership.companyId);
+    throw error;
+  }
 
   sendJson(response, 201, { project: serializeProject(project) });
 }
@@ -233,59 +244,71 @@ async function updateProject(request, response, projectId) {
   const imageProvided = body.imageUrl !== undefined;
   const requestedImageUrl = imageProvided ? normalizeText(body.imageUrl) : undefined;
   let preparedImageUrl;
+  let newlyVerifiedImageUrl = null;
   if (imageProvided) {
     if (!requestedImageUrl) preparedImageUrl = null;
     else if (requestedImageUrl === existingProject.imageUrl) preparedImageUrl = requestedImageUrl;
-    else preparedImageUrl = await verifyProjectImageUrl(requestedImageUrl, membership.companyId);
+    else {
+      preparedImageUrl = await verifyProjectImageUrl(requestedImageUrl, membership.companyId);
+      newlyVerifiedImageUrl = preparedImageUrl;
+    }
   }
 
   const employeeMembershipIds = normalizeEmployeeMembershipIds(body.employeeMembershipIds);
 
-  const result = await prisma.$transaction(async tx => {
-    const lockedProject = await lockProjectRow(tx, projectId, membership.companyId);
-    let replacedImageUrl = null;
+  let result;
+  try {
+    result = await prisma.$transaction(async tx => {
+      const lockedProject = await lockProjectRow(tx, projectId, membership.companyId);
+      let replacedImageUrl = null;
 
-    if (imageProvided) {
-      let nextImageUrl = preparedImageUrl;
+      if (imageProvided) {
+        let nextImageUrl = preparedImageUrl;
 
-      // A form often submits the image value it originally loaded even when the user
-      // only edited text. Preserve a newer concurrent image instead of restoring stale data.
-      if (
-        requestedImageUrl &&
-        requestedImageUrl === existingProject.imageUrl &&
-        lockedProject.imageUrl !== existingProject.imageUrl
-      ) {
-        nextImageUrl = lockedProject.imageUrl;
+        // A form often submits the image value it originally loaded even when the user
+        // only edited text. Preserve a newer concurrent image instead of restoring stale data.
+        if (
+          requestedImageUrl &&
+          requestedImageUrl === existingProject.imageUrl &&
+          lockedProject.imageUrl !== existingProject.imageUrl
+        ) {
+          nextImageUrl = lockedProject.imageUrl;
+        }
+
+        if (nextImageUrl !== lockedProject.imageUrl) {
+          data.imageUrl = nextImageUrl;
+          replacedImageUrl = lockedProject.imageUrl;
+        }
       }
 
-      if (nextImageUrl !== lockedProject.imageUrl) {
-        data.imageUrl = nextImageUrl;
-        replacedImageUrl = lockedProject.imageUrl;
+      if (employeeMembershipIds !== undefined) {
+        const validatedEmployeeIds = await validateEmployeeMembershipIds(
+          tx,
+          membership.companyId,
+          employeeMembershipIds,
+        );
+        await tx.projectAssignment.deleteMany({ where: { projectId } });
+        if (validatedEmployeeIds.length) {
+          await tx.projectAssignment.createMany({
+            data: validatedEmployeeIds.map(membershipId => ({ projectId, membershipId })),
+          });
+        }
       }
-    }
 
-    if (employeeMembershipIds !== undefined) {
-      const validatedEmployeeIds = await validateEmployeeMembershipIds(
-        tx,
-        membership.companyId,
-        employeeMembershipIds,
-      );
-      await tx.projectAssignment.deleteMany({ where: { projectId } });
-      if (validatedEmployeeIds.length) {
-        await tx.projectAssignment.createMany({
-          data: validatedEmployeeIds.map(membershipId => ({ projectId, membershipId })),
-        });
-      }
-    }
+      const project = await tx.project.update({
+        where: { id: projectId },
+        data,
+        include: projectInclude,
+      });
 
-    const project = await tx.project.update({
-      where: { id: projectId },
-      data,
-      include: projectInclude,
+      return { project, replacedImageUrl };
     });
-
-    return { project, replacedImageUrl };
-  });
+  } catch (error) {
+    if (newlyVerifiedImageUrl) {
+      await cleanupProjectImage(newlyVerifiedImageUrl, membership.companyId);
+    }
+    throw error;
+  }
 
   if (result.replacedImageUrl) {
     await cleanupProjectImage(result.replacedImageUrl, membership.companyId);
