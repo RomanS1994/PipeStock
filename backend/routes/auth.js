@@ -4,7 +4,7 @@ import { readJsonBody, sendJson } from '../lib/http.js';
 import { createInviteCode } from '../lib/invite-code.js';
 import { hasActiveCompanyMembership, hasActiveCompanyMembershipInTx, lockUserForMembershipChange } from '../auth/membership-policy.js';
 import { clearRefreshCookie, readRefreshToken, setRefreshCookie } from '../auth/session-cookie.js';
-import { createAccessToken, createRefreshToken, getRefreshExpiry, hashPassword, hashToken, verifyPassword } from '../auth/tokens.js';
+import { createAccessToken, createRefreshToken, getRefreshExpiry, hashPassword, hashToken, verifyAccessToken, verifyPassword } from '../auth/tokens.js';
 import { requireAuth, serializeUser } from '../auth/current-user.js';
 
 const JOIN_CODE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -15,6 +15,11 @@ function normalizeEmail(value) {
 
 function normalizeText(value) {
   return String(value || '').trim();
+}
+
+function readBearerToken(request) {
+  const value = String(request.headers.authorization || '');
+  return value.startsWith('Bearer ') ? value.slice(7).trim() : '';
 }
 
 function assertEmail(email) {
@@ -206,21 +211,36 @@ async function refresh(request, response) {
       throw new HttpError(401, 'Refresh session expired');
     }
 
-    const consumed = await tx.session.deleteMany({
+    const nextRefreshToken = createRefreshToken();
+    const nextTokenHash = hashToken(nextRefreshToken);
+    const nextRefreshExpiry = getRefreshExpiry();
+    const rotated = await tx.session.updateMany({
       where: {
         id: session.id,
+        userId: session.userId,
         tokenHash,
         expiresAt: { gt: now },
       },
+      data: {
+        tokenHash: nextTokenHash,
+        expiresAt: nextRefreshExpiry,
+      },
     });
-    if (consumed.count !== 1) {
+    if (rotated.count !== 1) {
       throw new HttpError(401, 'Refresh session expired');
     }
 
-    const nextSession = await issueSession(tx, session.userId);
     const user = await loadUser(tx, session.userId);
     if (!user || user.deletedAt) throw new HttpError(401, 'Refresh session expired');
-    return { session: nextSession, user };
+    const access = createAccessToken({ userId: session.userId, sessionId: session.id });
+    return {
+      session: {
+        refreshToken: nextRefreshToken,
+        session: { ...session, tokenHash: nextTokenHash, expiresAt: nextRefreshExpiry },
+        ...access,
+      },
+      user,
+    };
   });
 
   authResponse(response, 200, result.session, result.user);
@@ -228,7 +248,16 @@ async function refresh(request, response) {
 
 async function logout(request, response) {
   const refreshToken = readRefreshToken(request);
-  if (refreshToken) await prisma.session.deleteMany({ where: { tokenHash: hashToken(refreshToken) } });
+  const access = verifyAccessToken(readBearerToken(request), { allowExpired: true });
+
+  if (access) {
+    await prisma.session.deleteMany({
+      where: { id: access.sessionId, userId: access.userId },
+    });
+  } else if (refreshToken) {
+    await prisma.session.deleteMany({ where: { tokenHash: hashToken(refreshToken) } });
+  }
+
   clearRefreshCookie(response);
   sendJson(response, 200, { ok: true });
 }
