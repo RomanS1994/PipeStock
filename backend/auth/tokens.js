@@ -37,7 +37,7 @@ export function createAccessToken({ userId, sessionId }, now = Date.now()) {
   return { token: `${payload}.${signPayload(payload)}`, expiresAt: new Date(expiresAt).toISOString() };
 }
 
-export function verifyAccessToken(token) {
+export function verifyAccessToken(token, { allowExpired = false } = {}) {
   const [payload, signature] = String(token || '').split('.');
   if (!payload || !signature) return null;
   const expected = signPayload(payload);
@@ -46,7 +46,8 @@ export function verifyAccessToken(token) {
   if (source.length !== target.length || !timingSafeEqual(source, target)) return null;
   try {
     const parsed = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-    if (parsed.typ !== 'access' || !parsed.sub || !parsed.sid || !parsed.exp || parsed.exp * 1000 <= Date.now()) return null;
+    if (parsed.typ !== 'access' || !parsed.sub || !parsed.sid || !parsed.exp) return null;
+    if (!allowExpired && parsed.exp * 1000 <= Date.now()) return null;
     return { userId: parsed.sub, sessionId: parsed.sid, expiresAt: new Date(parsed.exp * 1000).toISOString() };
   } catch {
     return null;
