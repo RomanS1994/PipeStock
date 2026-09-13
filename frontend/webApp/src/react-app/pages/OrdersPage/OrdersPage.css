@@ -14,6 +14,12 @@
 .orderListCard-top strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }
 .orderListCard-meta { display: flex; min-width: 0; flex-wrap: wrap; gap: 6px 12px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
 .orderListCard-meta span { min-width: 0; overflow-wrap: anywhere; }
+.orderListCard-actions { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+.orderListCard-actions .orderDocumentActions--compact { padding-top: 0; border-top: 0; }
+.orderListCard-delete { min-height: 34px; padding: 0 11px; border: 1px solid #fecaca; border-radius: var(--radius-sm); color: var(--error); background: #fff7f7; font-size: 12px; font-weight: 600; }
+.orderListCard-delete:hover:not(:disabled) { background: #fff0f0; }
+.orderListCard-delete:disabled { opacity: .55; cursor: not-allowed; }
+.orderListCard-deleteError { flex-basis: 100%; color: var(--error); font-size: 11px; }
 .ordersState { justify-items: center; text-align: center; }
 .ordersState p { margin: 0; color: var(--muted); font-size: 12px; }
 .ordersState button { border: 0; color: var(--primary); background: transparent; }
