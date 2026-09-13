@@ -14,6 +14,9 @@ loadEnvFile(path.join(serverDir, '.env'));
 
 const PORT = Number(process.env.PORT || process.env.BACKEND_PORT || 3001);
 const HOST = '0.0.0.0';
+const REQUEST_TIMEOUT_MS = 30_000;
+const HEADERS_TIMEOUT_MS = 15_000;
+const KEEP_ALIVE_TIMEOUT_MS = 5_000;
 
 try {
   assertRuntimeEnv();
@@ -54,6 +57,13 @@ const server = http.createServer(async (request, response) => {
     sendHttpError(response, error);
   }
 });
+
+// PipeStock accepts only small JSON request bodies. Bound how long a client may
+// occupy a connection while sending request headers/body; PDF generation is a
+// response-side operation and is not limited by requestTimeout.
+server.requestTimeout = REQUEST_TIMEOUT_MS;
+server.headersTimeout = HEADERS_TIMEOUT_MS;
+server.keepAliveTimeout = KEEP_ALIVE_TIMEOUT_MS;
 
 async function startServer() {
   await prisma.$connect();
