@@ -130,7 +130,7 @@ test('verifies stored image metadata with Cloudinary before persistence', async 
   assert.match(request.options.headers.Authorization, /^Basic /);
 }));
 
-test('rejects oversized, mismatched, or wrong-version Cloudinary assets', async () => withCloudinaryEnv(async () => {
+test('rejects oversized, mismatched, converted, or wrong-version Cloudinary assets', async () => withCloudinaryEnv(async () => {
   const url = 'https://res.cloudinary.com/pipe-stock-test/image/upload/v1700000000/pipestock/projects/company-1/photo.webp';
   const responseFor = asset => async () => ({
     ok: true,
@@ -172,6 +172,16 @@ test('rejects oversized, mismatched, or wrong-version Cloudinary assets', async 
       fetchImpl: responseFor({ ...validBase, version: 1700000001, bytes: 1000 }),
     }),
     /does not match PipeStock storage/,
+  );
+
+  await assert.rejects(
+    verifyStoredImageAsset({
+      url,
+      kind: 'project',
+      companyId: 'company-1',
+      fetchImpl: responseFor({ ...validBase, format: 'jpg', bytes: 1000 }),
+    }),
+    /does not match the original file format/,
   );
 }));
 
