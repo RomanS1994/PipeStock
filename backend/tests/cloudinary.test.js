@@ -4,6 +4,7 @@ import test from 'node:test';
 
 import {
   createSignedImageUpload,
+  destroyStoredImage,
   IMAGE_UPLOAD_ALLOWED_FORMATS,
   IMAGE_UPLOAD_MAX_BYTES,
   isImageStorageConfigured,
@@ -157,4 +158,52 @@ test('rejects oversized or mismatched Cloudinary assets', async () => withCloudi
     }),
     /does not match PipeStock storage/,
   );
+}));
+
+test('signs cleanup requests for the current company asset', async () => withCloudinaryEnv(async () => {
+  const url = 'https://res.cloudinary.com/pipe-stock-test/image/upload/v1700000000/pipestock/projects/company-1/photo.webp';
+  let request = null;
+  const result = await destroyStoredImage({
+    url,
+    kind: 'project',
+    companyId: 'company-1',
+    now: 1_700_000_000_000,
+    fetchImpl: async (requestUrl, options) => {
+      request = { requestUrl, options };
+      return {
+        ok: true,
+        async json() { return { result: 'ok' }; },
+      };
+    },
+  });
+
+  assert.equal(result.deleted, true);
+  assert.match(request.requestUrl, /pipe-stock-test\/image\/destroy$/);
+  assert.equal(request.options.body.get('public_id'), 'pipestock/projects/company-1/photo');
+  assert.equal(request.options.body.get('invalidate'), 'true');
+  assert.equal(request.options.body.get('timestamp'), '1700000000');
+  assert.equal(request.options.body.get('api_key'), '12345');
+
+  const expected = createHash('sha1')
+    .update('invalidate=true&public_id=pipestock/projects/company-1/photo&timestamp=1700000000super-secret')
+    .digest('hex');
+  assert.equal(request.options.body.get('signature'), expected);
+}));
+
+test('never deletes a stored image that belongs to another company', async () => withCloudinaryEnv(async () => {
+  const url = 'https://res.cloudinary.com/pipe-stock-test/image/upload/v1700000000/pipestock/projects/company-1/photo.webp';
+  let called = false;
+  const result = await destroyStoredImage({
+    url,
+    kind: 'project',
+    companyId: 'company-2',
+    fetchImpl: async () => {
+      called = true;
+      throw new Error('should not run');
+    },
+  });
+
+  assert.equal(result.skipped, true);
+  assert.equal(result.deleted, false);
+  assert.equal(called, false);
 }));
