@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@shared/app/components/ui/PipeStockUI.jsx';
 import { useDownloadOrderPdfMutation } from '../../features/orders/ordersApi.js';
@@ -23,18 +23,27 @@ function saveBlob(blob, fileName) {
 export function OrderDocumentActions({ order, compact = false, className = '', hidePreview = false }) {
   const [downloadOrderPdf, pdfState] = useDownloadOrderPdfMutation();
   const [message, setMessage] = useState('');
+  const actionInFlight = useRef(false);
 
   if (!order?.documentAvailable) return null;
 
-  async function getPdfBlob() {
+  async function runPdfAction(action) {
+    if (actionInFlight.current) return;
+    actionInFlight.current = true;
     setMessage('');
-    return downloadOrderPdf(order.id).unwrap();
+    try {
+      const blob = await downloadOrderPdf(order.id).unwrap();
+      await action(blob);
+    } finally {
+      actionInFlight.current = false;
+    }
   }
 
   async function handleDownload() {
     try {
-      const blob = await getPdfBlob();
-      saveBlob(blob, createFileName(order));
+      await runPdfAction(async blob => {
+        saveBlob(blob, createFileName(order));
+      });
     } catch {
       setMessage('Не вдалося створити PDF.');
     }
@@ -42,21 +51,29 @@ export function OrderDocumentActions({ order, compact = false, className = '', h
 
   async function handleShare() {
     try {
-      const blob = await getPdfBlob();
-      const file = new File([blob], createFileName(order), { type: 'application/pdf' });
-      const canShareFile = typeof navigator.share === 'function' && (!navigator.canShare || navigator.canShare({ files: [file] }));
+      await runPdfAction(async blob => {
+        const fileName = createFileName(order);
+        const canBuildFile = typeof File === 'function';
+        const file = canBuildFile ? new File([blob], fileName, { type: 'application/pdf' }) : null;
+        const canShareFile = Boolean(
+          file &&
+          typeof navigator.share === 'function' &&
+          typeof navigator.canShare === 'function' &&
+          navigator.canShare({ files: [file] }),
+        );
 
-      if (canShareFile) {
-        await navigator.share({
-          title: `PipeStock · Заказ #${order.number}`,
-          text: `${order.title} · ${order.project?.name || 'PipeStock'}`,
-          files: [file],
-        });
-        return;
-      }
+        if (canShareFile) {
+          await navigator.share({
+            title: `PipeStock · Заказ #${order.number}`,
+            text: `${order.title} · ${order.project?.name || 'PipeStock'}`,
+            files: [file],
+          });
+          return;
+        }
 
-      saveBlob(blob, file.name);
-      setMessage('На цьому пристрої PDF збережено замість поширення.');
+        saveBlob(blob, fileName);
+        setMessage('На цьому пристрої PDF збережено замість поширення.');
+      });
     } catch (error) {
       if (error?.name !== 'AbortError') setMessage('Не вдалося поділитися PDF.');
     }
