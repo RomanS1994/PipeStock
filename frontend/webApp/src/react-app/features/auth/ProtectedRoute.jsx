@@ -2,6 +2,29 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectAuth } from './authSlice.js';
 
+function getSignedInDestination(user) {
+  const activeMembership = (user?.memberships || []).find(
+    item => item.status === 'ACTIVE' && item.company,
+  );
+
+  if (!activeMembership) return '/join-company';
+  return activeMembership.role === 'MANAGER' ? '/dashboard' : '/objects';
+}
+
+export function GuestRoute({ children }) {
+  const { token, user, hydrated } = useSelector(selectAuth);
+
+  if (!hydrated) {
+    return <div className="screenCard">Завантаження…</div>;
+  }
+
+  if (token && user) {
+    return <Navigate to={getSignedInDestination(user)} replace />;
+  }
+
+  return children;
+}
+
 export function ProtectedRoute({
   children,
   requireCompany = true,
