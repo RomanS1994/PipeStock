@@ -1,5 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+const AUTH_STORAGE_KEY = 'pipestock_auth';
+
 function resolveBaseUrl() {
   const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
   if (configuredBaseUrl) return configuredBaseUrl;
@@ -24,10 +26,23 @@ function isAuthRequest(args) {
   return String(url || '').startsWith('/auth/');
 }
 
+function readConcurrentTabSession(previousToken) {
+  if (typeof localStorage === 'undefined') return null;
+  try {
+    const stored = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || '{}');
+    if (!stored.token || !stored.user || stored.token === previousToken) return null;
+    return { token: stored.token, user: stored.user };
+  } catch {
+    return null;
+  }
+}
+
 async function baseQueryWithReauth(args, api, extraOptions) {
   let result = await rawBaseQuery(args, api, extraOptions);
 
   if (result.error?.status !== 401 || isAuthRequest(args)) return result;
+
+  const tokenBeforeRefresh = api.getState()?.auth?.token || '';
 
   if (!refreshRequest) {
     refreshRequest = rawBaseQuery({ url: '/auth/refresh', method: 'POST' }, api, extraOptions)
@@ -41,6 +56,12 @@ async function baseQueryWithReauth(args, api, extraOptions) {
   const user = refreshResult.data?.user;
 
   if (!token || !user) {
+    const concurrentSession = readConcurrentTabSession(tokenBeforeRefresh);
+    if (concurrentSession) {
+      api.dispatch({ type: 'auth/setSession', payload: concurrentSession });
+      return rawBaseQuery(args, api, extraOptions);
+    }
+
     api.dispatch({ type: 'auth/clearSession' });
     return result;
   }
