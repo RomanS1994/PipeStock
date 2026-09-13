@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { SearchField, StatusChip } from '@shared/app/components/ui/PipeStockUI.jsx';
 import { OrderDocumentActions } from '../../components/OrderDocumentActions/OrderDocumentActions.jsx';
 import { WorkspaceNavigation } from '../../components/WorkspaceNavigation/WorkspaceNavigation.jsx';
-import { useGetOrdersQuery } from '../../features/orders/ordersApi.js';
+import { selectUser } from '../../features/auth/authSlice.js';
+import { useDeleteOrderMutation, useGetOrdersQuery } from '../../features/orders/ordersApi.js';
 import './OrdersPage.css';
 
 const STATUS_LABELS = {
@@ -20,9 +22,15 @@ const FILTERS = [
 ];
 
 export function OrdersPage() {
+  const user = useSelector(selectUser);
+  const membership = (user?.memberships || []).find(item => item.status === 'ACTIVE');
+  const manager = membership?.role === 'MANAGER';
   const { data: orders = [], isLoading, isError, refetch } = useGetOrdersQuery();
+  const [deleteOrder] = useDeleteOrderMutation();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('ALL');
+  const [deletingOrderId, setDeletingOrderId] = useState('');
+  const [deleteError, setDeleteError] = useState(null);
 
   const visibleOrders = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -34,6 +42,31 @@ export function OrdersPage() {
         .some(value => String(value).toLowerCase().includes(query));
     });
   }, [orders, search, status]);
+
+  function canDelete(order) {
+    if (manager) return true;
+    return order.status === 'DRAFT' && order.worker?.id === user?.id;
+  }
+
+  async function handleDelete(order) {
+    const confirmed = window.confirm(
+      `Видалити заказ #${order.number} «${order.title}»?\n\nМатеріали, історія та PDF цього заказа також будуть видалені. Цю дію не можна скасувати.`,
+    );
+    if (!confirmed) return;
+
+    setDeleteError(null);
+    setDeletingOrderId(order.id);
+    try {
+      await deleteOrder({ orderId: order.id, projectId: order.project?.id }).unwrap();
+    } catch (error) {
+      setDeleteError({
+        orderId: order.id,
+        message: error?.data?.error || 'Не вдалося видалити заказ.',
+      });
+    } finally {
+      setDeletingOrderId('');
+    }
+  }
 
   return (
     <div className="pageStack ordersPage">
@@ -59,22 +92,43 @@ export function OrdersPage() {
 
       {!isLoading && !isError && visibleOrders.length ? (
         <div className="ordersList">
-          {visibleOrders.map(order => (
-            <article key={order.id} className="orderListCard">
-              <Link to={`/orders/${order.id}`} className="orderListCard-link">
-                <div className="orderListCard-top">
-                  <div><span>#{order.number}</span><strong>{order.title}</strong></div>
-                  <StatusChip status={order.status}>{STATUS_LABELS[order.status] || order.status}</StatusChip>
-                </div>
-                <div className="orderListCard-meta">
-                  <span>{order.project?.name || 'Без об’єкта'}</span>
-                  <span>{order.itemCount} поз.</span>
-                  <span>{order.worker?.name || '—'}</span>
-                </div>
-              </Link>
-              <OrderDocumentActions order={order} compact />
-            </article>
-          ))}
+          {visibleOrders.map(order => {
+            const deletable = canDelete(order);
+            return (
+              <article key={order.id} className="orderListCard">
+                <Link to={`/orders/${order.id}`} className="orderListCard-link">
+                  <div className="orderListCard-top">
+                    <div><span>#{order.number}</span><strong>{order.title}</strong></div>
+                    <StatusChip status={order.status}>{STATUS_LABELS[order.status] || order.status}</StatusChip>
+                  </div>
+                  <div className="orderListCard-meta">
+                    <span>{order.project?.name || 'Без об’єкта'}</span>
+                    <span>{order.itemCount} поз.</span>
+                    <span>{order.worker?.name || '—'}</span>
+                  </div>
+                </Link>
+
+                {order.documentAvailable || deletable ? (
+                  <div className="orderListCard-actions">
+                    <OrderDocumentActions order={order} compact />
+                    {deletable ? (
+                      <button
+                        type="button"
+                        className="orderListCard-delete"
+                        disabled={deletingOrderId === order.id}
+                        onClick={() => handleDelete(order)}
+                      >
+                        {deletingOrderId === order.id ? 'Видаляємо…' : 'Видалити'}
+                      </button>
+                    ) : null}
+                    {deleteError?.orderId === order.id ? (
+                      <small className="orderListCard-deleteError" role="alert">{deleteError.message}</small>
+                    ) : null}
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
         </div>
       ) : null}
 
