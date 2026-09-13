@@ -26,6 +26,16 @@ export const ordersApi = baseApi.injectEndpoints({
     getOrder: builder.query({ query: orderId => `/orders/${encodeURIComponent(orderId)}`, transformResponse: response => response?.order || null, providesTags: (_result, _error, orderId) => [{ type: 'Orders', id: orderId }] }),
     getOrderHistory: builder.query({ query: orderId => `/orders/${encodeURIComponent(orderId)}/history`, transformResponse: response => response?.events || [], providesTags: (_result, _error, orderId) => [{ type: 'OrderHistory', id: orderId }] }),
     updateOrder: builder.mutation({ query: ({ orderId, ...body }) => ({ url: `/orders/${encodeURIComponent(orderId)}`, method: 'PATCH', body }), invalidatesTags: (result, _error, { orderId }) => [{ type: 'Orders', id: orderId }, { type: 'Orders', id: 'GLOBAL' }, { type: 'Dashboard', id: 'SUMMARY' }, ...(result?.order?.project?.id ? [{ type: 'Orders', id: `PROJECT-${result.order.project.id}` }] : [])] }),
+    deleteOrder: builder.mutation({
+      query: ({ orderId }) => ({ url: `/orders/${encodeURIComponent(orderId)}`, method: 'DELETE' }),
+      invalidatesTags: (_result, _error, { orderId, projectId }) => [
+        { type: 'Orders', id: orderId },
+        { type: 'OrderHistory', id: orderId },
+        { type: 'Orders', id: 'GLOBAL' },
+        { type: 'Dashboard', id: 'SUMMARY' },
+        ...(projectId ? [{ type: 'Orders', id: `PROJECT-${projectId}` }] : []),
+      ],
+    }),
     downloadOrderPdf: builder.mutation({ query: orderId => ({ url: `/orders/${encodeURIComponent(orderId)}/pdf`, method: 'GET', responseHandler: readPdfResponse, cache: 'no-store' }) }),
     getMaterialCatalog: builder.query({ query: () => '/material-catalog', transformResponse: response => response?.items || [], providesTags: [{ type: 'MaterialCatalog', id: 'LIST' }] }),
     getFavoriteMaterials: builder.query({ query: () => '/materials/favorites', transformResponse: response => response?.items || [], providesTags: [{ type: 'MaterialFavorites', id: 'LIST' }] }),
@@ -42,7 +52,7 @@ export const ordersApi = baseApi.injectEndpoints({
 
 export const {
   useGetOrdersQuery, useGetProjectOrdersQuery, useCreateOrderMutation, useGetOrderQuery, useGetOrderHistoryQuery, useUpdateOrderMutation,
-  useDownloadOrderPdfMutation, useGetMaterialCatalogQuery, useGetFavoriteMaterialsQuery,
+  useDeleteOrderMutation, useDownloadOrderPdfMutation, useGetMaterialCatalogQuery, useGetFavoriteMaterialsQuery,
   useGetRecentMaterialsQuery, useAddFavoriteMaterialMutation, useRemoveFavoriteMaterialMutation, useAddOrderItemMutation,
   useUpdateOrderItemMutation, useDeleteOrderItemMutation, useSubmitOrderMutation, useCompleteOrderMutation,
 } = ordersApi;
