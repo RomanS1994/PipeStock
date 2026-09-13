@@ -9,6 +9,33 @@ import {
 } from '../../features/auth/authApi.js';
 import './AuthPages.css';
 
+const ONBOARDING_SLIDES = [
+  {
+    kicker: 'Матеріали під контролем',
+    title: 'Швидкий облік матеріалів на об’єкті',
+    description: 'Виберіть систему, діаметр і потрібний елемент за кілька натискань — прямо під час монтажу.',
+    image: '/materials/ppr-pipe.webp',
+    secondaryImage: '/materials/ppr-coupling.webp',
+    alt: 'PPR труба та фітинг',
+  },
+  {
+    kicker: 'Заказ без зайвих записів',
+    title: 'Збирайте матеріали в один заказ',
+    description: 'Працівник створює заказ на об’єкті, швидко додає фітинги й кількість, а команда бачить актуальний список.',
+    image: '/materials/pex-tee.webp',
+    secondaryImage: '/materials/valve-ball.webp',
+    alt: 'Сантехнічні фітинги для заказу',
+  },
+  {
+    kicker: 'Вся історія в PipeStock',
+    title: 'Переглядайте історію та готовий PDF',
+    description: 'Збережені закази залишаються прив’язаними до об’єкта. Перевіряйте матеріали та відкривайте PDF без паперових списків.',
+    image: '/materials/category-geberit.webp',
+    secondaryImage: '/materials/ht-branch-45.webp',
+    alt: 'Матеріали та обладнання для сантехнічного об’єкта',
+  },
+];
+
 function getApiError(error, fallback = 'Щось пішло не так. Спробуйте ще раз.') {
   return error?.data?.error || fallback;
 }
@@ -30,20 +57,58 @@ function AuthHeading({ title, description }) {
 
 export function WelcomePage() {
   const navigate = useNavigate();
+  const [slideIndex, setSlideIndex] = useState(0);
+  const slide = ONBOARDING_SLIDES[slideIndex];
+  const isLastSlide = slideIndex === ONBOARDING_SLIDES.length - 1;
+
+  function finishOnboarding() {
+    navigate('/sign-in');
+  }
+
+  function goNext() {
+    if (isLastSlide) return finishOnboarding();
+    setSlideIndex(value => Math.min(value + 1, ONBOARDING_SLIDES.length - 1));
+  }
+
   return (
     <div className="welcomePage">
-      <div className="welcomePage-brand"><Brand /></div>
-      <div className="welcomePage-copy">
-        <span className="welcomePage-kicker">Матеріали під контролем</span>
-        <h1>Швидкий облік матеріалів на об’єкті</h1>
-        <p>Для сантехніків, монтажників і команд, які хочуть менше паперу та більше порядку.</p>
+      <header className="welcomePage-topbar">
+        <div className="welcomePage-brand"><Brand /></div>
+        <button type="button" className="welcomePage-skip" onClick={finishOnboarding}>Пропустити</button>
+      </header>
+
+      <div className="welcomePage-hero" key={`hero-${slideIndex}`}>
+        <span className="welcomePage-heroGlow" aria-hidden="true" />
+        <div className="welcomePage-photo welcomePage-photoPrimary">
+          <img src={slide.image} alt={slide.alt} />
+        </div>
+        <div className="welcomePage-photo welcomePage-photoSecondary" aria-hidden="true">
+          <img src={slide.secondaryImage} alt="" />
+        </div>
+        <span className="welcomePage-heroBadge">{slideIndex + 1} / {ONBOARDING_SLIDES.length}</span>
       </div>
-      <div className="welcomePage-points">
-        <span>✓ Облік на об’єкті</span>
-        <span>✓ Зручні закази</span>
-        <span>✓ Історія та PDF</span>
+
+      <div className="welcomePage-copy" key={`copy-${slideIndex}`}>
+        <span className="welcomePage-kicker">{slide.kicker}</span>
+        <h1>{slide.title}</h1>
+        <p>{slide.description}</p>
       </div>
-      <Button fullWidth onClick={() => navigate('/sign-in')}>Розпочати</Button>
+
+      <footer className="welcomePage-footer">
+        <div className="welcomePage-dots" aria-label="Екрани знайомства з PipeStock">
+          {ONBOARDING_SLIDES.map((item, index) => (
+            <button
+              key={item.title}
+              type="button"
+              className={index === slideIndex ? 'is-active' : ''}
+              aria-label={`Екран ${index + 1}`}
+              aria-current={index === slideIndex ? 'step' : undefined}
+              onClick={() => setSlideIndex(index)}
+            />
+          ))}
+        </div>
+        <Button fullWidth onClick={goNext}>{isLastSlide ? 'Розпочати' : 'Далі'}</Button>
+      </footer>
     </div>
   );
 }
