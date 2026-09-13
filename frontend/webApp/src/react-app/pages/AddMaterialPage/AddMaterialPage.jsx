@@ -14,6 +14,7 @@ import '../OrderFlow/OrderFlow.css';
 import './AddMaterialPage.css';
 import { getMaterialCategoryImage, getMaterialImage } from './materialImageResolver.js';
 
+const MAX_QUANTITY = 99999;
 const CATEGORY_ORDER = ['Cu', 'PPR', 'MLCP', 'PEX', 'HT', 'KG', 'Ocel', 'Mosaz', 'Ventily', 'Geberit', 'Sanita', 'Jiné'];
 const TYPE_ORDER = [
   'Trubka',
@@ -261,7 +262,7 @@ export function AddMaterialPage() {
   }
 
   async function handleAdd() {
-    if (!catalogItemId || quantity <= 0) return;
+    if (!catalogItemId || quantity <= 0 || quantity > MAX_QUANTITY) return;
     try {
       await addItem({ orderId, catalogItemId, quantity }).unwrap();
       resetForNextMaterial();
@@ -380,11 +381,20 @@ export function AddMaterialPage() {
           <div className="quantityStepper">
             <button type="button" onClick={() => setQuantity(value => Math.max(1, value - 1))}>−</button>
             <strong>{quantity}</strong>
-            <button type="button" onClick={() => setQuantity(value => value + 1)}>+</button>
+            <button type="button" disabled={quantity >= MAX_QUANTITY} onClick={() => setQuantity(value => Math.min(MAX_QUANTITY, value + 1))}>+</button>
           </div>
           <span className="quantityUnit">{selectedItem.unit}</span>
           <div className="quantityQuickButtons">
-            {[1, 5, 10].map(amount => <button key={amount} type="button" onClick={() => setQuantity(value => value + amount)}>+{amount}</button>)}
+            {[1, 5, 10].map(amount => (
+              <button
+                key={amount}
+                type="button"
+                disabled={quantity >= MAX_QUANTITY}
+                onClick={() => setQuantity(value => Math.min(MAX_QUANTITY, value + amount))}
+              >
+                +{amount}
+              </button>
+            ))}
           </div>
           {error ? <p className="orderError">{error?.data?.error || 'Не вдалося додати матеріал'}</p> : null}
           <Button fullWidth disabled={adding} onClick={handleAdd}>{adding ? 'Додаємо…' : 'Додати'}</Button>
