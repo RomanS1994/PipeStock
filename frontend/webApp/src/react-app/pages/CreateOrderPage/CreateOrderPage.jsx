@@ -10,7 +10,7 @@ const CATEGORIES = ['Опалення', 'Водопостачання', 'Кан�
 export function CreateOrderPage() {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const { data: project } = useGetProjectQuery(projectId);
+  const { data: project, isLoading: projectLoading, isError: projectError, refetch } = useGetProjectQuery(projectId);
   const [createOrder, { isLoading, error }] = useCreateOrderMutation();
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Опалення');
@@ -18,7 +18,7 @@ export function CreateOrderPage() {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() || !project || project.status === 'COMPLETED') return;
     try {
       const result = await createOrder({ projectId, title, category, note }).unwrap();
       navigate(`/orders/${result.order.id}`);
@@ -27,18 +27,53 @@ export function CreateOrderPage() {
     }
   }
 
+  const topbar = (
+    <header className="orderTopbar">
+      <BackLink to={`/objects/${projectId}`} />
+      <strong>Новий заказ</strong>
+      <span />
+    </header>
+  );
+
+  if (projectLoading) {
+    return <div className="pageStack orderFlowPage">{topbar}<section className="screenCard">Завантажуємо об’єкт…</section></div>;
+  }
+
+  if (projectError || !project) {
+    return (
+      <div className="pageStack orderFlowPage">
+        {topbar}
+        <section className="screenCard">
+          <p className="orderError">Не вдалося відкрити об’єкт.</p>
+          <Button type="button" fullWidth onClick={refetch}>Спробувати ще раз</Button>
+        </section>
+      </div>
+    );
+  }
+
+  if (project.status === 'COMPLETED') {
+    return (
+      <div className="pageStack orderFlowPage">
+        {topbar}
+        <section className="screenCard">
+          <div className="compactHeader">
+            <h1>Об’єкт завершений</h1>
+            <p>Нові закази для завершеного об’єкта створювати не можна.</p>
+          </div>
+          <Button type="button" fullWidth onClick={() => navigate(`/objects/${projectId}`, { replace: true })}>Повернутися до об’єкта</Button>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="pageStack orderFlowPage">
-      <header className="orderTopbar">
-        <BackLink to={`/objects/${projectId}`} />
-        <strong>Новий заказ</strong>
-        <span />
-      </header>
+      {topbar}
 
       <form className="screenCard orderCreateForm" onSubmit={handleSubmit}>
         <div className="compactHeader">
           <h1>Створення заказа</h1>
-          <p>{project?.name || 'Об’єкт'}</p>
+          <p>{project.name}</p>
         </div>
 
         <TextField label="Назва заказа *" value={title} onChange={event => setTitle(event.target.value)} placeholder="Наприклад, Ванна кімната, 2 поверх" maxLength={120} />
@@ -58,8 +93,8 @@ export function CreateOrderPage() {
 
         <div className="orderProjectSummary">
           <span>Об’єкт</span>
-          <strong>{project?.name || 'Завантаження…'}</strong>
-          <small>{project?.address || ''}</small>
+          <strong>{project.name}</strong>
+          <small>{project.address || ''}</small>
         </div>
 
         {error ? <p className="orderError">{error?.data?.error || 'Не вдалося створити заказ'}</p> : null}
