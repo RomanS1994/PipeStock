@@ -5,9 +5,20 @@ import { HttpError } from '../lib/errors.js';
 import { readJsonBody, sendJson } from '../lib/http.js';
 
 const PROJECT_STATUSES = new Set(['DRAFT', 'ACTIVE', 'PAUSED', 'COMPLETED']);
+const PROJECT_NAME_MAX_LENGTH = 120;
+const PROJECT_ADDRESS_MAX_LENGTH = 240;
+const PROJECT_DESCRIPTION_MAX_LENGTH = 1000;
 
 function normalizeText(value) {
   return String(value ?? '').trim();
+}
+
+function normalizeOptionalText(value, { field, maxLength }) {
+  const normalized = normalizeText(value);
+  if (normalized.length > maxLength) {
+    throw new HttpError(400, `${field} is too long`);
+  }
+  return normalized || null;
 }
 
 function getActiveMembership(user) {
@@ -174,8 +185,16 @@ async function createProject(request, response) {
 
   const name = normalizeText(body.name);
   if (!name) throw new HttpError(400, 'Project name is required');
-  if (name.length > 120) throw new HttpError(400, 'Project name is too long');
+  if (name.length > PROJECT_NAME_MAX_LENGTH) throw new HttpError(400, 'Project name is too long');
 
+  const address = normalizeOptionalText(body.address, {
+    field: 'Project address',
+    maxLength: PROJECT_ADDRESS_MAX_LENGTH,
+  });
+  const description = normalizeOptionalText(body.description, {
+    field: 'Project description',
+    maxLength: PROJECT_DESCRIPTION_MAX_LENGTH,
+  });
   const imageUrl = await verifyProjectImageUrl(body.imageUrl, membership.companyId);
   const employeeMembershipIds = normalizeEmployeeMembershipIds(body.employeeMembershipIds) || [];
   const project = await prisma.$transaction(async tx => {
@@ -189,8 +208,8 @@ async function createProject(request, response) {
       data: {
         companyId: membership.companyId,
         name,
-        address: normalizeText(body.address) || null,
-        description: normalizeText(body.description) || null,
+        address,
+        description,
         imageUrl,
         status: normalizeStatus(body.status),
         assignments: {
@@ -214,11 +233,21 @@ async function updateProject(request, response, projectId) {
   if (body.name !== undefined) {
     const name = normalizeText(body.name);
     if (!name) throw new HttpError(400, 'Project name is required');
-    if (name.length > 120) throw new HttpError(400, 'Project name is too long');
+    if (name.length > PROJECT_NAME_MAX_LENGTH) throw new HttpError(400, 'Project name is too long');
     data.name = name;
   }
-  if (body.address !== undefined) data.address = normalizeText(body.address) || null;
-  if (body.description !== undefined) data.description = normalizeText(body.description) || null;
+  if (body.address !== undefined) {
+    data.address = normalizeOptionalText(body.address, {
+      field: 'Project address',
+      maxLength: PROJECT_ADDRESS_MAX_LENGTH,
+    });
+  }
+  if (body.description !== undefined) {
+    data.description = normalizeOptionalText(body.description, {
+      field: 'Project description',
+      maxLength: PROJECT_DESCRIPTION_MAX_LENGTH,
+    });
+  }
   if (body.status !== undefined) data.status = normalizeStatus(body.status);
 
   const imageProvided = body.imageUrl !== undefined;
