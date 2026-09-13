@@ -14,7 +14,7 @@ import '../OrderFlow/OrderFlow.css';
 import './AddMaterialPage.css';
 import { getMaterialCategoryImage, getMaterialImage } from './materialImageResolver.js';
 
-const CATEGORY_ORDER = ['Cu', 'PPR', 'MLCP', 'PEX', 'HT', 'KG', 'Steel', 'Mosaz', 'Ventily', 'Geberit', 'Sanita', 'Jiné'];
+const CATEGORY_ORDER = ['Cu', 'PPR', 'MLCP', 'PEX', 'HT', 'KG', 'Ocel', 'Mosaz', 'Ventily', 'Geberit', 'Sanita', 'Jiné'];
 const TYPE_ORDER = [
   'Trubka',
   'Koleno 15°',
@@ -63,6 +63,31 @@ function sortByApprovedTypeOrder(a, b) {
   return aIndex - bIndex;
 }
 
+function getBaseDiameters(item) {
+  const value = String(item?.diameter || '').trim();
+  if (!value || value === '—') return ['—'];
+
+  if (value.startsWith('DN ')) return [value];
+
+  if (!value.includes('×')) return [value];
+
+  const sizes = value
+    .split('×')
+    .map(part => part.trim())
+    .filter(part => !part.includes('/') && !part.includes('″') && !part.includes('"'))
+    .map(part => {
+      const match = part.replace(',', '.').match(/\d+(?:\.\d+)?/);
+      return match ? `${match[0]} mm` : null;
+    })
+    .filter(Boolean);
+
+  return unique(sizes.length ? sizes : [value]);
+}
+
+function matchesBaseDiameter(item, baseDiameter) {
+  return getBaseDiameters(item).includes(baseDiameter);
+}
+
 function MaterialThumb({ item, className = 'materialTypeMark' }) {
   const image = getMaterialImage(item);
   return image
@@ -96,6 +121,7 @@ export function AddMaterialPage() {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [categoryKey, setCategoryKey] = useState('');
   const [diameter, setDiameter] = useState('');
+  const [materialType, setMaterialType] = useState('');
   const [catalogItemId, setCatalogItemId] = useState('');
   const [quantity, setQuantity] = useState(1);
 
@@ -108,7 +134,7 @@ export function AddMaterialPage() {
       .sort((a, b) => {
         const aIndex = CATEGORY_ORDER.indexOf(a.label);
         const bIndex = CATEGORY_ORDER.indexOf(b.label);
-        if (aIndex === -1 && bIndex === -1) return a.label.localeCompare(b.label, 'uk');
+        if (aIndex === -1 && bIndex === -1) return a.label.localeCompare(b.label, 'cs');
         if (aIndex === -1) return 1;
         if (bIndex === -1) return -1;
         return aIndex - bIndex;
@@ -117,12 +143,26 @@ export function AddMaterialPage() {
 
   const categoryItems = useMemo(() => catalog.filter(item => item.categoryKey === categoryKey), [catalog, categoryKey]);
   const diameters = useMemo(
-    () => unique(categoryItems.map(item => item.diameter)).sort((a, b) => getDiameterNumber(a) - getDiameterNumber(b) || String(a).localeCompare(String(b), 'cs')),
+    () => unique(categoryItems.flatMap(getBaseDiameters))
+      .sort((a, b) => getDiameterNumber(a) - getDiameterNumber(b) || String(a).localeCompare(String(b), 'cs')),
     [categoryItems],
   );
-  const typeItems = useMemo(
-    () => categoryItems.filter(item => item.diameter === diameter).sort(sortByApprovedTypeOrder),
+  const matchingDiameterItems = useMemo(
+    () => categoryItems.filter(item => matchesBaseDiameter(item, diameter)),
     [categoryItems, diameter],
+  );
+  const typeItems = useMemo(() => {
+    const map = new Map();
+    matchingDiameterItems.sort(sortByApprovedTypeOrder).forEach(item => {
+      if (!map.has(item.type)) map.set(item.type, item);
+    });
+    return [...map.values()];
+  }, [matchingDiameterItems]);
+  const variantItems = useMemo(
+    () => matchingDiameterItems
+      .filter(item => item.type === materialType)
+      .sort((a, b) => getDiameterNumber(a.diameter) - getDiameterNumber(b.diameter) || a.diameter.localeCompare(b.diameter, 'cs')),
+    [matchingDiameterItems, materialType],
   );
   const selectedItem = catalog.find(item => item.id === catalogItemId);
   const selectedIsFavorite = selectedItem ? favoriteIds.has(selectedItem.id) : false;
@@ -130,32 +170,42 @@ export function AddMaterialPage() {
   function selectCategory(key) {
     setCategoryKey(key);
     setDiameter('');
+    setMaterialType('');
     setCatalogItemId('');
     setStep(2);
   }
 
   function selectDiameter(value) {
     setDiameter(value);
+    setMaterialType('');
     setCatalogItemId('');
     setStep(3);
   }
 
-  function selectType(id) {
-    setCatalogItemId(id);
+  function selectType(type) {
+    setMaterialType(type);
+    setCatalogItemId('');
     setStep(4);
+  }
+
+  function selectVariant(id) {
+    setCatalogItemId(id);
+    setStep(5);
   }
 
   function selectShortcut(item) {
     setCategoryKey(item.categoryKey);
-    setDiameter(item.diameter);
+    setDiameter(getBaseDiameters(item)[0] || item.diameter);
+    setMaterialType(item.type);
     setCatalogItemId(item.id);
     setQuantity(1);
-    setStep(4);
+    setStep(5);
   }
 
   function resetForNextMaterial() {
     setCategoryKey('');
     setDiameter('');
+    setMaterialType('');
     setCatalogItemId('');
     setQuantity(1);
     setShowShortcuts(true);
@@ -164,6 +214,9 @@ export function AddMaterialPage() {
 
   function goBackStep() {
     if (step === 1) return navigate(`/orders/${orderId}`);
+    if (step === 5) setCatalogItemId('');
+    if (step === 4) setMaterialType('');
+    if (step === 3) setDiameter('');
     setStep(value => Math.max(1, value - 1));
   }
 
@@ -190,7 +243,7 @@ export function AddMaterialPage() {
         <strong>Додати матеріал</strong>
         <span />
       </header>
-      <StepIndicator current={step} total={4} />
+      <StepIndicator current={step} total={5} />
       <p className="materialWizardOrder">Заказ #{order?.number || '…'} · {order?.title || ''}</p>
 
       {isLoading ? <section className="screenCard">Завантажуємо каталог…</section> : null}
@@ -215,7 +268,7 @@ export function AddMaterialPage() {
             </div>
           ) : null}
 
-          <div className="compactHeader"><h1>1. Виберіть категорію</h1><p>Оберіть тип матеріалу</p></div>
+          <div className="compactHeader"><h1>1. Виберіть категорію</h1><p>Оберіть систему матеріалу</p></div>
           <div className="materialCategoryGrid">
             {categories.map(category => {
               const image = getMaterialCategoryImage(category.key);
@@ -234,19 +287,23 @@ export function AddMaterialPage() {
         <section className="materialWizardStage">
           <div className="compactHeader"><h1>2. Виберіть діаметр</h1><p>{categories.find(item => item.key === categoryKey)?.label}</p></div>
           <div className="materialDiameterGrid">
-            {diameters.map(value => <button key={value} type="button" className={diameter === value ? 'is-selected' : ''} onClick={() => selectDiameter(value)}>{value}</button>)}
+            {diameters.map(value => (
+              <button key={value} type="button" className={diameter === value ? 'is-selected' : ''} onClick={() => selectDiameter(value)}>
+                {value === '—' ? 'Без розміру' : value}
+              </button>
+            ))}
           </div>
         </section>
       ) : null}
 
       {step === 3 ? (
         <section className="materialWizardStage">
-          <div className="compactHeader"><h1>3. Виберіть тип</h1><p>{categories.find(item => item.key === categoryKey)?.label} · {diameter}</p></div>
+          <div className="compactHeader"><h1>3. Виберіть елемент</h1><p>{categories.find(item => item.key === categoryKey)?.label} · {diameter === '—' ? 'без розміру' : diameter}</p></div>
           <div className="materialTypeList">
             {typeItems.map(item => (
-              <button key={item.id} type="button" className="materialTypeRow" onClick={() => selectType(item.id)}>
+              <button key={item.type} type="button" className="materialTypeRow" onClick={() => selectType(item.type)}>
                 <MaterialThumb item={item} />
-                <span><strong>{item.type}</strong><small>{item.name}</small></span>
+                <span><strong>{item.type}</strong><small>Вибрати варіант розміру</small></span>
                 <b>›</b>
               </button>
             ))}
@@ -254,9 +311,22 @@ export function AddMaterialPage() {
         </section>
       ) : null}
 
-      {step === 4 && selectedItem ? (
+      {step === 4 ? (
+        <section className="materialWizardStage">
+          <div className="compactHeader"><h1>4. Виберіть розмір</h1><p>{materialType} · базовий {diameter === '—' ? 'без розміру' : diameter}</p></div>
+          <div className="materialDiameterGrid">
+            {variantItems.map(item => (
+              <button key={item.id} type="button" onClick={() => selectVariant(item.id)}>
+                {item.diameter === '—' ? item.name : item.diameter}
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {step === 5 && selectedItem ? (
         <section className="materialWizardStage materialQuantityStage">
-          <div className="compactHeader"><h1>4. Вкажіть кількість</h1><p>Перевірте матеріал і додайте в заказ</p></div>
+          <div className="compactHeader"><h1>5. Вкажіть кількість</h1><p>Перевірте матеріал і додайте в заказ</p></div>
           <div className="selectedMaterialCard">
             <MaterialThumb item={selectedItem} className="selectedMaterialMark" />
             <div><strong>{selectedItem.categoryLabel} {selectedItem.diameter}</strong><span>{selectedItem.type}</span></div>
