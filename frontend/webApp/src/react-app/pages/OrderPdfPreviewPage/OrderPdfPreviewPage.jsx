@@ -36,7 +36,12 @@ export function OrderPdfPreviewPage() {
       try {
         const blob = await downloadOrderPdf(order.id).unwrap();
         objectUrl = URL.createObjectURL(blob);
-        if (active) setPdfUrl(objectUrl);
+        if (active) {
+          setPdfUrl(objectUrl);
+        } else {
+          URL.revokeObjectURL(objectUrl);
+          objectUrl = '';
+        }
       } catch {
         if (active) setPdfError('Не вдалося відкрити PDF.');
       }
