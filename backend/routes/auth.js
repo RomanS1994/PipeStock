@@ -197,17 +197,32 @@ async function login(request, response) {
 async function refresh(request, response) {
   const refreshToken = readRefreshToken(request);
   if (!refreshToken) throw new HttpError(401, 'Refresh session is missing');
-  const session = await prisma.session.findUnique({ where: { tokenHash: hashToken(refreshToken) } });
-  if (!session || session.expiresAt <= new Date()) {
-    clearRefreshCookie(response);
-    throw new HttpError(401, 'Refresh session expired');
-  }
+  const tokenHash = hashToken(refreshToken);
+  const now = new Date();
 
   const result = await prisma.$transaction(async tx => {
-    await tx.session.delete({ where: { id: session.id } });
+    const session = await tx.session.findUnique({ where: { tokenHash } });
+    if (!session || session.expiresAt <= now) {
+      throw new HttpError(401, 'Refresh session expired');
+    }
+
+    const consumed = await tx.session.deleteMany({
+      where: {
+        id: session.id,
+        tokenHash,
+        expiresAt: { gt: now },
+      },
+    });
+    if (consumed.count !== 1) {
+      throw new HttpError(401, 'Refresh session expired');
+    }
+
     const nextSession = await issueSession(tx, session.userId);
-    return { session: nextSession, user: await loadUser(tx, session.userId) };
+    const user = await loadUser(tx, session.userId);
+    if (!user || user.deletedAt) throw new HttpError(401, 'Refresh session expired');
+    return { session: nextSession, user };
   });
+
   authResponse(response, 200, result.session, result.user);
 }
 
