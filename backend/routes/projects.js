@@ -1,6 +1,6 @@
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../auth/current-user.js';
-import { verifyStoredImageAsset } from '../lib/cloudinary.js';
+import { destroyStoredImage, verifyStoredImageAsset } from '../lib/cloudinary.js';
 import { HttpError } from '../lib/errors.js';
 import { readJsonBody, sendJson } from '../lib/http.js';
 
@@ -27,12 +27,13 @@ function requireMembership(user, role) {
 
 async function lockProjectRow(tx, projectId, companyId) {
   const rows = await tx.$queryRaw`
-    SELECT "id"
+    SELECT "id", "imageUrl"
     FROM "projects"
     WHERE "id" = ${projectId} AND "companyId" = ${companyId}
     FOR UPDATE
   `;
   if (!rows.length) throw new HttpError(404, 'Project not found');
+  return rows[0];
 }
 
 function normalizeStatus(value, fallback = 'ACTIVE') {
@@ -49,6 +50,15 @@ async function verifyProjectImageUrl(value, companyId) {
     return asset?.url || null;
   } catch (error) {
     throw new HttpError(400, error?.message || 'Invalid project image');
+  }
+}
+
+async function cleanupProjectImage(imageUrl, companyId) {
+  if (!imageUrl) return;
+  try {
+    await destroyStoredImage({ url: imageUrl, kind: 'project', companyId });
+  } catch (error) {
+    console.error('Could not clean up replaced project image', error);
   }
 }
 
@@ -218,19 +228,41 @@ async function updateProject(request, response, projectId) {
   }
   if (body.address !== undefined) data.address = normalizeText(body.address) || null;
   if (body.description !== undefined) data.description = normalizeText(body.description) || null;
-  if (body.imageUrl !== undefined) {
-    const nextImageUrl = normalizeText(body.imageUrl);
-    if (!nextImageUrl) data.imageUrl = null;
-    else if (nextImageUrl !== existingProject.imageUrl) {
-      data.imageUrl = await verifyProjectImageUrl(nextImageUrl, membership.companyId);
-    }
-  }
   if (body.status !== undefined) data.status = normalizeStatus(body.status);
+
+  const imageProvided = body.imageUrl !== undefined;
+  const requestedImageUrl = imageProvided ? normalizeText(body.imageUrl) : undefined;
+  let preparedImageUrl;
+  if (imageProvided) {
+    if (!requestedImageUrl) preparedImageUrl = null;
+    else if (requestedImageUrl === existingProject.imageUrl) preparedImageUrl = requestedImageUrl;
+    else preparedImageUrl = await verifyProjectImageUrl(requestedImageUrl, membership.companyId);
+  }
 
   const employeeMembershipIds = normalizeEmployeeMembershipIds(body.employeeMembershipIds);
 
-  const project = await prisma.$transaction(async tx => {
-    await lockProjectRow(tx, projectId, membership.companyId);
+  const result = await prisma.$transaction(async tx => {
+    const lockedProject = await lockProjectRow(tx, projectId, membership.companyId);
+    let replacedImageUrl = null;
+
+    if (imageProvided) {
+      let nextImageUrl = preparedImageUrl;
+
+      // A form often submits the image value it originally loaded even when the user
+      // only edited text. Preserve a newer concurrent image instead of restoring stale data.
+      if (
+        requestedImageUrl &&
+        requestedImageUrl === existingProject.imageUrl &&
+        lockedProject.imageUrl !== existingProject.imageUrl
+      ) {
+        nextImageUrl = lockedProject.imageUrl;
+      }
+
+      if (nextImageUrl !== lockedProject.imageUrl) {
+        data.imageUrl = nextImageUrl;
+        replacedImageUrl = lockedProject.imageUrl;
+      }
+    }
 
     if (employeeMembershipIds !== undefined) {
       const validatedEmployeeIds = await validateEmployeeMembershipIds(
@@ -246,14 +278,20 @@ async function updateProject(request, response, projectId) {
       }
     }
 
-    return tx.project.update({
+    const project = await tx.project.update({
       where: { id: projectId },
       data,
       include: projectInclude,
     });
+
+    return { project, replacedImageUrl };
   });
 
-  sendJson(response, 200, { project: serializeProject(project) });
+  if (result.replacedImageUrl) {
+    await cleanupProjectImage(result.replacedImageUrl, membership.companyId);
+  }
+
+  sendJson(response, 200, { project: serializeProject(result.project) });
 }
 
 async function listEmployees(request, response) {
