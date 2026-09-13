@@ -1,5 +1,23 @@
 import { baseApi } from '@shared/app/api/baseApi.js';
 
+async function readPdfResponse(response) {
+  const contentType = String(response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+  const blob = await response.blob();
+
+  if (contentType !== 'application/pdf') {
+    throw new Error('Expected a PDF response');
+  }
+
+  const signature = new TextDecoder('ascii').decode(await blob.slice(0, 5).arrayBuffer());
+  if (signature !== '%PDF-') {
+    throw new Error('Invalid PDF response');
+  }
+
+  return blob.type === 'application/pdf'
+    ? blob
+    : new Blob([blob], { type: 'application/pdf' });
+}
+
 export const ordersApi = baseApi.injectEndpoints({
   endpoints: builder => ({
     getOrders: builder.query({ query: () => '/orders', transformResponse: response => response?.orders || [], providesTags: result => [{ type: 'Orders', id: 'GLOBAL' }, ...(result || []).map(order => ({ type: 'Orders', id: order.id }))] }),
@@ -8,7 +26,7 @@ export const ordersApi = baseApi.injectEndpoints({
     getOrder: builder.query({ query: orderId => `/orders/${encodeURIComponent(orderId)}`, transformResponse: response => response?.order || null, providesTags: (_result, _error, orderId) => [{ type: 'Orders', id: orderId }] }),
     getOrderHistory: builder.query({ query: orderId => `/orders/${encodeURIComponent(orderId)}/history`, transformResponse: response => response?.events || [], providesTags: (_result, _error, orderId) => [{ type: 'OrderHistory', id: orderId }] }),
     updateOrder: builder.mutation({ query: ({ orderId, ...body }) => ({ url: `/orders/${encodeURIComponent(orderId)}`, method: 'PATCH', body }), invalidatesTags: (result, _error, { orderId }) => [{ type: 'Orders', id: orderId }, { type: 'Orders', id: 'GLOBAL' }, { type: 'Dashboard', id: 'SUMMARY' }, ...(result?.order?.project?.id ? [{ type: 'Orders', id: `PROJECT-${result.order.project.id}` }] : [])] }),
-    downloadOrderPdf: builder.mutation({ query: orderId => ({ url: `/orders/${encodeURIComponent(orderId)}/pdf`, method: 'GET', responseHandler: response => response.blob(), cache: 'no-store' }) }),
+    downloadOrderPdf: builder.mutation({ query: orderId => ({ url: `/orders/${encodeURIComponent(orderId)}/pdf`, method: 'GET', responseHandler: readPdfResponse, cache: 'no-store' }) }),
     getMaterialCatalog: builder.query({ query: () => '/material-catalog', transformResponse: response => response?.items || [], providesTags: [{ type: 'MaterialCatalog', id: 'LIST' }] }),
     getFavoriteMaterials: builder.query({ query: () => '/materials/favorites', transformResponse: response => response?.items || [], providesTags: [{ type: 'MaterialFavorites', id: 'LIST' }] }),
     getRecentMaterials: builder.query({ query: () => '/materials/recent', transformResponse: response => response?.items || [], providesTags: [{ type: 'MaterialRecent', id: 'LIST' }] }),
