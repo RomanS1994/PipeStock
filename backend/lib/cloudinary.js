@@ -154,5 +154,52 @@ export async function verifyStoredImageAsset({ url, kind, companyId, fetchImpl =
   };
 }
 
+export async function destroyStoredImage({ url, kind, companyId, now = Date.now(), fetchImpl = fetch }) {
+  let stored;
+  try {
+    stored = parseStoredImageUrl({ url, kind, companyId });
+  } catch {
+    return { skipped: true, deleted: false };
+  }
+  if (!stored) return { skipped: true, deleted: false };
+
+  const cloudName = requiredEnv('CLOUDINARY_CLOUD_NAME');
+  const apiKey = requiredEnv('CLOUDINARY_API_KEY');
+  const apiSecret = requiredEnv('CLOUDINARY_API_SECRET');
+  const timestamp = Math.floor(now / 1000);
+  const invalidate = 'true';
+  const stringToSign = `invalidate=${invalidate}&public_id=${stored.publicId}&timestamp=${timestamp}`;
+  const signature = createHash('sha1').update(`${stringToSign}${apiSecret}`).digest('hex');
+  const body = new URLSearchParams({
+    public_id: stored.publicId,
+    timestamp: String(timestamp),
+    invalidate,
+    api_key: apiKey,
+    signature,
+  });
+
+  let response;
+  try {
+    response = await fetchImpl(
+      `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/destroy`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body,
+      },
+    );
+  } catch {
+    throw new Error('Could not delete stored image');
+  }
+
+  const data = await response.json().catch(() => ({}));
+  const result = String(data?.result || '');
+  if (!response.ok || !['ok', 'not found'].includes(result)) {
+    throw new Error(data?.error?.message || 'Could not delete stored image');
+  }
+
+  return { skipped: false, deleted: result === 'ok', result };
+}
+
 export const IMAGE_UPLOAD_MAX_BYTES = MAX_IMAGE_BYTES;
 export const IMAGE_UPLOAD_ALLOWED_FORMATS = Object.freeze([...ALLOWED_IMAGE_FORMATS]);
