@@ -60,7 +60,15 @@ function parseStoredImageUrl({ url, kind, companyId }) {
     throw new Error('Invalid image URL');
   }
 
-  if (parsed.protocol !== 'https:' || parsed.hostname !== 'res.cloudinary.com') {
+  if (
+    parsed.protocol !== 'https:' ||
+    parsed.hostname !== 'res.cloudinary.com' ||
+    parsed.port ||
+    parsed.username ||
+    parsed.password ||
+    parsed.search ||
+    parsed.hash
+  ) {
     throw new Error('Image must be stored in PipeStock image storage');
   }
 
@@ -97,11 +105,13 @@ function parseStoredImageUrl({ url, kind, companyId }) {
   const extension = filename.includes('.') ? filename.split('.').pop().toLowerCase() : '';
   if (!ALLOWED_IMAGE_FORMATS.includes(extension)) throw new Error('Unsupported image format');
 
-  const publicId = [...publicIdSegments.slice(0, -1), filename.slice(0, -(extension.length + 1))].join('/');
-  if (!publicId.endsWith('/') && publicId.split('/').pop()) {
-    return { url: parsed.toString(), publicId, extension };
-  }
-  throw new Error('Invalid stored image URL');
+  const basename = filename.slice(0, -(extension.length + 1));
+  if (!basename) throw new Error('Invalid stored image URL');
+  const publicId = [...publicIdSegments.slice(0, -1), basename].join('/');
+  const version = Number(segments[3].slice(1));
+  if (!Number.isSafeInteger(version) || version <= 0) throw new Error('Invalid stored image URL');
+
+  return { url: parsed.toString(), publicId, extension, version };
 }
 
 export function validateStoredImageUrl({ url, kind, companyId }) {
@@ -131,7 +141,12 @@ export async function verifyStoredImageAsset({ url, kind, companyId, fetchImpl =
 
   const asset = await response.json().catch(() => null);
   if (!response.ok || !asset) throw new Error('Uploaded image was not found');
-  if (asset.public_id !== stored.publicId || asset.resource_type !== 'image' || asset.type !== 'upload') {
+  if (
+    asset.public_id !== stored.publicId ||
+    asset.resource_type !== 'image' ||
+    asset.type !== 'upload' ||
+    Number(asset.version) !== stored.version
+  ) {
     throw new Error('Uploaded image does not match PipeStock storage');
   }
 
@@ -147,6 +162,7 @@ export async function verifyStoredImageAsset({ url, kind, companyId, fetchImpl =
   return {
     url: stored.url,
     publicId: stored.publicId,
+    version: stored.version,
     bytes: Number(asset.bytes),
     format,
     width: Number(asset.width) || null,
