@@ -1,5 +1,6 @@
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../auth/current-user.js';
+import { validateStoredImageUrl } from '../lib/cloudinary.js';
 import { HttpError } from '../lib/errors.js';
 import { readJsonBody, sendJson } from '../lib/http.js';
 
@@ -38,6 +39,16 @@ function normalizeStatus(value, fallback = 'ACTIVE') {
   const status = normalizeText(value || fallback).toUpperCase();
   if (!PROJECT_STATUSES.has(status)) throw new HttpError(400, 'Invalid project status');
   return status;
+}
+
+function normalizeProjectImageUrl(value, companyId) {
+  const imageUrl = normalizeText(value);
+  if (!imageUrl) return null;
+  try {
+    return validateStoredImageUrl({ url: imageUrl, kind: 'project', companyId });
+  } catch (error) {
+    throw new HttpError(400, error?.message || 'Invalid project image');
+  }
 }
 
 function normalizeEmployeeMembershipIds(value) {
@@ -177,7 +188,7 @@ async function createProject(request, response) {
         name,
         address: normalizeText(body.address) || null,
         description: normalizeText(body.description) || null,
-        imageUrl: normalizeText(body.imageUrl) || null,
+        imageUrl: normalizeProjectImageUrl(body.imageUrl, membership.companyId),
         status: normalizeStatus(body.status),
         assignments: {
           create: validatedEmployeeIds.map(membershipId => ({ membershipId })),
@@ -205,7 +216,7 @@ async function updateProject(request, response, projectId) {
   }
   if (body.address !== undefined) data.address = normalizeText(body.address) || null;
   if (body.description !== undefined) data.description = normalizeText(body.description) || null;
-  if (body.imageUrl !== undefined) data.imageUrl = normalizeText(body.imageUrl) || null;
+  if (body.imageUrl !== undefined) data.imageUrl = normalizeProjectImageUrl(body.imageUrl, membership.companyId);
   if (body.status !== undefined) data.status = normalizeStatus(body.status);
 
   const employeeMembershipIds = normalizeEmployeeMembershipIds(body.employeeMembershipIds);
