@@ -38,16 +38,9 @@
 .materialCategoryCard { min-height: 156px; padding: 15px 14px 14px; gap: 9px; border: 1px solid #dfe4eb; border-radius: 18px; background: #fff; box-shadow: 0 1px 2px rgba(15,23,42,.035); transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease; }
 .materialCategoryCard:active { transform: scale(.985); }
 .materialCategoryCard > span { width: 100%; height: 96px; min-width: 0; min-height: 0; border: 0; border-radius: 0; background: transparent; overflow: hidden; }
-.materialCategoryCard > span.has-image { position: relative; display: block; }
+.materialCategoryCard > span.has-image { position: relative; display: block; border: 0; background: transparent; }
 .materialCategoryCard > span.has-image img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: contain; object-position: center; padding: 0; filter: none; }
 .materialCategoryCard > strong { color: #0a84ff; font-size: 17px; line-height: 1.15; font-weight: 750; letter-spacing: -.01em; }
-.materialCategoryCard:nth-child(7) { order: 12; }
-.materialCategoryCard:nth-child(8) { order: 7; }
-.materialCategoryCard:nth-child(9) { order: 8; }
-.materialCategoryCard:nth-child(10) { order: 9; }
-.materialCategoryCard:nth-child(11) { order: 10; }
-.materialCategoryCard:nth-child(12) { order: 11; }
-
 /* Approved PipeStock mockup — diameter / variant steps */
 .materialWizardStage:has(.materialDiameterGrid) { gap: 20px; }
 .materialDiameterGrid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 11px; }

@@ -15,7 +15,8 @@ import './AddMaterialPage.css';
 import { getMaterialCategoryImage, getMaterialImage } from './materialImageResolver.js';
 
 const MAX_QUANTITY = 99999;
-const CATEGORY_ORDER = ['Cu', 'PPR', 'MLCP', 'PEX', 'HT', 'KG', 'Ocel', 'Mosaz', 'Ventily', 'Geberit', 'Sanita', 'Jiné'];
+const CATEGORY_ORDER = ['STEEL', 'PPR', 'CU', 'MLCP', 'PEX', 'HT', 'KG', 'BRASS', 'VALVES', 'GEBERIT', 'SANITA', 'OTHER'];
+const CATEGORY_LABELS = { CU: 'Měď', STEEL: 'Uhlíková ocel' };
 const TYPE_ORDER = [
   'Trubka',
   'Koleno 15°',
@@ -48,6 +49,10 @@ const TYPE_ORDER = [
 
 function unique(values) {
   return [...new Set(values)];
+}
+
+function getCategoryDisplayLabel(categoryKey, fallbackLabel = '') {
+  return CATEGORY_LABELS[String(categoryKey || '').trim().toUpperCase()] || fallbackLabel;
 }
 
 function getDiameterNumber(value) {
@@ -93,7 +98,7 @@ function MaterialThumb({ item, className = 'materialTypeMark' }) {
   const image = getMaterialImage(item);
   return image
     ? <span className={`${className} has-image`}><img src={image} alt="" /></span>
-    : <span className={className}>{item?.categoryLabel?.slice(0, 2).toUpperCase()}</span>;
+    : <span className={className}>{getCategoryDisplayLabel(item?.categoryKey, item?.categoryLabel).slice(0, 2).toUpperCase()}</span>;
 }
 
 function MaterialShortcut({ item, onClick }) {
@@ -101,7 +106,7 @@ function MaterialShortcut({ item, onClick }) {
     <button type="button" className="materialShortcutCard" onClick={() => onClick(item)}>
       <MaterialThumb item={item} className="materialShortcutMark" />
       <span className="materialShortcutCopy">
-        <strong>{item.categoryLabel} {item.diameter}</strong>
+        <strong>{getCategoryDisplayLabel(item.categoryKey, item.categoryLabel)} {item.diameter}</strong>
         <span>{item.type}</span>
       </span>
     </button>
@@ -147,10 +152,10 @@ export function AddMaterialPage() {
     const map = new Map();
     catalog.forEach(item => map.set(item.categoryKey, item.categoryLabel));
     return [...map.entries()]
-      .map(([key, label]) => ({ key, label }))
+      .map(([key, label]) => ({ key, label: getCategoryDisplayLabel(key, label) }))
       .sort((a, b) => {
-        const aIndex = CATEGORY_ORDER.indexOf(a.label);
-        const bIndex = CATEGORY_ORDER.indexOf(b.label);
+        const aIndex = CATEGORY_ORDER.indexOf(a.key.toUpperCase());
+        const bIndex = CATEGORY_ORDER.indexOf(b.key.toUpperCase());
         if (aIndex === -1 && bIndex === -1) return a.label.localeCompare(b.label, 'cs');
         if (aIndex === -1) return 1;
         if (bIndex === -1) return -1;
@@ -422,7 +427,7 @@ export function AddMaterialPage() {
           <div className="compactHeader"><h1>{quantityStep}. Вкажіть кількість</h1><p>Перевірте матеріал і додайте в заказ</p></div>
           <div className="selectedMaterialCard">
             <MaterialThumb item={selectedItem} className="selectedMaterialMark" />
-            <div><strong>{selectedItem.categoryLabel} {selectedItem.diameter}</strong><span>{selectedItem.type}</span></div>
+            <div><strong>{getCategoryDisplayLabel(selectedItem.categoryKey, selectedItem.categoryLabel)} {selectedItem.diameter}</strong><span>{selectedItem.type}</span></div>
             <button type="button" className={`materialFavoriteButton${selectedIsFavorite ? ' is-active' : ''}`} onClick={toggleFavorite} aria-label={selectedIsFavorite ? 'Прибрати з обраного' : 'Додати в обране'}><Icon name="star" size={19} /></button>
           </div>
           <div className="quantityStepper">
