@@ -11,7 +11,7 @@ import {
   SignInPage,
   WelcomePage,
 } from './pages/AuthPages/AuthPages.jsx';
-import { AddMaterialPage } from './pages/AddMaterialPage/AddMaterialPage.jsx';
+import { CartAwareAddMaterialPage } from './pages/AddMaterialPage/CartAwareAddMaterialPage.jsx';
 import { CreateObjectPage } from './pages/CreateObjectPage/CreateObjectPage.jsx';
 import { CreateOrderPage } from './pages/CreateOrderPage/CreateOrderPage.jsx';
 import { DashboardPage } from './pages/DashboardPage/DashboardPage.jsx';
@@ -45,7 +45,7 @@ export const router = createBrowserRouter([
       { path: 'orders/:orderId', element: <ProtectedRoute><OrderDetailPage /></ProtectedRoute> },
       { path: 'orders/:orderId/cart', element: <ProtectedRoute><OrderCartPage /></ProtectedRoute> },
       { path: 'orders/:orderId/pdf', element: <ProtectedRoute><OrderPdfPreviewPage /></ProtectedRoute> },
-      { path: 'orders/:orderId/materials/new', element: <ProtectedRoute><AddMaterialPage /></ProtectedRoute> },
+      { path: 'orders/:orderId/materials/new', element: <ProtectedRoute><CartAwareAddMaterialPage /></ProtectedRoute> },
       { path: 'employees', element: <ProtectedRoute requireManager><EmployeesPage /></ProtectedRoute> },
       { path: 'employees/invite', element: <ProtectedRoute requireManager><InviteEmployeePage /></ProtectedRoute> },
       { path: 'history', element: <ProtectedRoute requireEmployee><HistoryPage /></ProtectedRoute> },
