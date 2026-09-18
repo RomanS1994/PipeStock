@@ -1,0 +1,46 @@
+/* Compact dashboard presentation; leave shared cards and navigation untouched. */
+.dashboardPage--compact { gap: 14px; }
+.dashboardPage--compact .dashboardWelcome { align-items: center; padding-top: 0; }
+.dashboardBrand { display: block; margin-bottom: 18px; color: #172033; font-size: 19px; line-height: 1.2; font-weight: 850; letter-spacing: -.04em; }
+.dashboardBrand span { color: #1767dc; }
+.dashboardPage--compact .dashboardWelcome h1 { font-size: clamp(29px, 7vw, 36px); }
+.dashboardPage--compact .dashboardWelcome p { margin-top: 4px; font-size: 13px; }
+.dashboardPage--compact .dashboardAvatar { align-self: flex-start; margin-top: 4px; }
+
+.dashboardPage--compact .dashboardHero { display: flex; align-items: center; min-height: 112px; padding: 18px 22px; color: #fff; text-decoration: none; }
+.dashboardPage--compact .dashboardHeroContent { display: flex; align-items: center; gap: 13px; width: 100%; max-width: none; padding-right: 115px; }
+.dashboardPage--compact .dashboardHeroContent > strong { font-size: clamp(17px, 4.5vw, 22px); line-height: 1.15; white-space: nowrap; }
+.dashboardHeroPlus { display: grid; flex: 0 0 42px; width: 42px; height: 42px; place-items: center; border-radius: 50%; background: #fff; color: #1767dc; font-size: 31px; line-height: 1; }
+.dashboardHeroChevron { font-size: 30px; line-height: 1; }
+.dashboardPage--compact .dashboardHeroPhotos img { width: 78px; height: 78px; padding: 3px; background: transparent; border-radius: 0; box-shadow: none; }
+.dashboardPage--compact .dashboardHeroPipe { right: 33px; bottom: 11px; transform: rotate(-6deg); }
+.dashboardPage--compact .dashboardHeroValve { right: -2px; top: 0; transform: rotate(8deg) scale(.7); }
+.dashboardPage--compact .dashboardStats { gap: 9px; }
+.dashboardPage--compact .dashboardStat { min-height: 105px; gap: 4px; padding: 12px; }
+.dashboardPage--compact .dashboardStat > span:not(.dashboardStatArrow) { font-size: 12px; }
+.dashboardPage--compact .dashboardStat strong { font-size: 28px; }
+.dashboardPage--compact .dashboardPanel { gap: 12px; padding: 16px; }
+.dashboardPage--compact .dashboardSectionHeader h2 { font-size: 18px; }
+.dashboardPage--compact .dashboardSectionHeader a { display: grid; width: 32px; height: 32px; place-items: center; font-size: 23px; }
+.dashboardPage--compact .dashboardSectionHeader a span { margin: 0; }
+.dashboardPage--compact .dashboardContinueAction { min-height: 44px; background: #1767dc; color: #fff; }
+.dashboardPage--compact .dashboardOrderCopy { gap: 3px; }
+.dashboardPage--compact .dashboardActivityRow { min-height: 72px; }
+.dashboardPage--compact .dashboardActivityRow .dashboardOrderVisual { background: #fff; }
+.dashboardPage--compact .dashboardOrderCopy small { font-size: 11px; }
+.dashboardPage--compact .dashboardContinueOrder .psStatusChip,
+.dashboardPage--compact .dashboardActivityRow .psStatusChip { font-size: 11px; }
+.dashboardPage--compact .dashboardHero:focus-visible,
+.dashboardPage--compact .dashboardStat:focus-visible,
+.dashboardPage--compact .dashboardContinueOrder:focus-visible,
+.dashboardPage--compact .dashboardActivityRow:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+@media (max-width: 370px) {
+  .dashboardPage--compact .dashboardHero { padding: 15px; }
+  .dashboardPage--compact .dashboardHeroContent { gap: 8px; padding-right: 77px; }
+  .dashboardPage--compact .dashboardHeroContent > strong { font-size: 16px; }
+  .dashboardHeroPlus { flex-basis: 36px; width: 36px; height: 36px; font-size: 25px; }
+  .dashboardPage--compact .dashboardHeroPhotos img { width: 64px; height: 64px; }
+  .dashboardPage--compact .dashboardHeroPipe { right: 12px; }
+  .dashboardPage--compact .dashboardStat { padding: 10px 8px; }
+  .dashboardPage--compact .dashboardContinueOrder { grid-template-columns: 46px minmax(0, 1fr); }
+}
