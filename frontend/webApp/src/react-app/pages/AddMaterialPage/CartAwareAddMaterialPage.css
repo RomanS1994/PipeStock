@@ -1,1 +1,14 @@
-.materialCartShell{position:relative;width:min(100%,560px);margin:0 auto}.materialCartShell>.materialWizard{width:100%}.materialCartShortcut{position:absolute;z-index:4;top:max(12px,env(safe-area-inset-top));right:0;display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--primary);text-decoration:none;box-shadow:0 1px 2px rgba(15,23,42,.04)}.materialCartShortcut:focus-visible{outline:3px solid var(--primary);outline-offset:2px}.materialCartBadge{position:absolute;top:-6px;right:-6px;display:grid;min-width:20px;height:20px;place-items:center;padding:0 4px;border:2px solid var(--surface);border-radius:999px;background:var(--primary);color:#fff;font-size:10px;font-weight:800;font-variant-numeric:tabular-nums}
+.materialCartShell{position:relative;width:min(100%,560px);margin:0 auto}
+.materialCartShell>.materialWizard{width:100%}
+.materialCartShortcut{position:absolute;z-index:4;top:max(12px,env(safe-area-inset-top));right:0;display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--primary);text-decoration:none;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.materialCartShortcut:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+.materialCartBadge{position:absolute;top:-6px;right:-6px;display:grid;min-width:20px;height:20px;place-items:center;padding:0 4px;border:2px solid var(--surface);border-radius:999px;background:var(--primary);color:#fff;font-size:10px;font-weight:800;font-variant-numeric:tabular-nums}
+
+/* The first step needs only the order context, search, categories and cart action. */
+.materialCartShell .materialWizard:has(.materialCategoryGrid)>.psSteps{display:none}
+.materialCartShell .materialWizard:has(.materialCategoryGrid){gap:12px}
+.materialCartShell .materialWizard:has(.materialCategoryGrid)>.materialWizardOrder{margin:0 0 2px;font-size:12px}
+.materialCartShell .materialWizardStage:has(.materialCategoryGrid){gap:14px}
+.materialCartShell .materialWizardStage:has(.materialCategoryGrid)>.compactHeader{gap:0}
+.materialCartShell .materialWizardStage:has(.materialCategoryGrid)>.compactHeader h1{font-size:clamp(24px,6vw,30px);line-height:1.15}
+.materialCartShell .materialWizardStage:has(.materialCategoryGrid)>.compactHeader p{display:none}
