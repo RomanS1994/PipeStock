@@ -13,6 +13,7 @@ import {
 import '../OrderFlow/OrderFlow.css';
 import './AddMaterialPage.css';
 import { getMaterialCategoryImage, getMaterialImage } from './materialImageResolver.js';
+import { MaterialSearch } from './MaterialSearch.jsx';
 
 const MAX_QUANTITY = 99999;
 const CATEGORY_ORDER = ['STEEL', 'PPR', 'CU', 'MLCP', 'PEX', 'HT', 'KG', 'BRASS', 'VALVES', 'GEBERIT', 'SANITA', 'OTHER'];
@@ -132,7 +133,7 @@ export function AddMaterialPage() {
     isError: orderError,
     refetch: refetchOrder,
   } = useGetOrderQuery(orderId);
-  const { data: catalog = [], isLoading } = useGetMaterialCatalogQuery();
+  const { data: catalog = [], isLoading, isError: catalogError, refetch: refetchCatalog } = useGetMaterialCatalogQuery();
   const { data: favorites = [] } = useGetFavoriteMaterialsQuery();
   const { data: recent = [] } = useGetRecentMaterialsQuery();
   const [addFavorite] = useAddFavoriteMaterialMutation();
@@ -140,6 +141,8 @@ export function AddMaterialPage() {
   const [addItem, { isLoading: adding, error }] = useAddOrderItemMutation();
   const [step, setStep] = useState(1);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [search, setSearch] = useState('');
+  const [fromShortcut, setFromShortcut] = useState(false);
   const [categoryKey, setCategoryKey] = useState('');
   const [diameter, setDiameter] = useState('');
   const [materialType, setMaterialType] = useState('');
@@ -196,6 +199,7 @@ export function AddMaterialPage() {
   }
 
   function selectCategory(key) {
+    setFromShortcut(false);
     setCategoryKey(key);
     setDiameter('');
     setMaterialType('');
@@ -239,6 +243,7 @@ export function AddMaterialPage() {
     setMaterialType(item.type);
     setCatalogItemId(item.id);
     setVariantRequired(false);
+    setFromShortcut(true);
     setQuantity(1);
     setStep(4);
   }
@@ -249,13 +254,22 @@ export function AddMaterialPage() {
     setMaterialType('');
     setCatalogItemId('');
     setVariantRequired(false);
+    setFromShortcut(false);
     setQuantity(1);
+    setSearch('');
     setShowShortcuts(true);
     setStep(1);
   }
 
   function goBackStep() {
     if (step === 1) return navigate(`/orders/${orderId}`);
+
+    if (fromShortcut && step === 4) {
+      setCatalogItemId('');
+      setFromShortcut(false);
+      setStep(1);
+      return;
+    }
 
     if (step === 5) {
       setCatalogItemId('');
@@ -334,39 +348,45 @@ export function AddMaterialPage() {
       <p className="materialWizardOrder">Заказ #{order.number} · {order.title || ''}</p>
 
       {isLoading ? <section className="screenCard">Завантажуємо каталог…</section> : null}
+      {catalogError ? <section className="screenCard"><p className="orderError">Не вдалося завантажити матеріали.</p><Button fullWidth onClick={refetchCatalog}>Спробувати ще раз</Button></section> : null}
 
-      {!isLoading && step === 1 ? (
+      {!isLoading && !catalogError && step === 1 ? (
         <section className="materialWizardStage">
-          {showShortcuts && favorites.length ? (
-            <div className="materialShortcutSection">
-              <div className="materialShortcutHeading"><span><Icon name="star" size={16} /> Обране</span><small>{favorites.length}</small></div>
-              <div className="materialShortcutList">
-                {favorites.slice(0, 6).map(item => <MaterialShortcut key={item.id} item={item} onClick={selectShortcut} />)}
-              </div>
-            </div>
-          ) : null}
+          <MaterialSearch catalog={catalog} query={search} onQueryChange={setSearch} onSelect={selectShortcut} />
+          {!search.trim() ? (
+            <>
+              {showShortcuts && favorites.length ? (
+                <div className="materialShortcutSection">
+                  <div className="materialShortcutHeading"><span><Icon name="star" size={16} /> Обране</span><small>{favorites.length}</small></div>
+                  <div className="materialShortcutList">
+                    {favorites.slice(0, 6).map(item => <MaterialShortcut key={item.id} item={item} onClick={selectShortcut} />)}
+                  </div>
+                </div>
+              ) : null}
 
-          {showShortcuts && recent.length ? (
-            <div className="materialShortcutSection">
-              <div className="materialShortcutHeading"><span><Icon name="clock" size={16} /> Нещодавні</span><small>{recent.length}</small></div>
-              <div className="materialShortcutList">
-                {recent.slice(0, 6).map(item => <MaterialShortcut key={item.id} item={item} onClick={selectShortcut} />)}
-              </div>
-            </div>
-          ) : null}
+              {showShortcuts && recent.length ? (
+                <div className="materialShortcutSection">
+                  <div className="materialShortcutHeading"><span><Icon name="clock" size={16} /> Нещодавні</span><small>{recent.length}</small></div>
+                  <div className="materialShortcutList">
+                    {recent.slice(0, 6).map(item => <MaterialShortcut key={item.id} item={item} onClick={selectShortcut} />)}
+                  </div>
+                </div>
+              ) : null}
 
-          <div className="compactHeader"><h1>1. Виберіть категорію</h1><p>Оберіть систему матеріалу</p></div>
-          <div className="materialCategoryGrid">
-            {categories.map(category => {
-              const image = getMaterialCategoryImage(category.key);
-              return (
-                <button key={category.key} type="button" className="materialCategoryCard" onClick={() => selectCategory(category.key)}>
-                  <span className={image ? 'has-image' : ''}>{image ? <img src={image} alt="" /> : category.label.slice(0, 2).toUpperCase()}</span>
-                  <strong>{category.label}</strong>
-                </button>
-              );
-            })}
-          </div>
+              <div className="compactHeader"><h1>1. Виберіть категорію</h1><p>Оберіть систему матеріалу</p></div>
+              <div className="materialCategoryGrid">
+                {categories.map(category => {
+                  const image = getMaterialCategoryImage(category.key);
+                  return (
+                    <button key={category.key} type="button" className="materialCategoryCard" onClick={() => selectCategory(category.key)}>
+                      <span className={image ? 'has-image' : ''}>{image ? <img src={image} alt="" /> : category.label.slice(0, 2).toUpperCase()}</span>
+                      <strong>{category.label}</strong>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          ) : null}
         </section>
       ) : null}
 
