@@ -5,7 +5,6 @@ import { selectUser } from '../../features/auth/authSlice.js';
 import { useAddOrderItemMutation, useGetOrderQuery, useUpdateOrderItemMutation } from '../../features/orders/ordersApi.js';
 import { getMaterialImage } from './materialImageResolver.js';
 import { searchMaterials } from './materialSearchMatcher.js';
-import { DraftCart } from './DraftCart.jsx';
 import './MaterialSearch.css';
 
 const RESULT_LIMIT = 40;
@@ -41,7 +40,7 @@ export function MaterialSearch({ catalog, query, onQueryChange, onSelect }) {
       } else {
         await addItem({ orderId, catalogItemId: item.id, quantity: 1 }).unwrap();
       }
-      setFeedback(`Додано в корзину: ${item.type} · ${item.diameter}`);
+      setFeedback(`Додано в кошик: ${item.type} · ${item.diameter}`);
       await refetchOrder();
     } catch (error) {
       setFailed(true);
@@ -54,12 +53,10 @@ export function MaterialSearch({ catalog, query, onQueryChange, onSelect }) {
 
   return (
     <div className="materialSearch">
-      <label htmlFor="material-search-input">Швидкий пошук матеріалу</label>
       <div className="materialSearchInputWrap">
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>
-        <input id="material-search-input" type="search" value={query} onChange={event => { onQueryChange(event.target.value); setFeedback(''); }} placeholder="Наприклад, tkus 25x25" autoComplete="off" spellCheck="false" />
+        <input id="material-search-input" type="search" aria-label="Пошук матеріалу" value={query} onChange={event => { onQueryChange(event.target.value); setFeedback(''); }} placeholder="Пошук матеріалу або розміру" autoComplete="off" spellCheck="false" />
       </div>
-      {order?.status === 'DRAFT' ? <DraftCart order={order} orderId={orderId} canEdit={canEdit} onRefresh={refetchOrder} /> : null}
       {feedback ? <p className={failed ? 'materialSearchFeedback is-error' : 'materialSearchFeedback'} role={failed ? 'alert' : 'status'}>{feedback}</p> : null}
       {query.trim() ? (
         <div className="materialSearchResults" aria-live="polite">
@@ -73,8 +70,8 @@ export function MaterialSearch({ catalog, query, onQueryChange, onSelect }) {
                   <span className="materialSearchResultImage">{image ? <img src={image} alt="" loading="lazy" /> : null}</span>
                   <span className="materialSearchResultText"><strong>{item.type} · {item.diameter}</strong><small>{category} · {item.name}</small></span>
                 </button>
-                <button type="button" className="materialSearchQuickAdd" disabled={!canEdit || quickBusyId !== null} onClick={() => addToCart(item)} aria-label={`Додати в корзину ${item.type} ${item.diameter}`}>
-                  {quickBusyId === item.id ? 'Додаємо…' : '+ В корзину'}
+                <button type="button" className="materialSearchQuickAdd" disabled={!canEdit || quickBusyId !== null} onClick={() => addToCart(item)} aria-label={`Додати в кошик ${item.type} ${item.diameter}`}>
+                  {quickBusyId === item.id ? 'Додаємо…' : '+ В кошик'}
                 </button>
               </div>
             );
