@@ -82,7 +82,7 @@ export function DashboardPage() {
           <section className="dashboardStats" aria-label="Статистика компанії">
             <Link to="/objects" className="dashboardStat"><Icon name="building" size={23} /><span>Активні об’єкти</span><strong>{stats.activeProjects ?? 0}</strong><span className="dashboardStatArrow" aria-hidden="true">›</span></Link>
             <Link to="/orders" className="dashboardStat"><Icon name="clipboard" size={23} /><span>Чернетки</span><strong>{ordersLoading || ordersError ? '—' : drafts.length}</strong><span className="dashboardStatArrow" aria-hidden="true">›</span></Link>
-            <Link to="/orders" className="dashboardStat"><Icon name="send" size={23} /><span>Відправлено</span><strong>{stats.submittedOrders ?? 0}</strong><span className="dashboardStatArrow" aria-hidden="true">›</span></Link>
+            <Link to="/orders" className="dashboardStat"><Icon name="check" size={23} /><span>Відправлено</span><strong>{stats.submittedOrders ?? 0}</strong><span className="dashboardStatArrow" aria-hidden="true">›</span></Link>
           </section>
 
           {!ordersLoading && !ordersError && latestDraft ? (
