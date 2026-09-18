@@ -20,6 +20,7 @@ import { HistoryPage } from './pages/HistoryPage/HistoryPage.jsx';
 import { InviteEmployeePage } from './pages/InviteEmployeePage/InviteEmployeePage.jsx';
 import { ObjectDetailPage } from './pages/ObjectDetailPage/ObjectDetailPage.jsx';
 import { ObjectsPage } from './pages/ObjectsPage/ObjectsPage.jsx';
+import { OrderCartPage } from './pages/OrderCartPage/OrderCartPage.jsx';
 import { OrderDetailPage } from './pages/OrderDetailPage/OrderDetailPage.jsx';
 import { OrderPdfPreviewPage } from './pages/OrderPdfPreviewPage/OrderPdfPreviewPage.jsx';
 import { OrdersPage } from './pages/OrdersPage/OrdersPage.jsx';
@@ -42,6 +43,7 @@ export const router = createBrowserRouter([
       { path: 'objects/:projectId/orders/new', element: <ProtectedRoute><CreateOrderPage /></ProtectedRoute> },
       { path: 'orders', element: <ProtectedRoute><OrdersPage /></ProtectedRoute> },
       { path: 'orders/:orderId', element: <ProtectedRoute><OrderDetailPage /></ProtectedRoute> },
+      { path: 'orders/:orderId/cart', element: <ProtectedRoute><OrderCartPage /></ProtectedRoute> },
       { path: 'orders/:orderId/pdf', element: <ProtectedRoute><OrderPdfPreviewPage /></ProtectedRoute> },
       { path: 'orders/:orderId/materials/new', element: <ProtectedRoute><AddMaterialPage /></ProtectedRoute> },
       { path: 'employees', element: <ProtectedRoute requireManager><EmployeesPage /></ProtectedRoute> },
