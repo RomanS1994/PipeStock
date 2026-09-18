@@ -1,5 +1,9 @@
 /* Compact dashboard only: retain shared components and business logic. */
-.dashboardPage--compact { gap: 12px; }
+.dashboardPage--compact {
+  gap: 12px;
+  /* The page container supplies its own bottom padding. Reserve only the remainder for fixed navigation. */
+  padding-bottom: max(56px, calc(var(--workspace-nav-clearance) - max(var(--space-6), env(safe-area-inset-bottom))));
+}
 .dashboardPage--compact .dashboardWelcome { align-items: center; padding-top: 0; }
 .dashboardBrand { display: block; margin-bottom: 7px; color: #172033; font-size: 15px; line-height: 1.2; font-weight: 850; letter-spacing: -.03em; }
 .dashboardBrand span { color: #1767dc; }
@@ -48,8 +52,8 @@
 .dashboardPage--compact .dashboardActivityRow:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
 
 @media (max-width: 600px) {
-  /* Dashboard has no shared topbar; make room for iOS standalone/PWA status bar. */
-  .dashboardPage--compact { padding-top: max(52px, env(safe-area-inset-top)); }
+  /* AppLayout already reserves the device safe area. Add only any missing portion, never the full inset twice. */
+  .dashboardPage--compact { padding-top: max(0px, calc(48px - max(var(--space-4), env(safe-area-inset-top)))); }
 }
 @media (max-width: 370px) {
   .dashboardPage--compact .dashboardHero { padding: 13px; }
