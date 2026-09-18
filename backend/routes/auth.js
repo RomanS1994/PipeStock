@@ -10,7 +10,12 @@ import {
   assertPersonName,
   assertPhone,
 } from '../auth/input-validation.js';
-import { hasActiveCompanyMembership, hasActiveCompanyMembershipInTx, lockUserForMembershipChange } from '../auth/membership-policy.js';
+import {
+  hasActiveCompanyMembership,
+  hasActiveCompanyMembershipInTx,
+  hasPriorCompanyMembership,
+  lockUserForMembershipChange,
+} from '../auth/membership-policy.js';
 import { consumeRateLimit, resetRateLimit } from '../auth/rate-limit.js';
 import { clearRefreshCookie, readRefreshToken, setRefreshCookie } from '../auth/session-cookie.js';
 import { createAccessToken, createRefreshToken, getRefreshExpiry, hashPassword, hashToken, verifyAccessToken, verifyPassword } from '../auth/tokens.js';
@@ -230,8 +235,10 @@ async function joinCompany(request, response) {
 
     const company = await lockCompanyInvite(tx, joinCode);
     const existing = await tx.companyMembership.findUnique({ where: { companyId_userId: { companyId: company.id, userId: current.id } } });
-    if (!existing) await tx.companyMembership.create({ data: { companyId: company.id, userId: current.id, role: 'EMPLOYEE' } });
-    else if (existing.deletedAt || existing.status !== 'ACTIVE') await tx.companyMembership.update({ where: { id: existing.id }, data: { deletedAt: null, status: 'ACTIVE', role: 'EMPLOYEE' } });
+    if (hasPriorCompanyMembership(existing)) {
+      throw new HttpError(409, 'This membership must be reactivated by the company manager');
+    }
+    await tx.companyMembership.create({ data: { companyId: company.id, userId: current.id, role: 'EMPLOYEE' } });
     return loadUser(tx, current.id);
   });
 

@@ -202,6 +202,48 @@ async function updateTeamMember(request, response, membershipId) {
   });
 }
 
+async function removeTeamMember(request, response, membershipId) {
+  const user = await requireAuth(request);
+  const manager = getManagerMembership(user);
+
+  const target = await prisma.companyMembership.findFirst({
+    where: {
+      id: membershipId,
+      companyId: manager.companyId,
+      role: 'EMPLOYEE',
+      deletedAt: null,
+    },
+    select: { id: true, userId: true },
+  });
+  if (!target) throw new HttpError(404, 'Employee not found');
+
+  await prisma.$transaction(async tx => {
+    if (!(await lockUserForMembershipChange(tx, target.userId))) {
+      throw new HttpError(404, 'Employee not found');
+    }
+
+    const member = await tx.companyMembership.findFirst({
+      where: {
+        id: membershipId,
+        companyId: manager.companyId,
+        role: 'EMPLOYEE',
+        deletedAt: null,
+      },
+      select: { id: true, userId: true },
+    });
+    if (!member) throw new HttpError(404, 'Employee not found');
+
+    await tx.projectAssignment.deleteMany({ where: { membershipId: member.id } });
+    await tx.companyMembership.update({
+      where: { id: member.id },
+      data: { status: 'INACTIVE', deletedAt: new Date() },
+    });
+    await tx.session.deleteMany({ where: { userId: member.userId } });
+  });
+
+  sendJson(response, 200, { ok: true });
+}
+
 async function getInvite(request, response) {
   const user = await requireAuth(request);
   const membership = getManagerMembership(user);
@@ -265,6 +307,11 @@ export async function handleManagerRoutes(request, response, { pathName }) {
   const memberMatch = pathName.match(/^\/api\/team\/([^/]+)$/);
   if (memberMatch && request.method === 'PATCH') {
     await updateTeamMember(request, response, decodeURIComponent(memberMatch[1]));
+    return true;
+  }
+
+  if (memberMatch && request.method === 'DELETE') {
+    await removeTeamMember(request, response, decodeURIComponent(memberMatch[1]));
     return true;
   }
 

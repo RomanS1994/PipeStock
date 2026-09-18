@@ -41,6 +41,19 @@ export const managerApi = baseApi.injectEndpoints({
         { type: 'Dashboard', id: 'SUMMARY' },
       ],
     }),
+    removeTeamMember: builder.mutation({
+      query: ({ membershipId }) => ({
+        url: `/team/${encodeURIComponent(membershipId)}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _error, { membershipId }) => [
+        { type: 'Team', id: membershipId },
+        { type: 'Team', id: 'LIST' },
+        { type: 'Employees', id: 'LIST' },
+        'Projects',
+        { type: 'Dashboard', id: 'SUMMARY' },
+      ],
+    }),
   }),
 });
 
@@ -51,4 +64,5 @@ export const {
   useRegenerateTeamInviteMutation,
   useRevokeTeamInviteMutation,
   useUpdateTeamMemberMutation,
+  useRemoveTeamMemberMutation,
 } = managerApi;

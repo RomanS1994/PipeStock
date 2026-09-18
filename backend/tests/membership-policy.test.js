@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   hasActiveCompanyMembership,
   hasActiveCompanyMembershipInTx,
+  hasPriorCompanyMembership,
   lockUserForMembershipChange,
 } from '../auth/membership-policy.js';
 
@@ -24,6 +25,12 @@ test('ignores inactive, deleted, or company-less memberships', () => {
 test('returns false when memberships are missing', () => {
   assert.equal(hasActiveCompanyMembership({}), false);
   assert.equal(hasActiveCompanyMembership(null), false);
+});
+
+test('detects a prior membership so an employee cannot reactivate it with the company code', () => {
+  assert.equal(hasPriorCompanyMembership({ id: 'membership-1', status: 'INACTIVE' }), true);
+  assert.equal(hasPriorCompanyMembership({ id: 'membership-1', deletedAt: new Date() }), true);
+  assert.equal(hasPriorCompanyMembership(null), false);
 });
 
 test('checks active memberships inside a transaction and can exclude the target membership', async () => {
