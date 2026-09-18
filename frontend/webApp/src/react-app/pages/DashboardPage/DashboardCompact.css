@@ -51,10 +51,6 @@
 .dashboardPage--compact .dashboardContinueOrder:focus-visible,
 .dashboardPage--compact .dashboardActivityRow:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
 
-@media (max-width: 600px) {
-  /* AppLayout already reserves the device safe area. Add only any missing portion, never the full inset twice. */
-  .dashboardPage--compact { padding-top: max(0px, calc(48px - max(var(--space-4), env(safe-area-inset-top)))); }
-}
 @media (max-width: 370px) {
   .dashboardPage--compact .dashboardHero { padding: 13px; }
   .dashboardPage--compact .dashboardHeroContent { gap: 7px; padding-right: 75px; }
