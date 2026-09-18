@@ -4,8 +4,7 @@
 .materialCartShortcut:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
 .materialCartBadge{position:absolute;top:-6px;right:-6px;display:grid;min-width:20px;height:20px;place-items:center;padding:0 4px;border:2px solid var(--surface);border-radius:999px;background:var(--primary);color:#fff;font-size:10px;font-weight:800;font-variant-numeric:tabular-nums}
 
-/* The first step needs only the order context, search, categories and cart action. */
-.materialCartShell .materialWizard:has(.materialCategoryGrid)>.psSteps{display:none}
+/* Keep the step indicator while removing the redundant inline cart panel. */
 .materialCartShell .materialWizard:has(.materialCategoryGrid){gap:12px}
 .materialCartShell .materialWizard:has(.materialCategoryGrid)>.materialWizardOrder{margin:0 0 2px;font-size:12px}
 .materialCartShell .materialWizardStage:has(.materialCategoryGrid){gap:14px}
