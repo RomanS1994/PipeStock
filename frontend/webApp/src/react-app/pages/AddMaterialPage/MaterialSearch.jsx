@@ -59,7 +59,7 @@ export function MaterialSearch({ catalog, query, onQueryChange, onSelect }) {
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>
         <input id="material-search-input" type="search" value={query} onChange={event => { onQueryChange(event.target.value); setFeedback(''); }} placeholder="Наприклад, tkus 25x25" autoComplete="off" spellCheck="false" />
       </div>
-      {order?.status === 'DRAFT' ? <DraftCart order={order} orderId={orderId} canEdit={canEdit} /> : null}
+      {order?.status === 'DRAFT' ? <DraftCart order={order} orderId={orderId} canEdit={canEdit} onRefresh={refetchOrder} /> : null}
       {feedback ? <p className={failed ? 'materialSearchFeedback is-error' : 'materialSearchFeedback'} role={failed ? 'alert' : 'status'}>{feedback}</p> : null}
       {query.trim() ? (
         <div className="materialSearchResults" aria-live="polite">
