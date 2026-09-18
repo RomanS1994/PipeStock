@@ -4,6 +4,7 @@ import { SearchField, StatusChip } from '@shared/app/components/ui/PipeStockUI.j
 import { WorkspaceNavigation } from '../../components/WorkspaceNavigation/WorkspaceNavigation.jsx';
 import {
   useGetTeamQuery,
+  useRemoveTeamMemberMutation,
   useUpdateTeamMemberMutation,
 } from '../../features/manager/managerApi.js';
 import './EmployeesPage.css';
@@ -11,9 +12,11 @@ import './EmployeesPage.css';
 export function EmployeesPage() {
   const { data: members = [], isLoading, isError, refetch } = useGetTeamQuery();
   const [updateMember, { isLoading: updating }] = useUpdateTeamMemberMutation();
+  const [removeMember] = useRemoveTeamMemberMutation();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('ALL');
   const [statusError, setStatusError] = useState('');
+  const [deletingMemberId, setDeletingMemberId] = useState('');
 
   const visibleMembers = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -35,6 +38,24 @@ export function EmployeesPage() {
       }).unwrap();
     } catch (error) {
       setStatusError(error?.data?.error || 'Не вдалося змінити статус працівника.');
+    }
+  }
+
+  async function deleteMember(member) {
+    const employeeName = member.user?.name || member.user?.email || 'цього працівника';
+    const confirmed = window.confirm(
+      `Видалити ${employeeName} з компанії?\n\nПрацівник втратить доступ до компанії та всіх об’єктів. Історія його заказів залишиться.`,
+    );
+    if (!confirmed) return;
+
+    setStatusError('');
+    setDeletingMemberId(member.membershipId);
+    try {
+      await removeMember({ membershipId: member.membershipId }).unwrap();
+    } catch (error) {
+      setStatusError(error?.data?.error || 'Не вдалося видалити працівника.');
+    } finally {
+      setDeletingMemberId('');
     }
   }
 
@@ -72,7 +93,10 @@ export function EmployeesPage() {
                 {member.user?.phone ? <span>{member.user.phone}</span> : null}
                 <small>{member.projectCount} об’єктів · {member.orderCount} заказів</small>
               </div>
-              <button type="button" disabled={updating} className="employeeCardAction" onClick={() => toggleStatus(member)}>{member.status === 'ACTIVE' ? 'Вимкнути' : 'Активувати'}</button>
+              <div className="employeeCardActions">
+                <button type="button" disabled={updating || Boolean(deletingMemberId)} className="employeeCardAction" onClick={() => toggleStatus(member)}>{member.status === 'ACTIVE' ? 'Вимкнути' : 'Активувати'}</button>
+                <button type="button" disabled={updating || Boolean(deletingMemberId)} className="employeeCardAction employeeCardAction--danger" onClick={() => deleteMember(member)}>{deletingMemberId === member.membershipId ? 'Видаляємо…' : 'Видалити'}</button>
+              </div>
             </article>
           ))}
         </section>

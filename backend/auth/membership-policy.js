@@ -4,6 +4,10 @@ export function hasActiveCompanyMembership(user) {
   );
 }
 
+export function hasPriorCompanyMembership(membership) {
+  return Boolean(membership);
+}
+
 export async function lockUserForMembershipChange(tx, userId) {
   const rows = await tx.$queryRaw`
     SELECT "id"
