@@ -1,0 +1,18 @@
+{
+  "name": "PipeStock",
+  "short_name": "PipeStock",
+  "description": "Облік матеріалів для сантехніків та монтажників",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f8f6",
+  "theme_color": "#1767dc",
+  "icons": [
+    {
+      "src": "/pipestock-icon.webp",
+      "sizes": "256x256",
+      "type": "image/webp",
+      "purpose": "any"
+    }
+  ]
+}
