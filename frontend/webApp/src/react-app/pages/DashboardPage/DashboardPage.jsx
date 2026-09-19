@@ -7,6 +7,7 @@ import { useGetDashboardQuery } from '../../features/manager/managerApi.js';
 import { useGetOrdersQuery } from '../../features/orders/ordersApi.js';
 import './DashboardPage.css';
 import './DashboardCompact.css';
+import './DashboardHeroPhotos.css';
 
 const STATUS_LABELS = { DRAFT: 'Чернетка', SUBMITTED: 'Надіслано', COMPLETED: 'Завершено' };
 
