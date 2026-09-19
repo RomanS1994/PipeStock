@@ -1,0 +1,53 @@
+/* Keep product imagery within the banner without the white product-photo tiles.
+   The source WebP images have white backgrounds; multiply composites white into
+   the blue banner, while keeping the fittings visible. */
+.dashboardPage--compact .dashboardHeroPhotos {
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.dashboardPage--compact .dashboardHeroPhotos img {
+  display: block;
+  width: 86px;
+  height: 86px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+.dashboardPage--compact .dashboardHeroPipe {
+  right: 37px;
+  bottom: 4px;
+  transform: none;
+}
+
+.dashboardPage--compact .dashboardHeroValve {
+  right: 1px;
+  top: 5px;
+  width: 64px;
+  height: 64px;
+  transform: none;
+}
+
+@media (max-width: 370px) {
+  .dashboardPage--compact .dashboardHeroPhotos img {
+    width: 72px;
+    height: 72px;
+  }
+
+  .dashboardPage--compact .dashboardHeroPipe {
+    right: 27px;
+    bottom: 8px;
+  }
+
+  .dashboardPage--compact .dashboardHeroValve {
+    right: 0;
+    top: 6px;
+    width: 54px;
+    height: 54px;
+  }
+}
