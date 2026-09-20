@@ -17,29 +17,33 @@ const AUTH_LIMITS = Object.freeze({
   phone: 32,
 });
 
+function assetPath(path) {
+  return `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
+}
+
 const ONBOARDING_SLIDES = [
   {
     kicker: 'Матеріали під контролем',
     title: 'Швидкий облік матеріалів на об’єкті',
     description: 'Виберіть систему, діаметр і потрібний елемент за кілька натискань — прямо під час монтажу.',
-    image: '/materials/ht-branch-45-photo.svg',
-    secondaryImage: '/materials/ht-cleanout-photo.svg',
+    image: assetPath('/materials/ht-branch-45-photo.svg'),
+    secondaryImage: assetPath('/materials/ht-cleanout-photo.svg'),
     alt: 'Сантехнічні труби та фітинги',
   },
   {
     kicker: 'Заказ без зайвих записів',
     title: 'Збирайте матеріали в один заказ',
     description: 'Працівник створює заказ на об’єкті, швидко додає фітинги й кількість, а команда бачить актуальний список.',
-    image: '/materials/category-pex.svg',
-    secondaryImage: '/materials/category-valves.svg',
+    image: assetPath('/materials/category-pex.svg'),
+    secondaryImage: assetPath('/materials/category-valves.svg'),
     alt: 'Сантехнічні матеріали для заказу',
   },
   {
     kicker: 'Вся історія в PipeStock',
     title: 'Переглядайте історію та готовий PDF',
     description: 'Збережені закази залишаються прив’язаними до об’єкта. Перевіряйте матеріали та відкривайте PDF без паперових списків.',
-    image: '/materials/geberit-frame.svg',
-    secondaryImage: '/materials/ht-branch-45-photo.svg',
+    image: assetPath('/materials/geberit-frame.svg'),
+    secondaryImage: assetPath('/materials/ht-branch-45-photo.svg'),
     alt: 'Матеріали та обладнання для сантехнічного об’єкта',
   },
 ];
