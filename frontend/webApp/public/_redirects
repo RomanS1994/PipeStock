@@ -6,5 +6,6 @@
 /pipestock/manifest.webmanifest /manifest.webmanifest                         200
 /pipestock                   /index.html                                      200
 /pipestock/*                 /index.html                                      200
+/                         /pipestock                                       302
 /api/*  https://pipestock-iznu.onrender.com/api/:splat  200
 /*      /index.html                                      200
