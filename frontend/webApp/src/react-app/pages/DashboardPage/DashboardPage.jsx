@@ -11,6 +11,10 @@ import './DashboardHeroPhotos.css';
 
 const STATUS_LABELS = { DRAFT: 'Чернетка', SUBMITTED: 'Надіслано', COMPLETED: 'Завершено' };
 
+function assetPath(path) {
+  return `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
+}
+
 function OrderSummary({ order, featured = false }) {
   return (
     <Link to={`/orders/${order.id}`} className={featured ? 'dashboardContinueOrder' : 'dashboardActivityRow'}>
@@ -59,8 +63,8 @@ export function DashboardPage() {
           <Link className="dashboardHero" to="/objects" aria-label="Новий заказ — вибрати об’єкт">
             <span className="dashboardHeroContent"><span className="dashboardHeroPlus" aria-hidden="true">＋</span><strong>Новий заказ</strong><span className="dashboardHeroChevron" aria-hidden="true">›</span></span>
             <span className="dashboardHeroPhotos" aria-hidden="true">
-              <img className="dashboardHeroPipe" src="/materials/category-ht.webp" alt="" />
-              <img className="dashboardHeroValve" src="/materials/category-brass.webp" alt="" />
+              <img className="dashboardHeroPipe" src={assetPath('/materials/category-ht.webp')} alt="" />
+              <img className="dashboardHeroValve" src={assetPath('/materials/category-brass.webp')} alt="" />
             </span>
           </Link>
 
