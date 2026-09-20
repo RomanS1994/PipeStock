@@ -42,10 +42,10 @@ function getAllowedOrigins() {
     'https://worktrackings.netlify.app',
   ];
 
-  return String(process.env.CLIENT_ORIGIN || defaultOrigins.join(','))
-    .split(',')
+  return [...defaultOrigins, ...String(process.env.CLIENT_ORIGIN || '').split(',')]
     .map(value => value.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((value, index, origins) => origins.indexOf(value) === index);
 }
 
 export function handleCors(request, response) {
