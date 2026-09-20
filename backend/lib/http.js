@@ -37,7 +37,12 @@ export async function readJsonBody(request, { maxBytes = 32_768 } = {}) {
 }
 
 function getAllowedOrigins() {
-  return String(process.env.CLIENT_ORIGIN || '')
+  const defaultOrigins = [
+    'https://pipestock.netlify.app',
+    'https://worktrackings.netlify.app',
+  ];
+
+  return String(process.env.CLIENT_ORIGIN || defaultOrigins.join(','))
     .split(',')
     .map(value => value.trim())
     .filter(Boolean);
