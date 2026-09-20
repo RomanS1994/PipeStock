@@ -64,3 +64,25 @@ test('allows WorkTrack as a default CORS origin for proxied PipeStock requests',
     else process.env.CLIENT_ORIGIN = originalClientOrigin;
   }
 });
+
+test('keeps WorkTrack allowed when CLIENT_ORIGIN is already configured', () => {
+  const originalClientOrigin = process.env.CLIENT_ORIGIN;
+  process.env.CLIENT_ORIGIN = 'https://pipestock.netlify.app';
+
+  try {
+    const response = createResponseStub();
+    const handled = handleCors({
+      method: 'OPTIONS',
+      headers: {
+        origin: 'https://worktrackings.netlify.app',
+      },
+    }, response);
+
+    assert.equal(handled, true);
+    assert.equal(response.statusCode, 204);
+    assert.equal(response.headers.get('access-control-allow-origin'), 'https://worktrackings.netlify.app');
+  } finally {
+    if (originalClientOrigin === undefined) delete process.env.CLIENT_ORIGIN;
+    else process.env.CLIENT_ORIGIN = originalClientOrigin;
+  }
+});
