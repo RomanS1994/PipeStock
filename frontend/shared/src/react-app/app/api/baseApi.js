@@ -3,11 +3,14 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 const AUTH_STORAGE_KEY = 'pipestock_auth';
 
 function resolveBaseUrl() {
+  const basePath = import.meta.env.BASE_URL || '/';
+  const normalizedBasePath = basePath.replace(/\/$/, '');
+  if (!import.meta.env.DEV && normalizedBasePath) return `${normalizedBasePath}/api`;
+
   const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
   if (configuredBaseUrl) return configuredBaseUrl;
   if (import.meta.env.DEV) return 'http://localhost:3001/api';
-  const basePath = import.meta.env.BASE_URL || '/';
-  return `${basePath.replace(/\/$/, '')}/api`;
+  return '/api';
 }
 
 const rawBaseQuery = fetchBaseQuery({
