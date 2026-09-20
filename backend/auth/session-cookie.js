@@ -13,7 +13,8 @@ export function readRefreshToken(request) {
 
 export function setRefreshCookie(response, token, maxAgeSeconds) {
   const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
-  response.setHeader('Set-Cookie', `${COOKIE_NAME}=${encodeURIComponent(token)}; Path=/api/auth; HttpOnly; SameSite=Lax; Max-Age=${Math.max(0, Math.floor(maxAgeSeconds))}${secure}`);
+  const path = process.env.REFRESH_COOKIE_PATH || '/';
+  response.setHeader('Set-Cookie', `${COOKIE_NAME}=${encodeURIComponent(token)}; Path=${path}; HttpOnly; SameSite=Lax; Max-Age=${Math.max(0, Math.floor(maxAgeSeconds))}${secure}`);
 }
 
 export function clearRefreshCookie(response) {
