@@ -26,6 +26,8 @@ import { OrderPdfPreviewPage } from './pages/OrderPdfPreviewPage/OrderPdfPreview
 import { OrdersPage } from './pages/OrdersPage/OrdersPage.jsx';
 import { ProfilePage } from './pages/ProfilePage/ProfilePage.jsx';
 
+const routerBasename = import.meta.env.BASE_URL === '/' ? undefined : import.meta.env.BASE_URL.replace(/\/$/, '');
+
 export const router = createBrowserRouter([
   {
     element: <App />,
@@ -52,4 +54,4 @@ export const router = createBrowserRouter([
       { path: 'profile', element: <ProtectedRoute><ProfilePage /></ProtectedRoute> },
     ],
   },
-]);
+], { basename: routerBasename });
