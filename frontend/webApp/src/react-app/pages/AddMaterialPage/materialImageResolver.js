@@ -1,5 +1,10 @@
 import { getMaterialCategoryImage as getBaseCategoryImage, getMaterialImage as getBaseMaterialImage } from './materialImages.js';
 
+function withBasePath(source) {
+  if (!source || source.startsWith('data:') || source.startsWith('http') || !source.startsWith('/')) return source;
+  return `${import.meta.env.BASE_URL}${source.slice(1)}`;
+}
+
 const CATEGORY_TYPE_IMAGES = {
   cu: {
     trubka: '/materials/cu-pipe.webp',
@@ -202,14 +207,14 @@ export function getMaterialImage(item) {
   const type = String(item.type || '').trim().toLowerCase();
   const mappedImage = findMappedImage(category, type);
 
-  if (mappedImage) return mappedImage;
+  if (mappedImage) return withBasePath(mappedImage);
 
-  return getBaseMaterialImage(item);
+  return withBasePath(getBaseMaterialImage(item));
 }
 
 export function getMaterialCategoryImage(categoryKey) {
   const key = normalize(categoryKey);
   const extra = EXTRA_CATEGORY_IMAGES[key];
-  if (extra) return extra;
-  return getBaseCategoryImage(categoryKey);
+  if (extra) return withBasePath(extra);
+  return withBasePath(getBaseCategoryImage(categoryKey));
 }
