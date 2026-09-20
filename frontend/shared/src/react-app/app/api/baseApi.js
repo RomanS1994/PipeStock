@@ -6,7 +6,8 @@ function resolveBaseUrl() {
   const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
   if (configuredBaseUrl) return configuredBaseUrl;
   if (import.meta.env.DEV) return 'http://localhost:3001/api';
-  return '/api';
+  const basePath = import.meta.env.BASE_URL || '/';
+  return `${basePath.replace(/\/$/, '')}/api`;
 }
 
 const rawBaseQuery = fetchBaseQuery({
