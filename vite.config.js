@@ -6,10 +6,11 @@ import { defineConfig } from 'vite';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendEnvDir = path.resolve(__dirname, 'frontend/webApp');
+const base = process.env.VITE_BASE_PATH || '/';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/',
+  base,
   envDir: frontendEnvDir,
   root: path.resolve(__dirname, 'frontend/webApp'),
   publicDir: 'public',
