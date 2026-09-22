@@ -9,11 +9,11 @@ import { store } from './store.js';
 const RETURN_CONTEXT_KEY = 'pipestock:return-to-worktrack';
 
 function WorkTrackReturn() {
-  const [showReturn] = React.useState(() => {
+  const [launchedFromWorkTrack] = React.useState(() => {
     const params = new URLSearchParams(window.location.search);
-    const launchedFromWorkTrack = params.get('from') === 'worktrack' &&
+    const launched = params.get('from') === 'worktrack' &&
       window.location.pathname.startsWith('/pipestock');
-    if (launchedFromWorkTrack) {
+    if (launched) {
       window.sessionStorage.setItem(RETURN_CONTEXT_KEY, '1');
       // Keep the marker out of subsequent copied/shared PipeStock URLs.
       params.delete('from');
@@ -23,8 +23,13 @@ function WorkTrackReturn() {
     return window.sessionStorage.getItem(RETURN_CONTEXT_KEY) === '1' &&
       window.location.pathname.startsWith('/pipestock');
   });
+  const pathname = React.useSyncExternalStore(
+    router.subscribe,
+    () => router.state.location.pathname,
+  );
 
-  if (!showReturn) return null;
+  // The return control belongs to the home screen, not every PipeStock page.
+  if (!launchedFromWorkTrack || pathname !== '/dashboard') return null;
 
   return (
     <a
