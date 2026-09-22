@@ -1,0 +1,44 @@
+.dashboardPage--compact .dashboardBrandRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+}
+
+.dashboardPage--compact .dashboardBrandRow .dashboardBrand {
+  margin-bottom: 0;
+}
+
+.dashboardPage--compact .dashboardWorkTrackReturn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 5px 10px;
+  border: 1px solid #c9daf7;
+  border-radius: 10px;
+  background: #eef5ff;
+  color: #1767dc;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.dashboardPage--compact .dashboardWorkTrackReturn:hover {
+  background: #e1edff;
+  border-color: #a9c8f6;
+}
+
+.dashboardPage--compact .dashboardWorkTrackReturn:focus-visible {
+  outline: 3px solid #1767dc;
+  outline-offset: 3px;
+}
+
+@media (max-width: 370px) {
+  .dashboardPage--compact .dashboardBrandRow { gap: 6px; }
+  .dashboardPage--compact .dashboardWorkTrackReturn { padding-inline: 8px; font-size: 11px; }
+}
