@@ -1,31 +1,41 @@
-.ordersPage { padding-bottom: var(--workspace-nav-clearance); }
-.ordersPage-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ordersPage { width: min(100%, 620px); margin: 0 auto; gap: 14px; padding-bottom: var(--workspace-nav-clearance); }
+.ordersPage-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.ordersPage-header .compactHeader { min-width: 0; }
+.ordersPage-newOrder { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: 6px; padding: 0 13px; border-radius: 14px; color: #fff; background: #1767dc; font-size: 13px; font-weight: 800; text-decoration: none; white-space: nowrap; }
 .ordersFilters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
 .ordersFilters::-webkit-scrollbar { display: none; }
-.ordersFilters button { min-height: 34px; padding: 0 12px; border-radius: var(--radius-full); border: 1px solid var(--line); color: var(--muted); background: var(--surface); white-space: nowrap; }
-.ordersFilters button.is-active { color: var(--primary); border-color: #c9dcff; background: var(--primary-soft); }
+.ordersFilters button { min-height: 33px; padding: 0 13px; border-radius: var(--radius-full); border: 1px solid var(--line); color: #667085; background: var(--surface); font-size: 12px; font-weight: 700; white-space: nowrap; }
+.ordersFilters button.is-active { color: #1767dc; border-color: #bdd8ff; background: #edf5ff; }
 .ordersList { display: grid; gap: 10px; }
-.orderListCard { display: grid; gap: 12px; min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-md); color: var(--text); background: var(--surface); box-shadow: var(--shadow-sm); }
-.orderListCard-link { display: grid; min-width: 0; gap: 12px; color: var(--text); text-decoration: none; }
-.orderListCard-top { display: flex; min-width: 0; align-items: start; justify-content: space-between; gap: 12px; }
-.orderListCard-top > div { display: grid; min-width: 0; gap: 3px; }
-.orderListCard-top > .psStatusChip { flex: 0 0 auto; }
-.orderListCard-top span { color: var(--muted); font-size: 11px; }
-.orderListCard-top strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }
-.orderListCard-meta { display: flex; min-width: 0; flex-wrap: wrap; gap: 6px 12px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
-.orderListCard-meta span { min-width: 0; overflow-wrap: anywhere; }
-.orderListCard-actions { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
-.orderListCard-actions .orderDocumentActions--compact { padding-top: 0; border-top: 0; }
-.orderListCard-delete { min-height: 34px; padding: 0 11px; border: 1px solid #fecaca; border-radius: var(--radius-sm); color: var(--error); background: #fff7f7; font-size: 12px; font-weight: 600; }
-.orderListCard-delete:hover:not(:disabled) { background: #fff0f0; }
+.orderListCard { display: grid; gap: 10px; min-width: 0; padding: 14px; border: 1px solid #e2e7ee; border-radius: 19px; color: #111827; background: var(--surface); box-shadow: 0 3px 14px rgba(15, 23, 42, .04); }
+.orderListCard-top { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; }
+.orderListCard-top > .psStatusChip { flex: 0 0 auto; padding: 6px 10px; font-size: 11px; font-weight: 800; }
+.orderListCard-number { min-width: 0; color: #8a96a8; font-size: 12px; line-height: 1.1; font-weight: 700; letter-spacing: -.01em; }
+.orderListCard-main { display: grid; min-width: 0; gap: 4px; color: var(--text); text-decoration: none; }
+.orderListCard-main strong { min-width: 0; overflow: hidden; color: #111827; font-size: 19px; line-height: 1.15; letter-spacing: -.025em; font-weight: 850; text-overflow: ellipsis; white-space: nowrap; }
+.orderListCard-main span { min-width: 0; overflow: hidden; color: #667085; font-size: 13px; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+.orderListCard-actions { display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-flow: column; grid-auto-columns: 42px; gap: 8px; align-items: center; min-width: 0; padding-top: 2px; }
+.orderListCard-primary { display: inline-flex; min-width: 0; min-height: 42px; align-items: center; justify-content: center; padding: 0 14px; border-radius: 14px; color: #fff; background: #1767dc; font-size: 14px; font-weight: 850; text-decoration: none; }
+.orderListCard-actions .orderDocumentActions-message { grid-column: 1 / -1; }
+.orderListCard-delete { display: grid; width: 42px; min-height: 42px; place-items: center; padding: 0; border: 1px solid #ffc8c8; border-radius: 14px; color: #e24d4d; background: #fff2f2; }
+.orderListCard-delete:hover:not(:disabled) { background: #ffe8e8; }
 .orderListCard-delete:disabled { opacity: .55; cursor: not-allowed; }
-.orderListCard-deleteError { flex-basis: 100%; color: var(--error); font-size: 11px; }
+.orderListCard-deleteSpinner { width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: orderDeleteSpin .8s linear infinite; }
+.orderListCard-deleteError { grid-column: 1 / -1; color: #e24d4d; font-size: 11px; line-height: 1.35; }
 .ordersState { justify-items: center; text-align: center; }
 .ordersState p { margin: 0; color: var(--muted); font-size: 12px; }
 .ordersState button { border: 0; color: var(--primary); background: transparent; }
+@keyframes orderDeleteSpin { to { transform: rotate(360deg); } }
 
 @media (max-width: 420px) {
-  .orderListCard { padding: 12px; }
-  .orderListCard-top { gap: 8px; }
-  .orderListCard-top strong { display: -webkit-box; overflow: hidden; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .ordersPage { gap: 13px; }
+  .orderListCard { padding: 14px; }
+  .orderListCard-main strong { white-space: normal; display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+}
+
+@media (max-width: 360px) {
+  .ordersPage-newOrder span { display: none; }
+  .ordersPage-newOrder { width: 40px; padding: 0; }
+  .orderListCard-actions { grid-auto-columns: 40px; gap: 7px; }
+  .orderListCard-delete { width: 40px; }
 }
