@@ -8,40 +8,18 @@ import { store } from './store.js';
 
 const RETURN_CONTEXT_KEY = 'pipestock:return-to-worktrack';
 
-function WorkTrackReturn() {
-  const [launchedFromWorkTrack] = React.useState(() => {
+function WorkTrackLaunchContext() {
+  React.useState(() => {
     const params = new URLSearchParams(window.location.search);
-    const launched = params.get('from') === 'worktrack' &&
-      window.location.pathname.startsWith('/pipestock');
-    if (launched) {
+    if (params.get('from') === 'worktrack' && window.location.pathname.startsWith('/pipestock')) {
       window.sessionStorage.setItem(RETURN_CONTEXT_KEY, '1');
-      // Keep the marker out of subsequent copied/shared PipeStock URLs.
       params.delete('from');
       const search = params.toString();
       window.history.replaceState(window.history.state, '', `${window.location.pathname}${search ? `?${search}` : ''}${window.location.hash}`);
     }
-    return window.sessionStorage.getItem(RETURN_CONTEXT_KEY) === '1' &&
-      window.location.pathname.startsWith('/pipestock');
+    return null;
   });
-  const pathname = React.useSyncExternalStore(
-    router.subscribe,
-    () => router.state.location.pathname,
-  );
-
-  // React Router's location includes the configured /pipestock basename in production.
-  // Show the return control only on the dashboard, never on orders or other screens.
-  const dashboardPath = `${(import.meta.env.BASE_URL || '/').replace(/\/$/, '')}/dashboard`;
-  if (!launchedFromWorkTrack || (pathname !== dashboardPath && pathname !== '/dashboard')) return null;
-
-  return (
-    <a
-      href="/partners"
-      onClick={() => window.sessionStorage.removeItem(RETURN_CONTEXT_KEY)}
-      style={{ position: 'fixed', top: 'max(12px, env(safe-area-inset-top))', left: 12, zIndex: 10000, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: 999, background: '#ffffff', color: '#172a24', border: '1px solid #dce8e1', boxShadow: '0 4px 16px rgba(0,0,0,.12)', font: '600 14px system-ui, sans-serif', textDecoration: 'none' }}
-    >
-      <span aria-hidden="true">←</span> WorkTrack
-    </a>
-  );
+  return null;
 }
 
 const rootElement = document.getElementById('react-root');
@@ -49,7 +27,7 @@ const rootElement = document.getElementById('react-root');
 if (rootElement) {
   createRoot(rootElement).render(
     <React.StrictMode>
-      <WorkTrackReturn />
+      <WorkTrackLaunchContext />
       <AppProviders router={router} store={store} bootstrap={<AuthBootstrap />} />
     </React.StrictMode>,
   );
