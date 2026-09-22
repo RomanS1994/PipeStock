@@ -28,8 +28,10 @@ function WorkTrackReturn() {
     () => router.state.location.pathname,
   );
 
-  // The return control belongs to the home screen, not every PipeStock page.
-  if (!launchedFromWorkTrack || pathname !== '/dashboard') return null;
+  // React Router's location includes the configured /pipestock basename in production.
+  // Show the return control only on the dashboard, never on orders or other screens.
+  const dashboardPath = `${(import.meta.env.BASE_URL || '/').replace(/\/$/, '')}/dashboard`;
+  if (!launchedFromWorkTrack || (pathname !== dashboardPath && pathname !== '/dashboard')) return null;
 
   return (
     <a
