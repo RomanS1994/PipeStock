@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { SearchField, StatusChip } from '@shared/app/components/ui/PipeStockUI.jsx';
+import { Icon, SearchField, StatusChip } from '@shared/app/components/ui/PipeStockUI.jsx';
 import { OrderDocumentActions } from '../../components/OrderDocumentActions/OrderDocumentActions.jsx';
 import { WorkspaceNavigation } from '../../components/WorkspaceNavigation/WorkspaceNavigation.jsx';
 import { selectUser } from '../../features/auth/authSlice.js';
@@ -9,16 +9,16 @@ import { useDeleteOrderMutation, useGetOrdersQuery } from '../../features/orders
 import './OrdersPage.css';
 
 const STATUS_LABELS = {
-  DRAFT: 'Draft',
-  SUBMITTED: 'Submitted',
-  COMPLETED: 'Completed',
+  DRAFT: 'Чернетка',
+  SUBMITTED: 'Надіслано',
+  COMPLETED: 'Завершено',
 };
 
 const FILTERS = [
   ['ALL', 'Усі'],
-  ['DRAFT', 'Draft'],
-  ['SUBMITTED', 'Submitted'],
-  ['COMPLETED', 'Completed'],
+  ['DRAFT', 'Чернетки'],
+  ['SUBMITTED', 'Надіслано'],
+  ['COMPLETED', 'Завершено'],
 ];
 
 export function OrdersPage() {
@@ -48,6 +48,12 @@ export function OrdersPage() {
     return order.status === 'DRAFT' && order.worker?.id === user?.id;
   }
 
+  function getMetaLine(order) {
+    const parts = [order.project?.name || 'Без об’єкта', `${Number(order.itemCount) || 0} поз.`];
+    if (manager && order.worker?.name && order.worker.id !== user?.id) parts.push(order.worker.name);
+    return parts.join(' · ');
+  }
+
   async function handleDelete(order) {
     const confirmed = window.confirm(
       `Видалити заказ #${order.number} «${order.title}»?\n\nМатеріали, історія та PDF цього заказа також будуть видалені. Цю дію не можна скасувати.`,
@@ -73,11 +79,14 @@ export function OrdersPage() {
       <header className="ordersPage-header">
         <div className="compactHeader">
           <h1>Закази</h1>
-          <p>Всі доступні вам замовлення по об’єктах.</p>
         </div>
+        <Link className="ordersPage-newOrder" to="/objects">
+          <Icon name="plus" size={18} />
+          <span>Новий</span>
+        </Link>
       </header>
 
-      <SearchField value={search} onChange={event => setSearch(event.target.value)} placeholder="Пошук заказа, об’єкта або працівника…" />
+      <SearchField value={search} onChange={event => setSearch(event.target.value)} placeholder="Пошук заказу або об’єкта…" />
 
       <div className="ordersFilters" role="tablist" aria-label="Фільтр заказів">
         {FILTERS.map(([value, label]) => (
@@ -94,38 +103,37 @@ export function OrdersPage() {
         <div className="ordersList">
           {visibleOrders.map(order => {
             const deletable = canDelete(order);
+            const primaryLabel = order.status === 'DRAFT' ? 'Продовжити' : 'Відкрити';
             return (
               <article key={order.id} className="orderListCard">
-                <Link to={`/orders/${order.id}`} className="orderListCard-link">
-                  <div className="orderListCard-top">
-                    <div><span>#{order.number}</span><strong>{order.title}</strong></div>
-                    <StatusChip status={order.status}>{STATUS_LABELS[order.status] || order.status}</StatusChip>
-                  </div>
-                  <div className="orderListCard-meta">
-                    <span>{order.project?.name || 'Без об’єкта'}</span>
-                    <span>{order.itemCount} поз.</span>
-                    <span>{order.worker?.name || '—'}</span>
-                  </div>
+                <div className="orderListCard-top">
+                  <span className="orderListCard-number">#{order.number}</span>
+                  <StatusChip status={order.status}>{STATUS_LABELS[order.status] || order.status}</StatusChip>
+                </div>
+
+                <Link to={`/orders/${order.id}`} className="orderListCard-main">
+                  <strong>{order.title || `Заказ #${order.number}`}</strong>
+                  <span>{getMetaLine(order)}</span>
                 </Link>
 
-                {order.documentAvailable || deletable ? (
-                  <div className="orderListCard-actions">
-                    <OrderDocumentActions order={order} compact />
-                    {deletable ? (
-                      <button
-                        type="button"
-                        className="orderListCard-delete"
-                        disabled={deletingOrderId === order.id}
-                        onClick={() => handleDelete(order)}
-                      >
-                        {deletingOrderId === order.id ? 'Видаляємо…' : 'Видалити'}
-                      </button>
-                    ) : null}
-                    {deleteError?.orderId === order.id ? (
-                      <small className="orderListCard-deleteError" role="alert">{deleteError.message}</small>
-                    ) : null}
-                  </div>
-                ) : null}
+                <div className="orderListCard-actions">
+                  <Link className="orderListCard-primary" to={`/orders/${order.id}`}>{primaryLabel}</Link>
+                  <OrderDocumentActions order={order} compact hidePreview iconOnly className="orderListCard-documentActions" />
+                  {deletable ? (
+                    <button
+                      type="button"
+                      className="orderListCard-delete"
+                      disabled={deletingOrderId === order.id}
+                      aria-label={`Видалити заказ #${order.number}`}
+                      onClick={() => handleDelete(order)}
+                    >
+                      {deletingOrderId === order.id ? <span className="orderListCard-deleteSpinner" aria-hidden="true" /> : <Icon name="trash" size={18} />}
+                    </button>
+                  ) : null}
+                  {deleteError?.orderId === order.id ? (
+                    <small className="orderListCard-deleteError" role="alert">{deleteError.message}</small>
+                  ) : null}
+                </div>
               </article>
             );
           })}
