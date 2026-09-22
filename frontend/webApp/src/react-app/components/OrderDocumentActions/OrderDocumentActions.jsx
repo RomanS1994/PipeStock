@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '@shared/app/components/ui/PipeStockUI.jsx';
+import { Button, Icon } from '@shared/app/components/ui/PipeStockUI.jsx';
 import { useDownloadOrderPdfMutation } from '../../features/orders/ordersApi.js';
 import './OrderDocumentActions.css';
 
@@ -20,7 +20,7 @@ function saveBlob(blob, fileName) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function OrderDocumentActions({ order, compact = false, className = '', hidePreview = false }) {
+export function OrderDocumentActions({ order, compact = false, className = '', hidePreview = false, iconOnly = false }) {
   const [downloadOrderPdf, pdfState] = useDownloadOrderPdfMutation();
   const [message, setMessage] = useState('');
   const actionInFlight = useRef(false);
@@ -80,13 +80,25 @@ export function OrderDocumentActions({ order, compact = false, className = '', h
   }
 
   return (
-    <div className={`orderDocumentActions${compact ? ' orderDocumentActions--compact' : ''} ${className}`.trim()}>
+    <div className={`orderDocumentActions${compact ? ' orderDocumentActions--compact' : ''}${iconOnly ? ' orderDocumentActions--iconOnly' : ''} ${className}`.trim()}>
       {!hidePreview ? <Link className="psButton psButton--secondary orderDocumentActions-preview" to={`/orders/${order.id}/pdf`}>Переглянути</Link> : null}
-      <Button variant="secondary" disabled={pdfState.isLoading} onClick={handleDownload}>
-        {pdfState.isLoading ? 'PDF…' : 'PDF'}
+      <Button
+        variant="secondary"
+        className={iconOnly ? 'orderDocumentActions-iconButton' : ''}
+        disabled={pdfState.isLoading}
+        onClick={handleDownload}
+        aria-label={iconOnly ? (pdfState.isLoading ? 'Готуємо PDF' : 'Завантажити PDF') : undefined}
+      >
+        {iconOnly ? <Icon name="fileText" size={18} /> : pdfState.isLoading ? 'PDF…' : 'PDF'}
       </Button>
-      <Button variant="secondary" disabled={pdfState.isLoading} onClick={handleShare}>
-        Поділитися
+      <Button
+        variant="secondary"
+        className={iconOnly ? 'orderDocumentActions-iconButton' : ''}
+        disabled={pdfState.isLoading}
+        onClick={handleShare}
+        aria-label={iconOnly ? 'Поділитися PDF' : undefined}
+      >
+        {iconOnly ? <Icon name="share" size={18} /> : 'Поділитися'}
       </Button>
       {message ? <small className="orderDocumentActions-message">{message}</small> : null}
     </div>
