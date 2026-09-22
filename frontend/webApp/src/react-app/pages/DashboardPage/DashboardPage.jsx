@@ -8,6 +8,7 @@ import { useGetOrdersQuery } from '../../features/orders/ordersApi.js';
 import './DashboardPage.css';
 import './DashboardCompact.css';
 import './DashboardHeroPhotos.css';
+import './DashboardWorkTrackReturn.css';
 
 const STATUS_LABELS = { DRAFT: 'Чернетка', SUBMITTED: 'Надіслано', COMPLETED: 'Завершено' };
 const RETURN_CONTEXT_KEY = 'pipestock:return-to-worktrack';
