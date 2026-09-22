@@ -10,6 +10,7 @@ import './DashboardCompact.css';
 import './DashboardHeroPhotos.css';
 
 const STATUS_LABELS = { DRAFT: 'Чернетка', SUBMITTED: 'Надіслано', COMPLETED: 'Завершено' };
+const RETURN_CONTEXT_KEY = 'pipestock:return-to-worktrack';
 
 function assetPath(path) {
   return `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
@@ -43,12 +44,20 @@ export function DashboardPage() {
   const activity = recentOrders.filter(order => order.id !== latestDraft?.id).slice(0, 2);
   const firstName = user?.name?.trim().split(/\s+/)[0];
   const initials = user?.name?.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase() || '?';
+  const showWorkTrackReturn = window.sessionStorage.getItem(RETURN_CONTEXT_KEY) === '1';
 
   return (
     <div className="pageStack dashboardPage dashboardPage--compact">
       <header className="dashboardWelcome">
         <div>
-          <span className="dashboardBrand">Pipe<span>Stock</span></span>
+          <div className="dashboardBrandRow">
+            <span className="dashboardBrand">Pipe<span>Stock</span></span>
+            {showWorkTrackReturn ? (
+              <a className="dashboardWorkTrackReturn" href="/partners" onClick={() => window.sessionStorage.removeItem(RETURN_CONTEXT_KEY)} aria-label="Повернутися до WorkTrack">
+                <span aria-hidden="true">←</span> WorkTrack
+              </a>
+            ) : null}
+          </div>
           <h1>Головна</h1>
           {firstName ? <p>{firstName}</p> : null}
         </div>
