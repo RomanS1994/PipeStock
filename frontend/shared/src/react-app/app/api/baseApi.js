@@ -107,6 +107,7 @@ export const baseApi = createApi({
     'Employees',
     'Orders',
     'OrderHistory',
+    'MaterialBootstrap',
     'MaterialCatalog',
     'MaterialFavorites',
     'MaterialRecent',
