@@ -4,10 +4,8 @@ import { Button, Icon, StepIndicator } from '@shared/app/components/ui/PipeStock
 import {
   useAddFavoriteMaterialMutation,
   useAddOrderItemMutation,
-  useGetFavoriteMaterialsQuery,
-  useGetMaterialCatalogQuery,
+  useGetMaterialBootstrapQuery,
   useGetOrderQuery,
-  useGetRecentMaterialsQuery,
   useRemoveFavoriteMaterialMutation,
 } from '../../features/orders/ordersApi.js';
 import '../OrderFlow/OrderFlow.css';
@@ -133,9 +131,15 @@ export function AddMaterialPage() {
     isError: orderError,
     refetch: refetchOrder,
   } = useGetOrderQuery(orderId);
-  const { data: catalog = [], isLoading, isError: catalogError, refetch: refetchCatalog } = useGetMaterialCatalogQuery();
-  const { data: favorites = [] } = useGetFavoriteMaterialsQuery();
-  const { data: recent = [] } = useGetRecentMaterialsQuery();
+  const {
+    data: materialBootstrap = {},
+    isLoading,
+    isError: catalogError,
+    refetch: refetchCatalog,
+  } = useGetMaterialBootstrapQuery();
+  const catalog = materialBootstrap.catalog || [];
+  const favorites = materialBootstrap.favorites || [];
+  const recent = materialBootstrap.recent || [];
   const [addFavorite] = useAddFavoriteMaterialMutation();
   const [removeFavorite] = useRemoveFavoriteMaterialMutation();
   const [addItem, { isLoading: adding, error }] = useAddOrderItemMutation();
