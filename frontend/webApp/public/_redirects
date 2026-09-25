@@ -1,6 +1,7 @@
 /pipestock/api/*              https://pipestock-iznu.onrender.com/api/:splat  200
 /pipestock/assets/*           /assets/:splat                                  200
 /pipestock/materials/*        /materials/:splat                               200
+/pipestock/onboarding/*      /onboarding/:splat                              200
 /pipestock/pipestock-icon.webp /pipestock-icon.webp                           200
 /pipestock/apple-touch-icon.png /apple-touch-icon.png                         200
 /pipestock/manifest.webmanifest /manifest.webmanifest                         200
