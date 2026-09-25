@@ -31,34 +31,34 @@ function serializeCatalogItem(item, extra = {}) {
   };
 }
 
-async function listFavorites(request, response) {
-  const user = await requireAuth(request);
-  requireMembership(user);
+async function getCatalogItems() {
+  const items = await prisma.materialCatalogItem.findMany({
+    where: { isActive: true },
+    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+  });
+  return items.map(item => serializeCatalogItem(item));
+}
 
+async function getFavoriteItems(userId) {
   const favorites = await prisma.materialFavorite.findMany({
-    where: { userId: user.id, catalogItem: { isActive: true } },
+    where: { userId, catalogItem: { isActive: true } },
     include: { catalogItem: true },
     orderBy: { createdAt: 'desc' },
   });
 
-  sendJson(response, 200, {
-    items: favorites.map(favorite => serializeCatalogItem(favorite.catalogItem, {
-      favorite: true,
-      favoritedAt: favorite.createdAt,
-    })),
-  });
+  return favorites.map(favorite => serializeCatalogItem(favorite.catalogItem, {
+    favorite: true,
+    favoritedAt: favorite.createdAt,
+  }));
 }
 
-async function listRecent(request, response) {
-  const user = await requireAuth(request);
-  const membership = requireMembership(user);
-
+async function getRecentItems(userId, companyId) {
   const items = await prisma.orderItem.findMany({
     where: {
       catalogItemId: { not: null },
       order: {
-        companyId: membership.companyId,
-        createdByMembership: { userId: user.id },
+        companyId,
+        createdByMembership: { userId },
       },
       catalogItem: { isActive: true },
     },
@@ -75,8 +75,36 @@ async function listRecent(request, response) {
     recent.push(serializeCatalogItem(item.catalogItem, { lastUsedAt: item.createdAt }));
     if (recent.length >= 12) break;
   }
+  return recent;
+}
 
-  sendJson(response, 200, { items: recent });
+async function getMaterialBootstrap(user, membership) {
+  const [catalog, favorites, recent] = await Promise.all([
+    getCatalogItems(),
+    getFavoriteItems(user.id),
+    getRecentItems(user.id, membership.companyId),
+  ]);
+  return { catalog, favorites, recent };
+}
+
+async function listBootstrap(request, response) {
+  const user = await requireAuth(request);
+  const membership = requireMembership(user);
+  sendJson(response, 200, await getMaterialBootstrap(user, membership));
+}
+
+async function listFavorites(request, response) {
+  const user = await requireAuth(request);
+  requireMembership(user);
+
+  sendJson(response, 200, { items: await getFavoriteItems(user.id) });
+}
+
+async function listRecent(request, response) {
+  const user = await requireAuth(request);
+  const membership = requireMembership(user);
+
+  sendJson(response, 200, { items: await getRecentItems(user.id, membership.companyId) });
 }
 
 async function addFavorite(request, response, catalogItemId) {
@@ -105,6 +133,11 @@ async function removeFavorite(request, response, catalogItemId) {
 }
 
 export async function handleMaterialRoutes(request, response, { pathName }) {
+  if (request.method === 'GET' && pathName === '/api/materials/bootstrap') {
+    await listBootstrap(request, response);
+    return true;
+  }
+
   if (request.method === 'GET' && pathName === '/api/materials/favorites') {
     await listFavorites(request, response);
     return true;
