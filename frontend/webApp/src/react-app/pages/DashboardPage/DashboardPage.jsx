@@ -4,7 +4,6 @@ import { Icon, StatusChip } from '@shared/app/components/ui/PipeStockUI.jsx';
 import { WorkspaceNavigation } from '../../components/WorkspaceNavigation/WorkspaceNavigation.jsx';
 import { selectUser } from '../../features/auth/authSlice.js';
 import { useGetDashboardQuery } from '../../features/manager/managerApi.js';
-import { useGetOrdersQuery } from '../../features/orders/ordersApi.js';
 import './DashboardPage.css';
 import './DashboardCompact.css';
 import './DashboardHeroPhotos.css';
@@ -35,13 +34,9 @@ function OrderSummary({ order, featured = false }) {
 export function DashboardPage() {
   const user = useSelector(selectUser);
   const { data, isLoading, isError, refetch } = useGetDashboardQuery();
-  const { data: orders = [], isLoading: ordersLoading, isError: ordersError } = useGetOrdersQuery();
   const stats = data?.stats || {};
   const recentOrders = data?.recentOrders || [];
-  const drafts = orders
-    .filter(order => order.status === 'DRAFT')
-    .sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
-  const latestDraft = drafts[0];
+  const latestDraft = data?.latestDraft || null;
   const activity = recentOrders.filter(order => order.id !== latestDraft?.id).slice(0, 2);
   const firstName = user?.name?.trim().split(/\s+/)[0];
   const initials = user?.name?.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase() || '?';
@@ -82,11 +77,11 @@ export function DashboardPage() {
 
           <section className="dashboardStats" aria-label="Статистика компанії">
             <Link to="/objects" className="dashboardStat"><Icon name="building" size={23} /><span>Об’єкти</span><strong>{stats.activeProjects ?? 0}</strong></Link>
-            <Link to="/orders" className="dashboardStat"><Icon name="clipboard" size={23} /><span>Чернетки</span><strong>{ordersLoading || ordersError ? '—' : drafts.length}</strong></Link>
+            <Link to="/orders" className="dashboardStat"><Icon name="clipboard" size={23} /><span>Чернетки</span><strong>{stats.draftOrders ?? 0}</strong></Link>
             <Link to="/orders" className="dashboardStat"><Icon name="check" size={23} /><span>Надіслано</span><strong>{stats.submittedOrders ?? 0}</strong></Link>
           </section>
 
-          {!ordersLoading && !ordersError && latestDraft ? (
+          {latestDraft ? (
             <section className="dashboardPanel dashboardContinue">
               <div className="dashboardSectionHeader"><h2>Продовжити</h2></div>
               <OrderSummary order={latestDraft} featured />
