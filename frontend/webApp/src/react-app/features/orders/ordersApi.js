@@ -37,12 +37,26 @@ export const ordersApi = baseApi.injectEndpoints({
       ],
     }),
     downloadOrderPdf: builder.mutation({ query: orderId => ({ url: `/orders/${encodeURIComponent(orderId)}/pdf`, method: 'GET', responseHandler: readPdfResponse, cache: 'no-store' }) }),
+    getMaterialBootstrap: builder.query({
+      query: () => '/materials/bootstrap',
+      transformResponse: response => ({
+        catalog: response?.catalog || [],
+        favorites: response?.favorites || [],
+        recent: response?.recent || [],
+      }),
+      providesTags: [
+        { type: 'MaterialBootstrap', id: 'LIST' },
+        { type: 'MaterialCatalog', id: 'LIST' },
+        { type: 'MaterialFavorites', id: 'LIST' },
+        { type: 'MaterialRecent', id: 'LIST' },
+      ],
+    }),
     getMaterialCatalog: builder.query({ query: () => '/material-catalog', transformResponse: response => response?.items || [], providesTags: [{ type: 'MaterialCatalog', id: 'LIST' }] }),
     getFavoriteMaterials: builder.query({ query: () => '/materials/favorites', transformResponse: response => response?.items || [], providesTags: [{ type: 'MaterialFavorites', id: 'LIST' }] }),
     getRecentMaterials: builder.query({ query: () => '/materials/recent', transformResponse: response => response?.items || [], providesTags: [{ type: 'MaterialRecent', id: 'LIST' }] }),
-    addFavoriteMaterial: builder.mutation({ query: catalogItemId => ({ url: `/materials/favorites/${encodeURIComponent(catalogItemId)}`, method: 'POST' }), invalidatesTags: [{ type: 'MaterialFavorites', id: 'LIST' }] }),
-    removeFavoriteMaterial: builder.mutation({ query: catalogItemId => ({ url: `/materials/favorites/${encodeURIComponent(catalogItemId)}`, method: 'DELETE' }), invalidatesTags: [{ type: 'MaterialFavorites', id: 'LIST' }] }),
-    addOrderItem: builder.mutation({ query: ({ orderId, ...body }) => ({ url: `/orders/${encodeURIComponent(orderId)}/items`, method: 'POST', body }), invalidatesTags: (_result, _error, { orderId }) => [{ type: 'Orders', id: orderId }, { type: 'Orders', id: 'GLOBAL' }, { type: 'MaterialRecent', id: 'LIST' }, { type: 'Dashboard', id: 'SUMMARY' }] }),
+    addFavoriteMaterial: builder.mutation({ query: catalogItemId => ({ url: `/materials/favorites/${encodeURIComponent(catalogItemId)}`, method: 'POST' }), invalidatesTags: [{ type: 'MaterialFavorites', id: 'LIST' }, { type: 'MaterialBootstrap', id: 'LIST' }] }),
+    removeFavoriteMaterial: builder.mutation({ query: catalogItemId => ({ url: `/materials/favorites/${encodeURIComponent(catalogItemId)}`, method: 'DELETE' }), invalidatesTags: [{ type: 'MaterialFavorites', id: 'LIST' }, { type: 'MaterialBootstrap', id: 'LIST' }] }),
+    addOrderItem: builder.mutation({ query: ({ orderId, ...body }) => ({ url: `/orders/${encodeURIComponent(orderId)}/items`, method: 'POST', body }), invalidatesTags: (_result, _error, { orderId }) => [{ type: 'Orders', id: orderId }, { type: 'Orders', id: 'GLOBAL' }, { type: 'MaterialRecent', id: 'LIST' }, { type: 'MaterialBootstrap', id: 'LIST' }, { type: 'Dashboard', id: 'SUMMARY' }] }),
     updateOrderItem: builder.mutation({ query: ({ orderId, itemId, quantity }) => ({ url: `/orders/${encodeURIComponent(orderId)}/items/${encodeURIComponent(itemId)}`, method: 'PATCH', body: { quantity } }), invalidatesTags: (_result, _error, { orderId }) => [{ type: 'Orders', id: orderId }, { type: 'Orders', id: 'GLOBAL' }, { type: 'Dashboard', id: 'SUMMARY' }] }),
     deleteOrderItem: builder.mutation({ query: ({ orderId, itemId }) => ({ url: `/orders/${encodeURIComponent(orderId)}/items/${encodeURIComponent(itemId)}`, method: 'DELETE' }), invalidatesTags: (_result, _error, { orderId }) => [{ type: 'Orders', id: orderId }, { type: 'Orders', id: 'GLOBAL' }, { type: 'Dashboard', id: 'SUMMARY' }] }),
     submitOrder: builder.mutation({ query: orderId => ({ url: `/orders/${encodeURIComponent(orderId)}/submit`, method: 'POST' }), invalidatesTags: (result, _error, orderId) => [{ type: 'Orders', id: orderId }, { type: 'OrderHistory', id: orderId }, { type: 'Orders', id: 'GLOBAL' }, { type: 'Dashboard', id: 'SUMMARY' }, ...(result?.order?.project?.id ? [{ type: 'Orders', id: `PROJECT-${result.order.project.id}` }] : [])] }),
@@ -52,7 +66,7 @@ export const ordersApi = baseApi.injectEndpoints({
 
 export const {
   useGetOrdersQuery, useGetProjectOrdersQuery, useCreateOrderMutation, useGetOrderQuery, useGetOrderHistoryQuery, useUpdateOrderMutation,
-  useDeleteOrderMutation, useDownloadOrderPdfMutation, useGetMaterialCatalogQuery, useGetFavoriteMaterialsQuery,
+  useDeleteOrderMutation, useDownloadOrderPdfMutation, useGetMaterialBootstrapQuery, useGetMaterialCatalogQuery, useGetFavoriteMaterialsQuery,
   useGetRecentMaterialsQuery, useAddFavoriteMaterialMutation, useRemoveFavoriteMaterialMutation, useAddOrderItemMutation,
   useUpdateOrderItemMutation, useDeleteOrderItemMutation, useSubmitOrderMutation, useCompleteOrderMutation,
 } = ordersApi;
