@@ -39,12 +39,39 @@ function serializeInvite(company) {
   };
 }
 
+function serializeDashboardOrder(order) {
+  if (!order) return null;
+  return {
+    id: order.id,
+    number: order.number,
+    title: order.title,
+    status: order.status,
+    updatedAt: order.updatedAt,
+    project: order.project,
+    worker: order.createdByMembership?.user || null,
+    itemCount: order._count.items,
+  };
+}
+
 async function dashboard(request, response) {
   const user = await requireAuth(request);
   const membership = getManagerMembership(user);
   const companyId = membership.companyId;
 
-  const [projectCount, employeeCount, draftCount, submittedCount, completedCount, recentOrders] = await Promise.all([
+  const orderSummarySelect = {
+    id: true,
+    number: true,
+    title: true,
+    status: true,
+    updatedAt: true,
+    project: { select: { id: true, name: true } },
+    createdByMembership: {
+      select: { user: { select: { id: true, name: true } } },
+    },
+    _count: { select: { items: true } },
+  };
+
+  const [projectCount, employeeCount, draftCount, submittedCount, completedCount, latestDraft, recentOrders] = await Promise.all([
     prisma.project.count({ where: { companyId, status: { not: 'COMPLETED' } } }),
     prisma.companyMembership.count({
       where: { companyId, role: 'EMPLOYEE', status: 'ACTIVE', deletedAt: null },
@@ -52,22 +79,16 @@ async function dashboard(request, response) {
     prisma.order.count({ where: { companyId, status: 'DRAFT' } }),
     prisma.order.count({ where: { companyId, status: 'SUBMITTED' } }),
     prisma.order.count({ where: { companyId, status: 'COMPLETED' } }),
+    prisma.order.findFirst({
+      where: { companyId, status: 'DRAFT' },
+      orderBy: { updatedAt: 'desc' },
+      select: orderSummarySelect,
+    }),
     prisma.order.findMany({
       where: { companyId },
       take: 5,
       orderBy: { updatedAt: 'desc' },
-      select: {
-        id: true,
-        number: true,
-        title: true,
-        status: true,
-        updatedAt: true,
-        project: { select: { id: true, name: true } },
-        createdByMembership: {
-          select: { user: { select: { id: true, name: true } } },
-        },
-        _count: { select: { items: true } },
-      },
+      select: orderSummarySelect,
     }),
   ]);
 
@@ -79,16 +100,8 @@ async function dashboard(request, response) {
       submittedOrders: submittedCount,
       completedOrders: completedCount,
     },
-    recentOrders: recentOrders.map(order => ({
-      id: order.id,
-      number: order.number,
-      title: order.title,
-      status: order.status,
-      updatedAt: order.updatedAt,
-      project: order.project,
-      worker: order.createdByMembership?.user || null,
-      itemCount: order._count.items,
-    })),
+    latestDraft: serializeDashboardOrder(latestDraft),
+    recentOrders: recentOrders.map(serializeDashboardOrder),
   });
 }
 
