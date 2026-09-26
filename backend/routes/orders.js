@@ -2,6 +2,7 @@ import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../auth/current-user.js';
 import { HttpError } from '../lib/errors.js';
 import { readJsonBody, sendJson } from '../lib/http.js';
+import { getCatalogCategoryLabel, getCatalogDisplayName, getCatalogImageUrl, serializeCatalogItem } from '../lib/material-catalog-presentation.js';
 import { buildOrderSnapshot, createOrderPdf } from '../lib/order-document.js';
 
 const ORDER_TITLE_MAX_LENGTH = 120;
@@ -251,17 +252,7 @@ async function listCatalog(request, response) {
     orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
   });
   sendJson(response, 200, {
-    items: items.map(item => ({
-      id: item.id,
-      key: item.key,
-      categoryKey: item.categoryKey,
-      categoryLabel: item.categoryLabel,
-      diameter: item.diameter,
-      type: item.type,
-      name: item.name,
-      unit: item.unit,
-      imageUrl: item.imageUrl,
-    })),
+    items: items.map(item => serializeCatalogItem(item)),
   });
 }
 
@@ -408,13 +399,13 @@ async function addItem(request, response, orderId) {
         orderId,
         catalogItemId: catalogItem.id,
         materialKey: catalogItem.key,
-        materialName: catalogItem.name,
+        materialName: getCatalogDisplayName(catalogItem),
         categoryKey: catalogItem.categoryKey,
-        categoryLabel: catalogItem.categoryLabel,
+        categoryLabel: getCatalogCategoryLabel(catalogItem),
         diameter: catalogItem.diameter,
         type: catalogItem.type,
         unit: catalogItem.unit,
-        imageUrl: catalogItem.imageUrl,
+        imageUrl: getCatalogImageUrl(catalogItem),
         quantity,
       },
     });
