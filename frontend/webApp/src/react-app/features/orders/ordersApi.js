@@ -21,6 +21,7 @@ async function readPdfResponse(response) {
 export const ordersApi = baseApi.injectEndpoints({
   endpoints: builder => ({
     getOrders: builder.query({ query: () => '/orders', transformResponse: response => response?.orders || [], providesTags: result => [{ type: 'Orders', id: 'GLOBAL' }, ...(result || []).map(order => ({ type: 'Orders', id: order.id }))] }),
+    getHistoryOrders: builder.query({ query: () => '/orders?scope=history', transformResponse: response => response?.orders || [], providesTags: result => [{ type: 'Orders', id: 'GLOBAL' }, ...(result || []).map(order => ({ type: 'Orders', id: order.id }))] }),
     getProjectOrders: builder.query({ query: projectId => `/projects/${encodeURIComponent(projectId)}/orders`, transformResponse: response => response?.orders || [], providesTags: (result, _error, projectId) => [{ type: 'Orders', id: `PROJECT-${projectId}` }, ...(result || []).map(order => ({ type: 'Orders', id: order.id }))] }),
     createOrder: builder.mutation({ query: ({ projectId, ...body }) => ({ url: `/projects/${encodeURIComponent(projectId)}/orders`, method: 'POST', body }), invalidatesTags: (_result, _error, { projectId }) => [{ type: 'Orders', id: `PROJECT-${projectId}` }, { type: 'Orders', id: 'GLOBAL' }, { type: 'Dashboard', id: 'SUMMARY' }] }),
     getOrder: builder.query({ query: orderId => `/orders/${encodeURIComponent(orderId)}`, transformResponse: response => response?.order || null, providesTags: (_result, _error, orderId) => [{ type: 'Orders', id: orderId }] }),
@@ -65,7 +66,7 @@ export const ordersApi = baseApi.injectEndpoints({
 });
 
 export const {
-  useGetOrdersQuery, useGetProjectOrdersQuery, useCreateOrderMutation, useGetOrderQuery, useGetOrderHistoryQuery, useUpdateOrderMutation,
+  useGetOrdersQuery, useGetHistoryOrdersQuery, useGetProjectOrdersQuery, useCreateOrderMutation, useGetOrderQuery, useGetOrderHistoryQuery, useUpdateOrderMutation,
   useDeleteOrderMutation, useDownloadOrderPdfMutation, useGetMaterialBootstrapQuery, useGetMaterialCatalogQuery, useGetFavoriteMaterialsQuery,
   useGetRecentMaterialsQuery, useAddFavoriteMaterialMutation, useRemoveFavoriteMaterialMutation, useAddOrderItemMutation,
   useUpdateOrderItemMutation, useDeleteOrderItemMutation, useSubmitOrderMutation, useCompleteOrderMutation,
