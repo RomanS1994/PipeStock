@@ -9,9 +9,11 @@ import {
   useGetOrderQuery,
   useSubmitOrderMutation,
 } from '../../features/orders/ordersApi.js';
+import { getMaterialImage } from '../AddMaterialPage/materialImageResolver.js';
 import '../OrderFlow/OrderFlow.css';
 
 const STATUS_LABELS = { DRAFT: 'Draft', SUBMITTED: 'Submitted', COMPLETED: 'Completed' };
+const CATEGORY_LABELS = { CU: 'Měď', STEEL: 'Uhlíková ocel' };
 const EVENT_LABELS = {
   CREATED: 'Заказ створено',
   SUBMITTED: 'Відправлено менеджеру',
@@ -27,6 +29,10 @@ function formatEventDate(value) {
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(value));
+}
+
+function getCategoryLabel(item) {
+  return CATEGORY_LABELS[String(item?.categoryKey || '').toUpperCase()] || item?.categoryLabel || '';
 }
 
 export function OrderDetailPage() {
@@ -73,26 +79,30 @@ export function OrderDetailPage() {
 
         {order.items.length ? (
           <div className="orderItemList">
-            {order.items.map(item => (
-              <div className="orderItemRow" key={item.id}>
-                <div className={`orderMaterialMark${item.imageUrl ? ' has-image' : ''}`}>
-                  {item.imageUrl ? <img src={item.imageUrl} alt="" /> : item.categoryLabel.slice(0, 2).toUpperCase()}
+            {order.items.map(item => {
+              const image = getMaterialImage(item);
+              const category = getCategoryLabel(item);
+              return (
+                <div className="orderItemRow" key={item.id}>
+                  <div className={`orderMaterialMark${image ? ' has-image' : ''}`}>
+                    {image ? <img src={image} alt="" /> : category.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="orderItemCopy"><strong>{category} {item.diameter}</strong><span>{item.type}</span></div>
+                  <strong className="orderItemQty">{item.quantity} {item.unit}</strong>
+                  {canEdit ? (
+                    <button
+                      className="orderRemoveItem"
+                      type="button"
+                      aria-label="Видалити матеріал"
+                      disabled={deleteState.isLoading}
+                      onClick={() => deleteItem({ orderId: order.id, itemId: item.id })}
+                    >
+                      ×
+                    </button>
+                  ) : null}
                 </div>
-                <div className="orderItemCopy"><strong>{item.categoryLabel} {item.diameter}</strong><span>{item.type}</span></div>
-                <strong className="orderItemQty">{item.quantity} {item.unit}</strong>
-                {canEdit ? (
-                  <button
-                    className="orderRemoveItem"
-                    type="button"
-                    aria-label="Видалити матеріал"
-                    disabled={deleteState.isLoading}
-                    onClick={() => deleteItem({ orderId: order.id, itemId: item.id })}
-                  >
-                    ×
-                  </button>
-                ) : null}
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : <div className="orderEmptyMaterials"><strong>Матеріалів ще немає</strong><p>Додайте перший матеріал до заказа.</p></div>}
 
