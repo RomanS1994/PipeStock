@@ -258,3 +258,217 @@ export function AddMaterialPage({ order, orderLoading, orderError, refetchOrder 
     setStep(1);
   }
 
+  function goBackStep() {
+    if (step === 1) return navigate(`/orders/${orderId}`);
+
+    if (fromShortcut && step === 4) {
+      setCatalogItemId('');
+      setFromShortcut(false);
+      setStep(1);
+      return;
+    }
+
+    if (step === 5) {
+      setCatalogItemId('');
+      setStep(4);
+      return;
+    }
+
+    if (step === 4 && !variantRequired && catalogItemId) {
+      setCatalogItemId('');
+      setMaterialType('');
+      setStep(3);
+      return;
+    }
+
+    if (step === 4) setMaterialType('');
+    if (step === 3) setDiameter('');
+    setStep(value => Math.max(1, value - 1));
+  }
+
+  async function toggleFavorite() {
+    if (!selectedItem) return;
+    if (selectedIsFavorite) await removeFavorite(selectedItem.id);
+    else await addFavorite(selectedItem.id);
+  }
+
+  async function handleAdd() {
+    if (!catalogItemId || quantity <= 0 || quantity > MAX_QUANTITY || order?.status !== 'DRAFT') return;
+    try {
+      await addItem({ orderId, catalogItemId, quantity }).unwrap();
+      resetForNextMaterial();
+    } catch {
+      // API error below.
+    }
+  }
+
+  if (orderLoading) {
+    return (
+      <div className="pageStack materialWizard">
+        <WizardTopbar orderId={orderId} onBack={() => navigate(`/orders/${orderId}`)} />
+        <section className="screenCard">Завантажуємо заказ…</section>
+      </div>
+    );
+  }
+
+  if (orderError || !order) {
+    return (
+      <div className="pageStack materialWizard">
+        <WizardTopbar orderId={orderId} onBack={() => navigate('/orders')} />
+        <section className="screenCard">
+          <p className="orderError">Не вдалося відкрити заказ.</p>
+          <Button type="button" fullWidth onClick={refetchOrder}>Спробувати ще раз</Button>
+        </section>
+      </div>
+    );
+  }
+
+  if (order.status !== 'DRAFT') {
+    return (
+      <div className="pageStack materialWizard">
+        <WizardTopbar orderId={orderId} onBack={() => navigate(`/orders/${orderId}`)} />
+        <section className="screenCard">
+          <div className="compactHeader">
+            <h1>Заказ уже відправлений</h1>
+            <p>Матеріали можна змінювати тільки поки заказ має статус Draft.</p>
+          </div>
+          <Button type="button" fullWidth onClick={() => navigate(`/orders/${orderId}`, { replace: true })}>Повернутися до заказа</Button>
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pageStack materialWizard">
+      <WizardTopbar orderId={orderId} onBack={goBackStep} />
+      <StepIndicator current={step} total={variantRequired ? 5 : 4} />
+      <p className="materialWizardOrder">Заказ #{order.number} · {order.title || ''}</p>
+
+      {isLoading ? <section className="screenCard">Завантажуємо каталог…</section> : null}
+      {catalogError ? <section className="screenCard"><p className="orderError">Не вдалося завантажити матеріали.</p><Button fullWidth onClick={refetchCatalog}>Спробувати ще раз</Button></section> : null}
+
+      {!isLoading && !catalogError && step === 1 ? (
+        <section className="materialWizardStage">
+          <MaterialSearch catalog={catalog} order={order} orderId={orderId} query={search} onQueryChange={setSearch} onSelect={selectShortcut} />
+          {!search.trim() ? (
+            <>
+              {showShortcuts && favorites.length ? (
+                <div className="materialShortcutSection">
+                  <div className="materialShortcutHeading"><span><Icon name="star" size={16} /> Обране</span><small>{favorites.length}</small></div>
+                  <div className="materialShortcutList">
+                    {favorites.slice(0, 6).map(item => <MaterialShortcut key={item.id} item={item} onClick={selectShortcut} />)}
+                  </div>
+                </div>
+              ) : null}
+
+              {showShortcuts && recent.length ? (
+                <div className="materialShortcutSection">
+                  <div className="materialShortcutHeading"><span><Icon name="clock" size={16} /> Нещодавні</span><small>{recent.length}</small></div>
+                  <div className="materialShortcutList">
+                    {recent.slice(0, 6).map(item => <MaterialShortcut key={item.id} item={item} onClick={selectShortcut} />)}
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="compactHeader"><h1>1. Виберіть категорію</h1><p>Оберіть систему матеріалу</p></div>
+              <div className="materialCategoryGrid">
+                {categories.map(category => {
+                  const image = getMaterialCategoryImage(category.key);
+                  return (
+                    <button key={category.key} type="button" className="materialCategoryCard" onClick={() => selectCategory(category.key)}>
+                      <span className={image ? 'has-image' : ''}>{image ? <img src={image} alt="" /> : category.label.slice(0, 2).toUpperCase()}</span>
+                      <strong>{category.label}</strong>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          ) : null}
+        </section>
+      ) : null}
+
+      {step === 2 ? (
+        <section className="materialWizardStage">
+          <div className="compactHeader"><h1>2. Виберіть діаметр</h1><p>{categories.find(item => item.key === categoryKey)?.label}</p></div>
+          <div className="materialDiameterGrid">
+            {diameters.map(value => (
+              <button key={value} type="button" className={diameter === value ? 'is-selected' : ''} onClick={() => selectDiameter(value)}>
+                {value === '—' ? 'Без розміру' : value}
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {step === 3 ? (
+        <section className="materialWizardStage">
+          <div className="compactHeader"><h1>3. Виберіть елемент</h1><p>{categories.find(item => item.key === categoryKey)?.label} · {diameter === '—' ? 'без розміру' : diameter}</p></div>
+          <div className="materialTypeList">
+            {typeItems.map(item => {
+              const candidates = getCandidatesForType(item.type);
+              const hasVariants = candidates.length > 1;
+              return (
+                <button key={item.type} type="button" className="materialTypeRow" onClick={() => selectType(item.type)}>
+                  <MaterialThumb item={item} />
+                  <span>
+                    <strong>{item.type}</strong>
+                    <small>{hasVariants ? 'Вибрати варіант розміру' : `${diameter === '—' ? 'Без розміру' : diameter} · далі кількість`}</small>
+                  </span>
+                  <b>›</b>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      {step === 4 && variantRequired ? (
+        <section className="materialWizardStage">
+          <div className="compactHeader"><h1>4. Виберіть розмір</h1><p>{materialType} · базовий {diameter === '—' ? 'без розміру' : diameter}</p></div>
+          <div className="materialDiameterGrid">
+            {variantItems.map(item => (
+              <button key={item.id} type="button" onClick={() => selectVariant(item.id)}>
+                {item.diameter === '—'
+                  ? item.name
+                  : variantDiameters.size === variantItems.length
+                    ? item.diameter
+                    : item.name}
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {step === quantityStep && selectedItem ? (
+        <section className="materialWizardStage materialQuantityStage">
+          <div className="compactHeader"><h1>{quantityStep}. Вкажіть кількість</h1><p>Перевірте матеріал і додайте в заказ</p></div>
+          <div className="selectedMaterialCard">
+            <MaterialThumb item={selectedItem} className="selectedMaterialMark" />
+            <div><strong>{getCategoryDisplayLabel(selectedItem.categoryKey, selectedItem.categoryLabel)} {selectedItem.diameter}</strong><span>{selectedItem.type}</span></div>
+            <button type="button" className={`materialFavoriteButton${selectedIsFavorite ? ' is-active' : ''}`} onClick={toggleFavorite} aria-label={selectedIsFavorite ? 'Прибрати з обраного' : 'Додати в обране'}><Icon name="star" size={19} /></button>
+          </div>
+          <div className="quantityStepper">
+            <button type="button" onClick={() => setQuantity(value => Math.max(1, value - 1))}>−</button>
+            <strong>{quantity}</strong>
+            <button type="button" disabled={quantity >= MAX_QUANTITY} onClick={() => setQuantity(value => Math.min(MAX_QUANTITY, value + 1))}>+</button>
+          </div>
+          <span className="quantityUnit">{selectedItem.unit}</span>
+          <div className="quantityQuickButtons">
+            {[1, 5, 10].map(amount => (
+              <button
+                key={amount}
+                type="button"
+                disabled={quantity >= MAX_QUANTITY}
+                onClick={() => setQuantity(value => Math.min(MAX_QUANTITY, value + amount))}
+              >
+                +{amount}
+              </button>
+            ))}
+          </div>
+          {error ? <p className="orderError">{error?.data?.error || 'Не вдалося додати матеріал'}</p> : null}
+          <Button fullWidth disabled={adding} onClick={handleAdd}>{adding ? 'Додаємо…' : 'Додати'}</Button>
+        </section>
+      ) : null}
+    </div>
+  );
+}
