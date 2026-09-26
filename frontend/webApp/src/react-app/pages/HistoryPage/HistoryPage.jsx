@@ -3,13 +3,13 @@ import { Link } from 'react-router-dom';
 import { SearchField, StatusChip } from '@shared/app/components/ui/PipeStockUI.jsx';
 import { OrderDocumentActions } from '../../components/OrderDocumentActions/OrderDocumentActions.jsx';
 import { WorkspaceNavigation } from '../../components/WorkspaceNavigation/WorkspaceNavigation.jsx';
-import { useGetOrdersQuery } from '../../features/orders/ordersApi.js';
+import { useGetHistoryOrdersQuery } from '../../features/orders/ordersApi.js';
 import './HistoryPage.css';
 
 const STATUS_LABELS = { SUBMITTED: 'Submitted', COMPLETED: 'Completed' };
 
 export function HistoryPage() {
-  const { data: orders = [], isLoading, isError, refetch } = useGetOrdersQuery();
+  const { data: orders = [], isLoading, isError, refetch } = useGetHistoryOrdersQuery();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('ALL');
 
