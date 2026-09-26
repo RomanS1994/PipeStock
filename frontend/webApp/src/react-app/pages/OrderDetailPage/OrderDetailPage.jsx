@@ -6,7 +6,6 @@ import { selectUser } from '../../features/auth/authSlice.js';
 import {
   useCompleteOrderMutation,
   useDeleteOrderItemMutation,
-  useGetOrderHistoryQuery,
   useGetOrderQuery,
   useSubmitOrderMutation,
 } from '../../features/orders/ordersApi.js';
@@ -36,9 +35,6 @@ export function OrderDetailPage() {
   const membership = (user?.memberships || []).find(item => item.status === 'ACTIVE');
   const manager = membership?.role === 'MANAGER';
   const { data: order, isLoading, isError, refetch } = useGetOrderQuery(orderId);
-  const { data: history = [] } = useGetOrderHistoryQuery(orderId, {
-    skip: !order || order.status === 'DRAFT',
-  });
   const [submitOrder, submitState] = useSubmitOrderMutation();
   const [completeOrder, completeState] = useCompleteOrderMutation();
   const [deleteItem, deleteState] = useDeleteOrderItemMutation();
@@ -47,6 +43,7 @@ export function OrderDetailPage() {
   if (isError || !order) return <section className="screenCard"><strong>Не вдалося відкрити заказ</strong><button type="button" onClick={refetch}>Спробувати ще раз</button></section>;
 
   const canEdit = order.status === 'DRAFT' && (manager || order.createdByMembershipId === membership?.id);
+  const history = order.history || [];
 
   return (
     <div className="pageStack orderFlowPage">
