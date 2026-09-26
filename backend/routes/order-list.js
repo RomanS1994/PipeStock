@@ -80,10 +80,13 @@ export async function handleOrderListRoutes(request, response, { pathName }) {
     const user = await requireAuth(request);
     const membership = getActiveMembership(user);
     if (!membership) throw new HttpError(403, 'Company access is required');
+    const query = new URL(request.url, 'http://localhost').searchParams;
+    const historyOnly = query.get('scope') === 'history';
 
     const orders = await prisma.order.findMany({
       where: {
         companyId: membership.companyId,
+        ...(historyOnly ? { status: { in: ['SUBMITTED', 'COMPLETED'] } } : {}),
         ...(membership.role === 'EMPLOYEE'
           ? { project: { assignments: { some: { membershipId: membership.id } } } }
           : {}),
