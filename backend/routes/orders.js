@@ -126,7 +126,7 @@ function serializeItem(item) {
 }
 
 function serializeOrder(order) {
-  return {
+  const result = {
     id: order.id,
     number: order.number,
     title: order.title,
@@ -145,6 +145,8 @@ function serializeOrder(order) {
     documentAvailable: order.status !== 'DRAFT',
     snapshotCreatedAt: order.snapshot?.createdAt || null,
   };
+  if (order.history) result.history = order.history.map(serializeEvent);
+  return result;
 }
 
 function serializeEvent(event) {
@@ -295,7 +297,18 @@ async function getOrder(request, response, orderId) {
   const user = await requireAuth(request);
   const membership = requireMembership(user);
   const order = await findOrder(orderId, membership);
-  const normalizedOrder = { ...order, project: { ...order.project, assignments: undefined } };
+  const history = order.status === 'DRAFT' ? [] : await prisma.orderEvent.findMany({
+    where: { orderId },
+    include: {
+      actor: {
+        include: {
+          user: { select: { id: true, name: true } },
+        },
+      },
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+  const normalizedOrder = { ...order, history, project: { ...order.project, assignments: undefined } };
   sendJson(response, 200, { order: serializeOrder(normalizedOrder) });
 }
 
