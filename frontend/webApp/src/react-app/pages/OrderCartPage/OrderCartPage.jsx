@@ -13,6 +13,11 @@ import '../OrderFlow/OrderFlow.css';
 import './OrderCartPage.css';
 
 const MAX_QUANTITY = 99999;
+const CATEGORY_LABELS = { CU: 'Měď', STEEL: 'Uhlíková ocel' };
+
+function getCategoryLabel(item) {
+  return CATEGORY_LABELS[String(item?.categoryKey || '').toUpperCase()] || item?.categoryLabel || '';
+}
 
 export function OrderCartPage() {
   const { orderId } = useParams();
@@ -84,6 +89,7 @@ export function OrderCartPage() {
           <div className="orderCartList">
             {items.map(item => {
               const image = getMaterialImage(item);
+              const category = getCategoryLabel(item);
               const busy = pendingId !== null || updateState.isLoading || deleteState.isLoading;
               return (
                 <article className="orderCartItem" key={item.id}>
@@ -92,7 +98,7 @@ export function OrderCartPage() {
                   </div>
                   <div className="orderCartItemInfo">
                     <strong>{item.type || item.name}</strong>
-                    <span>{item.categoryLabel} · {item.diameter}</span>
+                    <span>{category} · {item.diameter}</span>
                     <span className="orderCartItemUnit">{item.quantity} {item.unit}</span>
                     {canEdit ? (
                       <div className="orderCartItemControls">
