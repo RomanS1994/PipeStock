@@ -4,6 +4,11 @@ import { useDeleteOrderItemMutation, useUpdateOrderItemMutation } from '../../fe
 import './DraftCart.css';
 
 const MAX_QUANTITY = 99999;
+const CATEGORY_LABELS = { CU: 'Měď', STEEL: 'Uhlíková ocel' };
+
+function getCategoryLabel(item) {
+  return CATEGORY_LABELS[String(item?.categoryKey || '').toUpperCase()] || item?.categoryLabel || '';
+}
 
 function parseQuantity(value) {
   const number = Number(String(value).trim().replace(',', '.'));
@@ -96,9 +101,10 @@ export function DraftCart({ order, orderId, canEdit, onRefresh }) {
                 const pending = busyId === item.id;
                 const disabled = !canEdit || busyId !== null;
                 const current = String(draftValues[item.id] ?? item.quantity);
+                const category = getCategoryLabel(item);
                 return (
                   <div className="draftCartItem" key={item.id}>
-                    <div className="draftCartItemName"><strong>{item.type} · {item.diameter}</strong><span>{item.categoryLabel} · {item.materialName}</span></div>
+                    <div className="draftCartItemName"><strong>{item.type} · {item.diameter}</strong><span>{category} · {item.materialName}</span></div>
                     <div className="draftCartItemActions">
                       <button type="button" disabled={disabled} aria-label={`Зменшити кількість: ${item.type}`} onClick={() => saveQuantity(item, Math.max(0.01, Math.round((Number(item.quantity) - 1) * 100) / 100))}>−</button>
                       <input aria-label={`Кількість: ${item.type} ${item.diameter}`} inputMode="decimal" type="text" disabled={disabled} value={current} onChange={event => setDraftValues(previous => ({ ...previous, [item.id]: event.target.value }))} onBlur={event => { if (!disabled) saveQuantity(item, event.target.value); }} onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur(); }} />
