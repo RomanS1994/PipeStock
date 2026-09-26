@@ -2,6 +2,7 @@ import { requireAuth } from '../auth/current-user.js';
 import { prisma } from '../db/prisma.js';
 import { HttpError } from '../lib/errors.js';
 import { sendJson } from '../lib/http.js';
+import { serializeCatalogItem } from '../lib/material-catalog-presentation.js';
 
 function getActiveMembership(user) {
   return (user.memberships || []).find(
@@ -14,21 +15,6 @@ function requireMembership(user, role) {
   if (!membership) throw new HttpError(403, 'Company access is required');
   if (role && membership.role !== role) throw new HttpError(403, 'Manager access is required');
   return membership;
-}
-
-function serializeCatalogItem(item, extra = {}) {
-  return {
-    id: item.id,
-    key: item.key,
-    categoryKey: item.categoryKey,
-    categoryLabel: item.categoryLabel,
-    diameter: item.diameter,
-    type: item.type,
-    name: item.name,
-    unit: item.unit,
-    imageUrl: item.imageUrl,
-    ...extra,
-  };
 }
 
 async function getCatalogItems() {
