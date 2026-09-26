@@ -25,7 +25,7 @@ export function ObjectDetailPage() {
   const [editing, setEditing] = useState(false);
   const { data: project, isLoading, isError, refetch } = useGetProjectQuery(projectId);
   const { data: orders = [], isLoading: ordersLoading } = useGetProjectOrdersQuery(projectId);
-  const { data: employees = [], isLoading: employeesLoading } = useGetEmployeesQuery(undefined, { skip: !manager });
+  const { data: employees = [], isLoading: employeesLoading } = useGetEmployeesQuery(undefined, { skip: !manager || !editing });
   const [updateProject, { isLoading: saving, error: saveError }] = useUpdateProjectMutation();
   const [prepareImageUpload] = usePrepareImageUploadMutation();
 
