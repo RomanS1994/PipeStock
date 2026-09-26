@@ -89,7 +89,7 @@ export function ObjectsPage() {
               <div className="objectCard-copy">
                 <div className="objectCard-titleRow"><strong>{project.name}</strong><StatusChip status={project.status}>{STATUS_LABELS[project.status] || project.status}</StatusChip></div>
                 <span className="objectCard-address"><Icon name="mapPin" size={14} />{project.address || 'Адресу не вказано'}</span>
-                {manager ? <span className="objectCard-meta"><Icon name="users" size={14} />{project.employees?.length || 0} {project.employees?.length === 1 ? 'працівник' : 'працівників'}</span> : null}
+                {manager ? <span className="objectCard-meta"><Icon name="users" size={14} />{project.employeeCount || 0} {project.employeeCount === 1 ? 'працівник' : 'працівників'}</span> : null}
               </div>
               <Icon name="chevronRight" size={19} className="objectCard-chevron" />
             </Link>
