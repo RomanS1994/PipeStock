@@ -134,6 +134,20 @@ function serializeProject(project) {
   };
 }
 
+function serializeProjectSummary(project) {
+  return {
+    id: project.id,
+    name: project.name,
+    address: project.address,
+    description: project.description,
+    imageUrl: project.imageUrl,
+    status: project.status,
+    createdAt: project.createdAt,
+    updatedAt: project.updatedAt,
+    employeeCount: project._count?.assignments || 0,
+  };
+}
+
 async function getProjectForMembership(projectId, membership) {
   const project = await prisma.project.findFirst({
     where: { id: projectId, companyId: membership.companyId },
@@ -164,11 +178,13 @@ async function listProjects(request, response) {
 
   const projects = await prisma.project.findMany({
     where,
-    include: projectInclude,
+    include: {
+      _count: { select: { assignments: true } },
+    },
     orderBy: [{ status: 'asc' }, { updatedAt: 'desc' }],
   });
 
-  sendJson(response, 200, { projects: projects.map(serializeProject) });
+  sendJson(response, 200, { projects: projects.map(serializeProjectSummary) });
 }
 
 async function getProject(request, response, projectId) {
