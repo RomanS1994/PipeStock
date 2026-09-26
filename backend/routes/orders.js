@@ -107,6 +107,16 @@ const orderInclude = {
   snapshot: true,
 };
 
+const orderSummaryInclude = {
+  project: { select: { id: true, name: true, address: true, status: true } },
+  createdByMembership: {
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+    },
+  },
+  _count: { select: { items: true } },
+};
+
 function serializeItem(item) {
   return {
     id: item.id,
@@ -147,6 +157,26 @@ function serializeOrder(order) {
   };
   if (order.history) result.history = order.history.map(serializeEvent);
   return result;
+}
+
+function serializeOrderSummary(order) {
+  return {
+    id: order.id,
+    number: order.number,
+    title: order.title,
+    category: order.category,
+    note: order.note,
+    status: order.status,
+    submittedAt: order.submittedAt,
+    completedAt: order.completedAt,
+    createdAt: order.createdAt,
+    updatedAt: order.updatedAt,
+    project: order.project,
+    worker: order.createdByMembership?.user || null,
+    createdByMembershipId: order.createdByMembershipId,
+    itemCount: order._count?.items || 0,
+    documentAvailable: order.status !== 'DRAFT',
+  };
 }
 
 function serializeEvent(event) {
@@ -241,10 +271,10 @@ async function listProjectOrders(request, response, projectId) {
   await requireProjectAccess(projectId, membership);
   const orders = await prisma.order.findMany({
     where: { projectId, companyId: membership.companyId },
-    include: orderInclude,
+    include: orderSummaryInclude,
     orderBy: { createdAt: 'desc' },
   });
-  sendJson(response, 200, { orders: orders.map(serializeOrder) });
+  sendJson(response, 200, { orders: orders.map(serializeOrderSummary) });
 }
 
 async function createOrder(request, response, projectId) {
