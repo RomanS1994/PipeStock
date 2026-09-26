@@ -10,7 +10,7 @@ const RESULT_LIMIT = 40;
 const MAX_QUANTITY = 99999;
 const CATEGORY_NAMES = { CU: 'Měď', STEEL: 'Uhlíková ocel' };
 
-export function MaterialSearch({ catalog, order, orderId, refetchOrder, query, onQueryChange, onSelect }) {
+export function MaterialSearch({ catalog, order, orderId, query, onQueryChange, onSelect }) {
   const user = useSelector(selectUser);
   const membership = (user?.memberships || []).find(item => item.status === 'ACTIVE' && !item.deletedAt);
   const [addItem] = useAddOrderItemMutation();
@@ -38,7 +38,6 @@ export function MaterialSearch({ catalog, order, orderId, refetchOrder, query, o
         await addItem({ orderId, catalogItemId: item.id, quantity: 1 }).unwrap();
       }
       setFeedback(`Додано в кошик: ${item.type} · ${item.diameter}`);
-      await refetchOrder();
     } catch (error) {
       setFailed(true);
       setFeedback(error?.data?.error || error?.message || 'Не вдалося додати матеріал. Спробуйте ще раз.');
