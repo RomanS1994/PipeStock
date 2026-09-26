@@ -9,12 +9,17 @@ export function CartAwareAddMaterialPage() {
   const { orderId } = useParams();
   const user = useSelector(selectUser);
   const membership = (user?.memberships || []).find(item => item.status === 'ACTIVE');
-  const { data: order } = useGetOrderQuery(orderId);
+  const {
+    data: order,
+    isLoading: orderLoading,
+    isError: orderError,
+    refetch: refetchOrder,
+  } = useGetOrderQuery(orderId);
   const canEdit = order?.status === 'DRAFT' && (membership?.role === 'MANAGER' || order?.createdByMembershipId === membership?.id);
 
   return (
     <div className="materialCartShell">
-      <AddMaterialPage />
+      <AddMaterialPage order={order} orderLoading={orderLoading} orderError={orderError} refetchOrder={refetchOrder} />
       {canEdit ? (
         <Link className="materialCartShortcut" to={`/orders/${orderId}/cart`} aria-label={`Відкрити кошик: ${order.items?.length || 0} позицій`}>
           <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
