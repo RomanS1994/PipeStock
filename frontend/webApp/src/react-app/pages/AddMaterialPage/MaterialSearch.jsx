@@ -1,8 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
 import { selectUser } from '../../features/auth/authSlice.js';
-import { useAddOrderItemMutation, useGetOrderQuery, useUpdateOrderItemMutation } from '../../features/orders/ordersApi.js';
+import { useAddOrderItemMutation, useUpdateOrderItemMutation } from '../../features/orders/ordersApi.js';
 import { getMaterialImage } from './materialImageResolver.js';
 import { searchMaterials } from './materialSearchMatcher.js';
 import './MaterialSearch.css';
@@ -11,11 +10,9 @@ const RESULT_LIMIT = 40;
 const MAX_QUANTITY = 99999;
 const CATEGORY_NAMES = { CU: 'Měď', STEEL: 'Uhlíková ocel' };
 
-export function MaterialSearch({ catalog, query, onQueryChange, onSelect }) {
-  const { orderId } = useParams();
+export function MaterialSearch({ catalog, order, orderId, refetchOrder, query, onQueryChange, onSelect }) {
   const user = useSelector(selectUser);
   const membership = (user?.memberships || []).find(item => item.status === 'ACTIVE' && !item.deletedAt);
-  const { data: order, refetch: refetchOrder } = useGetOrderQuery(orderId);
   const [addItem] = useAddOrderItemMutation();
   const [updateItem] = useUpdateOrderItemMutation();
   const [quickBusyId, setQuickBusyId] = useState(null);
