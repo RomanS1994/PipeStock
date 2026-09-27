@@ -5,7 +5,7 @@ const CATEGORY_LABELS = {
   HT: 'HT',
   KG: 'KG',
   MLCP: 'MLCP',
-  OTHER: 'Jiné',
+  OTHER: 'Montážní materiál',
   PEX: 'PEX',
   PPR: 'PPR',
   SANITA: 'Sanita',
