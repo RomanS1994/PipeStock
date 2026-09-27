@@ -13,7 +13,7 @@ import '../OrderFlow/OrderFlow.css';
 import './OrderCartPage.css';
 
 const MAX_QUANTITY = 99999;
-const CATEGORY_LABELS = { CU: 'Měď', STEEL: 'Uhlíková ocel' };
+const CATEGORY_LABELS = { CU: 'Měď', STEEL: 'Uhlíková ocel', OTHER: 'Montážní materiál' };
 
 function getCategoryLabel(item) {
   return CATEGORY_LABELS[String(item?.categoryKey || '').toUpperCase()] || item?.categoryLabel || '';
