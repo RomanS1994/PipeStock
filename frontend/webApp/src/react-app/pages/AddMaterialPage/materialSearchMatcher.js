@@ -1,4 +1,4 @@
-const CATEGORY_NAMES = { CU: 'Měď', STEEL: 'Uhlíková ocel' };
+const CATEGORY_NAMES = { CU: 'Měď', STEEL: 'Uhlíková ocel', OTHER: 'Montážní materiál' };
 
 function normalize(value) {
   return String(value ?? '')
