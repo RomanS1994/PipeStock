@@ -13,7 +13,7 @@ import { getMaterialImage } from '../AddMaterialPage/materialImageResolver.js';
 import '../OrderFlow/OrderFlow.css';
 
 const STATUS_LABELS = { DRAFT: 'Draft', SUBMITTED: 'Submitted', COMPLETED: 'Completed' };
-const CATEGORY_LABELS = { CU: 'Měď', STEEL: 'Uhlíková ocel' };
+const CATEGORY_LABELS = { CU: 'Měď', STEEL: 'Uhlíková ocel', OTHER: 'Montážní materiál' };
 const EVENT_LABELS = {
   CREATED: 'Заказ створено',
   SUBMITTED: 'Відправлено менеджеру',
