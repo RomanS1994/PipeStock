@@ -38,3 +38,21 @@ test('catalog presentation normalizes carbon steel label and image', () => {
   assert.equal(item.name, 'Uhlíková ocel 20 mm · Trubka');
   assert.equal(item.imageUrl, '/materials/steel-pipe.webp');
 });
+
+test('catalog presentation turns OTHER into mounting material category', () => {
+  const item = serializeCatalogItem({
+    id: 'other-ptfe-tape',
+    key: 'OTHER_PTFE_TAPE',
+    categoryKey: 'OTHER',
+    categoryLabel: 'Jiné',
+    diameter: '—',
+    type: 'PTFE páska',
+    name: 'Jiné — PTFE páska',
+    unit: 'ks',
+    imageUrl: null,
+  });
+
+  assert.equal(item.categoryLabel, 'Montážní materiál');
+  assert.equal(item.name, 'Montážní materiál · PTFE páska');
+  assert.equal(item.imageUrl, '/materials/category-other.webp');
+});
