@@ -8,7 +8,7 @@ import './MaterialSearch.css';
 
 const RESULT_LIMIT = 40;
 const MAX_QUANTITY = 99999;
-const CATEGORY_NAMES = { CU: 'Měď', STEEL: 'Uhlíková ocel' };
+const CATEGORY_NAMES = { CU: 'Měď', STEEL: 'Uhlíková ocel', OTHER: 'Montážní materiál' };
 
 export function MaterialSearch({ catalog, order, orderId, query, onQueryChange, onSelect }) {
   const user = useSelector(selectUser);
