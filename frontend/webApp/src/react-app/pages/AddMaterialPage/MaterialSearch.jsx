@@ -64,7 +64,7 @@ export function MaterialSearch({ catalog, order, orderId, query, onQueryChange, 
               <div className="materialSearchResult" key={item.id}>
                 <button type="button" className="materialSearchResultSelect" disabled={quickBusyId !== null} onClick={() => onSelect(item)} aria-label={`Вибрати ${item.type} ${item.diameter} та вказати кількість`}>
                   <span className="materialSearchResultImage">{image ? <img src={image} alt="" loading="lazy" /> : null}</span>
-                  <span className="materialSearchResultText"><strong>{item.type} · {item.diameter}</strong><small>{category} · {item.name}</small></span>
+                  <span className="materialSearchResultText"><strong>{item.type} · {item.diameter}</strong><small>{category}</small></span>
                 </button>
                 <button type="button" className="materialSearchQuickAdd" disabled={!canEdit || quickBusyId !== null} onClick={() => addToCart(item)} aria-label={`Додати в кошик ${item.type} ${item.diameter}`}>
                   {quickBusyId === item.id ? 'Додаємо…' : '+ В кошик'}
