@@ -102,6 +102,15 @@
 /* Variant screen reuses the approved diameter tiles, but keeps long fitting names readable. */
 .materialWizardStage:has(.materialDiameterGrid) .materialDiameterGrid button { overflow-wrap: anywhere; }
 
+/* The OTHER category keeps its existing category card; these rows only organize its positions. */
+.otherMaterialGroupList { display: grid; gap: 10px; }
+.otherMaterialGroupRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 72px; padding: 12px 16px; border: 1px solid #dfe4eb; border-radius: 16px; background: #fff; text-align: left; box-shadow: 0 1px 2px rgba(15,23,42,.025); }
+.otherMaterialGroupRow > span { display: grid; gap: 4px; }
+.otherMaterialGroupRow strong { color: #111827; font-size: 16px; line-height: 1.2; font-weight: 750; }
+.otherMaterialGroupRow small { color: #7b8799; font-size: 12px; }
+.otherMaterialGroupRow > b { color: #9aa5b5; font-size: 25px; font-weight: 400; }
+.otherMaterialGroupRow:active { transform: scale(.99); }
+
 @media (max-width: 420px) {
   .materialCategoryGrid { gap: 10px; }
   .materialCategoryCard { min-height: 146px; padding: 13px 12px 12px; border-radius: 17px; }
