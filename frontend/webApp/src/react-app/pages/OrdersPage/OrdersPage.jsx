@@ -111,13 +111,13 @@ export function OrdersPage() {
                   <StatusChip status={order.status}>{STATUS_LABELS[order.status] || order.status}</StatusChip>
                 </div>
 
-                <Link to={`/orders/${order.id}`} className="orderListCard-main">
+                <Link to={`/orders/${order.id}`} state={{ returnTo: '/orders' }} className="orderListCard-main">
                   <strong>{order.title || `Заказ #${order.number}`}</strong>
                   <span>{getMetaLine(order)}</span>
                 </Link>
 
                 <div className="orderListCard-actions">
-                  <Link className="orderListCard-primary" to={`/orders/${order.id}`}>{primaryLabel}</Link>
+                  <Link className="orderListCard-primary" to={`/orders/${order.id}`} state={{ returnTo: '/orders' }}>{primaryLabel}</Link>
                   <OrderDocumentActions order={order} compact hidePreview iconOnly className="orderListCard-documentActions" />
                   {deletable ? (
                     <button

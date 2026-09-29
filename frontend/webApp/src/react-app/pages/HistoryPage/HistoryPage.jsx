@@ -48,7 +48,7 @@ export function HistoryPage() {
         <section className="historyList">
           {history.map(order => (
             <article key={order.id} className="historyCard">
-              <Link to={`/orders/${order.id}`} className="historyCardLink">
+              <Link to={`/orders/${order.id}`} state={{ returnTo: '/history' }} className="historyCardLink">
                 <div className="historyCardTop"><div><span>#{order.number}</span><strong>{order.title}</strong></div><StatusChip status={order.status}>{STATUS_LABELS[order.status] || order.status}</StatusChip></div>
                 <div className="historyCardMeta"><span>{order.project?.name || 'Без об’єкта'}</span><span>{order.itemCount} поз.</span><span>{order.worker?.name || '—'}</span></div>
                 <small>{new Date(order.updatedAt || order.createdAt).toLocaleDateString('uk-UA')}</small>

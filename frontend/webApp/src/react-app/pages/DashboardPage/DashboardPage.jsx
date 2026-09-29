@@ -18,7 +18,7 @@ function assetPath(path) {
 
 function OrderSummary({ order, featured = false }) {
   return (
-    <Link to={`/orders/${order.id}`} className={featured ? 'dashboardContinueOrder' : 'dashboardActivityRow'}>
+    <Link to={`/orders/${order.id}`} state={{ returnTo: '/dashboard' }} className={featured ? 'dashboardContinueOrder' : 'dashboardActivityRow'}>
       <span className="dashboardOrderVisual" aria-hidden="true"><Icon name="clipboard" size={featured ? 26 : 21} /></span>
       <span className="dashboardOrderCopy">
         <span className="dashboardOrderNumber">#{order.number}</span>
@@ -85,7 +85,7 @@ export function DashboardPage() {
             <section className="dashboardPanel dashboardContinue">
               <div className="dashboardSectionHeader"><h2>Продовжити</h2></div>
               <OrderSummary order={latestDraft} featured />
-              <Link className="dashboardContinueAction" to={`/orders/${latestDraft.id}`}>Продовжити <span aria-hidden="true">→</span></Link>
+              <Link className="dashboardContinueAction" to={`/orders/${latestDraft.id}`} state={{ returnTo: '/dashboard' }}>Продовжити <span aria-hidden="true">→</span></Link>
             </section>
           ) : null}
 

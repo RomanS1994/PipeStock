@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { BackLink, Button, StatusChip } from '@shared/app/components/ui/PipeStockUI.jsx';
 import { OrderDocumentActions } from '../../components/OrderDocumentActions/OrderDocumentActions.jsx';
 import { selectUser } from '../../features/auth/authSlice.js';
@@ -37,6 +37,7 @@ function getCategoryLabel(item) {
 
 export function OrderDetailPage() {
   const { orderId } = useParams();
+  const location = useLocation();
   const user = useSelector(selectUser);
   const membership = (user?.memberships || []).find(item => item.status === 'ACTIVE');
   const manager = membership?.role === 'MANAGER';
@@ -54,7 +55,7 @@ export function OrderDetailPage() {
   return (
     <div className="pageStack orderFlowPage">
       <header className="orderTopbar">
-        <BackLink to={`/objects/${order.project.id}`} />
+        <BackLink to={location.state?.returnTo || `/objects/${order.project.id}`} />
         <strong>Заказ #{order.number}</strong>
         <span />
       </header>
