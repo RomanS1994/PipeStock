@@ -26,24 +26,21 @@ const ONBOARDING_SLIDES = [
     kicker: 'Матеріали під контролем',
     title: 'Швидкий облік матеріалів на об’єкті',
     description: 'Виберіть систему, діаметр і потрібний елемент за кілька натискань — прямо під час монтажу.',
-    image: assetPath('/onboarding/copper-installation.webp'),
-    secondaryImage: assetPath('/onboarding/copper-detail.webp'),
+    image: assetPath('/onboarding/copper-installation-v2.webp'),
     alt: 'Мідні труби та мідні фітинги',
   },
   {
     kicker: 'Заказ без зайвих записів',
     title: 'Збирайте матеріали в один заказ',
     description: 'Працівник створює заказ на об’єкті, швидко додає фітинги й кількість, а команда бачить актуальний список.',
-    image: assetPath('/onboarding/ppr-installation.webp'),
-    secondaryImage: assetPath('/onboarding/plumber-tablet.webp'),
+    image: assetPath('/onboarding/ppr-installation-v2.webp'),
     alt: 'Білий PPR монтаж і PipeStock на планшеті',
   },
   {
     kicker: 'Вся історія в PipeStock',
     title: 'Переглядайте історію та готовий PDF',
     description: 'Збережені закази залишаються прив’язаними до об’єкта. Перевіряйте матеріали та відкривайте PDF без паперових списків.',
-    image: assetPath('/onboarding/steel-installation.webp'),
-    secondaryImage: assetPath('/onboarding/steel-detail.webp'),
+    image: assetPath('/onboarding/steel-installation-v2.webp'),
     alt: 'Вуглецева сталь і сталеві трубопроводи',
   },
 ];
@@ -93,9 +90,6 @@ export function WelcomePage() {
         <span className="welcomePage-heroGlow" aria-hidden="true" />
         <div className="welcomePage-photo welcomePage-photoPrimary">
           <img src={slide.image} alt={slide.alt} loading="eager" decoding="async" draggable="false" />
-        </div>
-        <div className="welcomePage-photo welcomePage-photoSecondary" aria-hidden="true">
-          <img src={slide.secondaryImage} alt="" loading="eager" decoding="async" draggable="false" />
         </div>
         <span className="welcomePage-heroBadge">{slideIndex + 1} / {ONBOARDING_SLIDES.length}</span>
       </div>
