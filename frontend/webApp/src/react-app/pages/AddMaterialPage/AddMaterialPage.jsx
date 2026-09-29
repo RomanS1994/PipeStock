@@ -56,6 +56,12 @@ const OTHER_GROUP_BY_TYPE = {
   'Perlátor': 'Sanitární doplňky',
   'Flexi hadička': 'Sanitární doplňky',
 };
+
+function getOtherGroupLabel(type) {
+  if (String(type || '').startsWith('Mirelon (PE)')) return 'Izolace';
+  if (String(type || '').startsWith('Kaučuková izolace ·')) return 'Izolace';
+  return OTHER_GROUP_BY_TYPE[type] || 'Další montážní materiál';
+}
 const OTHER_GROUP_ORDER = [
   'Objímky',
   'Izolace',
@@ -163,7 +169,7 @@ function MaterialShortcut({ item, onClick }) {
     <button type="button" className="materialShortcutCard" onClick={() => onClick(item)}>
       <MaterialThumb item={item} className="materialShortcutMark" />
       <span className="materialShortcutCopy">
-        <strong>{getCategoryDisplayLabel(item.categoryKey, item.categoryLabel)} {item.diameter}</strong>
+        <strong>{getCategoryDisplayLabel(item.categoryKey, item.categoryLabel)} {item.diameter}{item.thickness ? ` · ${item.thickness}` : ''}</strong>
         <span>{item.type}</span>
       </span>
     </button>
@@ -224,10 +230,13 @@ export function AddMaterialPage({ order, orderLoading, orderError, refetchOrder 
   }, [catalog]);
 
   const categoryItems = useMemo(() => catalog.filter(item => item.categoryKey === categoryKey), [catalog, categoryKey]);
+  const isOtherCategory = categoryKey === 'OTHER';
+  const isInsulationGroup = isOtherCategory && otherGroup === 'Izolace';
+  const isInsulationVariant = isInsulationGroup && materialType !== 'Izolační páska';
   const otherGroups = useMemo(() => {
     const groups = new Map();
     categoryItems.forEach(item => {
-      const label = OTHER_GROUP_BY_TYPE[item.type] || 'Další montážní materiál';
+      const label = getOtherGroupLabel(item.type);
       if (!groups.has(label)) groups.set(label, []);
       groups.get(label).push(item);
     });
@@ -239,6 +248,14 @@ export function AddMaterialPage({ order, orderLoading, orderError, refetchOrder 
     () => otherGroups.find(group => group.label === otherGroup)?.items || [],
     [otherGroups, otherGroup],
   );
+  const displayedOtherGroupItems = useMemo(() => {
+    if (!isInsulationGroup) return otherGroupItems;
+    const byType = new Map();
+    otherGroupItems.forEach(item => {
+      if (!byType.has(item.type)) byType.set(item.type, item);
+    });
+    return [...byType.values()];
+  }, [isInsulationGroup, otherGroupItems]);
   const diameters = useMemo(
     () => unique(categoryItems.flatMap(getBaseDiameters))
       .sort((a, b) => getDiameterNumber(a) - getDiameterNumber(b) || String(a).localeCompare(String(b), 'cs')),
@@ -256,16 +273,16 @@ export function AddMaterialPage({ order, orderLoading, orderError, refetchOrder 
     return [...map.values()];
   }, [matchingDiameterItems]);
   const variantItems = useMemo(
-    () => matchingDiameterItems
-      .filter(item => item.type === materialType)
+    () => (isInsulationVariant
+      ? categoryItems.filter(item => item.type === materialType && item.diameter === diameter)
+      : matchingDiameterItems.filter(item => item.type === materialType))
       .sort((a, b) => getDiameterNumber(a.diameter) - getDiameterNumber(b.diameter) || a.diameter.localeCompare(b.diameter, 'cs')),
-    [matchingDiameterItems, materialType],
+    [categoryItems, diameter, isInsulationVariant, matchingDiameterItems, materialType],
   );
   const variantDiameters = useMemo(() => new Set(variantItems.map(item => item.diameter)), [variantItems]);
   const selectedItem = catalog.find(item => item.id === catalogItemId);
   const selectedIsFavorite = selectedItem ? favoriteIds.has(selectedItem.id) : false;
-  const isOtherCategory = categoryKey === 'OTHER';
-  const quantityStep = isOtherCategory ? 4 : variantRequired ? 5 : 4;
+  const quantityStep = isInsulationVariant ? 6 : isOtherCategory ? 4 : variantRequired ? 5 : 4;
 
   function getCandidatesForType(type) {
     return matchingDiameterItems.filter(item => item.type === type);
@@ -285,16 +302,32 @@ export function AddMaterialPage({ order, orderLoading, orderError, refetchOrder 
   function selectOtherGroup(label) {
     setOtherGroup(label);
     setCatalogItemId('');
+    setDiameter('');
+    setMaterialType('');
+    setVariantRequired(false);
     setQuantity(1);
     setStep(3);
   }
 
   function selectOtherItem(item) {
     setMaterialType(item.type);
+    setDiameter('');
+    setQuantity(1);
+    if (isInsulationGroup && item.type !== 'Izolační páska') {
+      setCatalogItemId('');
+      setVariantRequired(true);
+      setStep(4);
+      return;
+    }
     setCatalogItemId(item.id);
     setVariantRequired(false);
-    setQuantity(1);
     setStep(4);
+  }
+
+  function selectInsulationDiameter(value) {
+    setDiameter(value);
+    setCatalogItemId('');
+    setStep(5);
   }
 
   function selectDiameter(value) {
@@ -323,7 +356,7 @@ export function AddMaterialPage({ order, orderLoading, orderError, refetchOrder 
 
   function selectVariant(id) {
     setCatalogItemId(id);
-    setStep(5);
+    setStep(isInsulationVariant ? 6 : 5);
   }
 
   function selectShortcut(item) {
@@ -362,8 +395,23 @@ export function AddMaterialPage({ order, orderLoading, orderError, refetchOrder 
       return;
     }
 
+    if (isInsulationVariant && step === 6) {
+      setCatalogItemId('');
+      setStep(5);
+      return;
+    }
+
+    if (isInsulationVariant && step === 5) {
+      setDiameter('');
+      setStep(4);
+      return;
+    }
+
     if (isOtherCategory && step === 4) {
       setCatalogItemId('');
+      setDiameter('');
+      setVariantRequired(false);
+      setMaterialType('');
       setStep(3);
       return;
     }
@@ -453,7 +501,7 @@ export function AddMaterialPage({ order, orderLoading, orderError, refetchOrder 
   return (
     <div className="pageStack materialWizard">
       <WizardTopbar orderId={orderId} onBack={goBackStep} />
-      <StepIndicator current={step} total={isOtherCategory ? 4 : variantRequired ? 5 : 4} />
+      <StepIndicator current={step} total={isInsulationVariant ? 6 : isOtherCategory ? 4 : variantRequired ? 5 : 4} />
       <p className="materialWizardOrder">Заказ #{order.number} · {order.title || ''}</p>
 
       {isLoading ? <section className="screenCard">Завантажуємо каталог…</section> : null}
@@ -517,12 +565,12 @@ export function AddMaterialPage({ order, orderLoading, orderError, refetchOrder 
         <section className="materialWizardStage">
           <div className="compactHeader"><h1>3. Виберіть позицію</h1><p>{otherGroup}</p></div>
           <div className="materialTypeList">
-            {otherGroupItems.map(item => (
+            {displayedOtherGroupItems.map(item => (
               <button key={item.id} type="button" className="materialTypeRow" onClick={() => selectOtherItem(item)}>
                 <MaterialThumb item={item} />
                 <span>
-                  <strong>{item.type}{item.diameter && item.diameter !== '—' ? ` · ${item.diameter}` : ''}</strong>
-                  <small>{item.unit} · далі кількість</small>
+                  <strong>{item.type}{!isInsulationGroup && item.diameter && item.diameter !== '—' ? ` · ${item.diameter}` : ''}</strong>
+                  <small>{isInsulationGroup && item.type !== 'Izolační páska' ? 'оберіть діаметр труби' : `${item.unit} · далі кількість`}</small>
                 </span>
                 <b>›</b>
               </button>
@@ -568,16 +616,34 @@ export function AddMaterialPage({ order, orderLoading, orderError, refetchOrder 
 
       {step === 4 && variantRequired ? (
         <section className="materialWizardStage">
-          <div className="compactHeader"><h1>4. Виберіть розмір</h1><p>{materialType} · базовий {diameter === '—' ? 'без розміру' : diameter}</p></div>
+          <div className="compactHeader">
+            <h1>{isInsulationVariant ? '4. Виберіть діаметр труби' : '4. Виберіть розмір'}</h1>
+            <p>{isInsulationVariant ? materialType : `${materialType} · базовий ${diameter === '—' ? 'без розміру' : diameter}`}</p>
+          </div>
+          <div className="materialDiameterGrid">
+            {isInsulationVariant
+              ? [...new Set(categoryItems.filter(item => item.type === materialType).map(item => item.diameter))]
+                .sort((a, b) => getDiameterNumber(a) - getDiameterNumber(b))
+                .map(value => <button key={value} type="button" onClick={() => selectInsulationDiameter(value)}>{value}</button>)
+              : variantItems.map(item => (
+                <button key={item.id} type="button" onClick={() => selectVariant(item.id)}>
+                  {item.diameter === '—'
+                    ? item.name
+                    : variantDiameters.size === variantItems.length
+                      ? item.diameter
+                      : item.name}
+                </button>
+              ))}
+          </div>
+        </section>
+      ) : null}
+
+      {step === 5 && isInsulationVariant ? (
+        <section className="materialWizardStage">
+          <div className="compactHeader"><h1>5. Виберіть товщину ізоляції</h1><p>{materialType} · труба {diameter}</p></div>
           <div className="materialDiameterGrid">
             {variantItems.map(item => (
-              <button key={item.id} type="button" onClick={() => selectVariant(item.id)}>
-                {item.diameter === '—'
-                  ? item.name
-                  : variantDiameters.size === variantItems.length
-                    ? item.diameter
-                    : item.name}
-              </button>
+              <button key={item.id} type="button" onClick={() => selectVariant(item.id)}>{item.thickness}</button>
             ))}
           </div>
         </section>
@@ -588,7 +654,7 @@ export function AddMaterialPage({ order, orderLoading, orderError, refetchOrder 
           <div className="compactHeader"><h1>{quantityStep}. Вкажіть кількість</h1><p>Перевірте матеріал і додайте в заказ</p></div>
           <div className="selectedMaterialCard">
             <MaterialThumb item={selectedItem} className="selectedMaterialMark" />
-            <div><strong>{getCategoryDisplayLabel(selectedItem.categoryKey, selectedItem.categoryLabel)} {selectedItem.diameter}</strong><span>{selectedItem.type}</span></div>
+            <div><strong>{getCategoryDisplayLabel(selectedItem.categoryKey, selectedItem.categoryLabel)} {selectedItem.diameter}</strong><span>{selectedItem.type}{selectedItem.thickness ? ` · ${selectedItem.thickness}` : ''}</span></div>
             <button type="button" className={`materialFavoriteButton${selectedIsFavorite ? ' is-active' : ''}`} onClick={toggleFavorite} aria-label={selectedIsFavorite ? 'Прибрати з обраного' : 'Додати в обране'}><Icon name="star" size={19} /></button>
           </div>
           <div className="quantityStepper">

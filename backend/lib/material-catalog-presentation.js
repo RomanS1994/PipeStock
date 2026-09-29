@@ -219,10 +219,12 @@ export function getCatalogImageUrl(item) {
 export function getCatalogDisplayName(item) {
   const category = getCatalogCategoryLabel(item);
   const diameter = String(item?.diameter || '').trim();
+  const thickness = String(item?.thickness || '').trim();
   const type = String(item?.type || '').trim();
-  if (!category && !diameter && !type) return item?.name || '';
-  if (!diameter || diameter === '—') return `${category} · ${type}`.trim();
-  return `${category} ${diameter} · ${type}`.trim();
+  const dimensions = [diameter && diameter !== '—' ? diameter : '', thickness].filter(Boolean).join(' · ');
+  if (!category && !dimensions && !type) return item?.name || '';
+  if (!dimensions) return `${category} · ${type}`.trim();
+  return `${category} ${dimensions} · ${type}`.trim();
 }
 
 export function serializeCatalogItem(item, extra = {}) {
@@ -232,6 +234,7 @@ export function serializeCatalogItem(item, extra = {}) {
     categoryKey: item.categoryKey,
     categoryLabel: getCatalogCategoryLabel(item),
     diameter: item.diameter,
+    thickness: item.thickness || null,
     type: item.type,
     name: getCatalogDisplayName(item),
     unit: item.unit,

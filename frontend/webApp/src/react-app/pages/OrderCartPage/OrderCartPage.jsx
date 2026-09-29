@@ -98,7 +98,7 @@ export function OrderCartPage() {
                   </div>
                   <div className="orderCartItemInfo">
                     <strong>{item.type || item.name}</strong>
-                    <span>{category} · {item.diameter}</span>
+                    <span>{category} · {item.diameter}{item.thickness ? ` · ${item.thickness}` : ''}</span>
                     <span className="orderCartItemUnit">{item.quantity} {item.unit}</span>
                     {canEdit ? (
                       <div className="orderCartItemControls">

@@ -56,3 +56,22 @@ test('catalog presentation turns OTHER into mounting material category', () => {
   assert.equal(item.name, 'Montážní materiál · PTFE páska');
   assert.equal(item.imageUrl, '/materials/category-other.webp');
 });
+
+test('catalog presentation keeps insulation pipe diameter and wall thickness separate', () => {
+  const item = serializeCatalogItem({
+    id: 'other-mirelon-pe-22-13',
+    key: 'OTHER_MIRELON_PE_22_13',
+    categoryKey: 'OTHER',
+    categoryLabel: 'Montážní materiál',
+    diameter: '22 mm',
+    thickness: '13 mm',
+    type: 'Mirelon (PE) pěna',
+    name: 'Montážní materiál 22 mm · tloušťka 13 mm — Mirelon (PE) pěna',
+    unit: 'm',
+    imageUrl: null,
+  });
+
+  assert.equal(item.diameter, '22 mm');
+  assert.equal(item.thickness, '13 mm');
+  assert.equal(item.name, 'Montážní materiál 22 mm · 13 mm · Mirelon (PE) pěna');
+});

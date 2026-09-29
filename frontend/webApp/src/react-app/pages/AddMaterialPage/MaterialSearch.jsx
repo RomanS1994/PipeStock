@@ -37,7 +37,7 @@ export function MaterialSearch({ catalog, order, orderId, query, onQueryChange, 
       } else {
         await addItem({ orderId, catalogItemId: item.id, quantity: 1 }).unwrap();
       }
-      setFeedback(`Додано в кошик: ${item.type} · ${item.diameter}`);
+      setFeedback(`Додано в кошик: ${item.type} · ${item.diameter}${item.thickness ? ` · ${item.thickness}` : ''}`);
     } catch (error) {
       setFailed(true);
       setFeedback(error?.data?.error || error?.message || 'Не вдалося додати матеріал. Спробуйте ще раз.');
@@ -64,7 +64,7 @@ export function MaterialSearch({ catalog, order, orderId, query, onQueryChange, 
               <div className="materialSearchResult" key={item.id}>
                 <button type="button" className="materialSearchResultSelect" disabled={quickBusyId !== null} onClick={() => onSelect(item)} aria-label={`Вибрати ${item.type} ${item.diameter} та вказати кількість`}>
                   <span className="materialSearchResultImage" style={visual?.kind === 'sprite' ? visual.style : undefined}>{visual?.kind === 'image' ? <img src={visual.src} alt="" loading="lazy" /> : null}</span>
-                  <span className="materialSearchResultText"><strong>{item.type} · {item.diameter}</strong><small>{category}</small></span>
+                <span className="materialSearchResultText"><strong>{item.type} · {item.diameter}{item.thickness ? ` · ${item.thickness}` : ''}</strong><small>{category}</small></span>
                 </button>
                 <button type="button" className="materialSearchQuickAdd" disabled={!canEdit || quickBusyId !== null} onClick={() => addToCart(item)} aria-label={`Додати в кошик ${item.type} ${item.diameter}`}>
                   {quickBusyId === item.id ? 'Додаємо…' : '+ В кошик'}

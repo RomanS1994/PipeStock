@@ -104,7 +104,7 @@ export function DraftCart({ order, orderId, canEdit, onRefresh }) {
                 const category = getCategoryLabel(item);
                 return (
                   <div className="draftCartItem" key={item.id}>
-                    <div className="draftCartItemName"><strong>{item.type} · {item.diameter}</strong><span>{category} · {item.materialName}</span></div>
+                    <div className="draftCartItemName"><strong>{item.type} · {item.diameter}{item.thickness ? ` · ${item.thickness}` : ''}</strong><span>{category} · {item.materialName}</span></div>
                     <div className="draftCartItemActions">
                       <button type="button" disabled={disabled} aria-label={`Зменшити кількість: ${item.type}`} onClick={() => saveQuantity(item, Math.max(0.01, Math.round((Number(item.quantity) - 1) * 100) / 100))}>−</button>
                       <input aria-label={`Кількість: ${item.type} ${item.diameter}`} inputMode="decimal" type="text" disabled={disabled} value={current} onChange={event => setDraftValues(previous => ({ ...previous, [item.id]: event.target.value }))} onBlur={event => { if (!disabled) saveQuantity(item, event.target.value); }} onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur(); }} />

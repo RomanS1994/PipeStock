@@ -148,6 +148,7 @@ model MaterialCatalogItem {
   categoryKey   String
   categoryLabel String
   diameter      String
+  thickness     String?
   type          String
   name          String
   unit          String
@@ -216,6 +217,7 @@ model OrderItem {
   categoryKey   String
   categoryLabel String
   diameter      String
+  thickness     String?
   type          String
   unit          String
   imageUrl      String?

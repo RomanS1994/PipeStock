@@ -262,7 +262,9 @@ export function getMaterialImage(item) {
 
 export function getMaterialVisual(item) {
   if (normalize(item?.categoryKey || item?.categoryLabel) === 'other') {
-    const cell = MOUNTING_MATERIAL_CELLS[item?.type];
+    let cell = MOUNTING_MATERIAL_CELLS[item?.type];
+    if (!cell && String(item?.type || '').startsWith('Mirelon (PE)')) cell = [1, 2, 0];
+    if (!cell && String(item?.type || '').startsWith('Kaučuková izolace')) cell = [1, 3, 0];
     if (cell) {
       const [sprite, column, row] = cell;
       const image = MOUNTING_MATERIAL_SPRITES[sprite];

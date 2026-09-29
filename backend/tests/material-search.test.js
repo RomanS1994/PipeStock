@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { searchMaterials } from '../../frontend/webApp/src/react-app/pages/AddMaterialPage/materialSearchMatcher.js';
+import { matchesMaterialSearch, searchMaterials } from '../../frontend/webApp/src/react-app/pages/AddMaterialPage/materialSearchMatcher.js';
 
 const catalog = [
   { id: 'ppr25', categoryKey: 'PPR', categoryLabel: 'PPR', name: 'T-kus 25 mm', type: 'T-kus', diameter: '25 mm', unit: 'ks' },
@@ -29,4 +29,19 @@ test('dimension tokens do not confuse 25 with 250 or reduced branch sizes', () =
 test('empty search has no results and category search still works', () => {
   assert.deepEqual(ids('  '), []);
   assert.deepEqual(ids('ppr koleno 25'), ['elbow']);
+});
+
+test('search matches insulation wall thickness separately from pipe diameter', () => {
+  const insulation = {
+    id: 'mirelon-22-13',
+    categoryKey: 'OTHER',
+    categoryLabel: 'Montážní materiál',
+    type: 'Mirelon (PE) pěna',
+    diameter: '22 mm',
+    thickness: '13 mm',
+    unit: 'm',
+  };
+
+  assert.equal(matchesMaterialSearch(insulation, '13 mm'), true);
+  assert.equal(matchesMaterialSearch(insulation, '22 mm'), true);
 });

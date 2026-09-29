@@ -33,10 +33,13 @@ export function matchesMaterialSearch(item, query) {
   if (!terms.length) return false;
 
   const category = CATEGORY_NAMES[String(item.categoryKey ?? '').toUpperCase()] || item.categoryLabel;
-  const text = normalize([category, item.categoryLabel, item.categoryKey, item.name, item.type, item.diameter, item.unit].join(' '));
+  const text = normalize([category, item.categoryLabel, item.categoryKey, item.name, item.type, item.diameter, item.thickness, item.unit].join(' '));
   return terms.every(term => {
     if (/^\d+(?:[.,]\d+)?(?:x\d+(?:[.,]\d+)?)+$/.test(term)) return matchesDimension(term.replace(/,/g, '.'), item);
-    if (/^\d+(?:[.,]\d+)?$/.test(term)) return getDimensions(item.diameter).includes(Number(term.replace(',', '.')));
+    if (/^\d+(?:[.,]\d+)?$/.test(term)) {
+      const dimensions = [...getDimensions(item.diameter), ...getDimensions(item.thickness)];
+      return dimensions.includes(Number(term.replace(',', '.')));
+    }
     return text.includes(term);
   });
 }

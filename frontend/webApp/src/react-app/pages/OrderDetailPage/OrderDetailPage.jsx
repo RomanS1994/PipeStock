@@ -88,7 +88,7 @@ export function OrderDetailPage() {
                   <div className={`orderMaterialMark${visual ? ' has-image' : ''}`} style={visual?.kind === 'sprite' ? visual.style : undefined}>
                     {visual?.kind === 'image' ? <img src={visual.src} alt="" /> : visual ? null : category.slice(0, 2).toUpperCase()}
                   </div>
-                  <div className="orderItemCopy"><strong>{category} {item.diameter}</strong><span>{item.type}</span></div>
+                  <div className="orderItemCopy"><strong>{category} {item.diameter}</strong><span>{item.type}{item.thickness ? ` · ${item.thickness}` : ''}</span></div>
                   <strong className="orderItemQty">{item.quantity} {item.unit}</strong>
                   {canEdit ? (
                     <button

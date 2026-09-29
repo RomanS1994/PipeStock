@@ -17,13 +17,14 @@ test('buildOrderSnapshot freezes order metadata and material quantities', () => 
     project: { id: 'project-1', name: 'Objekt A', address: 'Praha 8' },
     createdByMembership: { user: { id: 'user-1', name: 'Roman', email: 'roman@example.com' } },
     items: [{
-      materialKey: 'CU_22_ELBOW90',
-      materialName: 'Cu 22 mm — Koleno 90°',
-      categoryKey: 'CU',
-      categoryLabel: 'Cu',
+      materialKey: 'OTHER_MIRELON_PE_22_13',
+      materialName: 'Montážní materiál 22 mm · 13 mm — Mirelon (PE) pěna',
+      categoryKey: 'OTHER',
+      categoryLabel: 'Montážní materiál',
       diameter: '22 mm',
-      type: 'Koleno 90°',
-      unit: 'ks',
+      thickness: '13 mm',
+      type: 'Mirelon (PE) pěna',
+      unit: 'm',
       quantity: { valueOf: () => 3 },
     }],
   }, { status: 'SUBMITTED', submittedAt });
@@ -31,7 +32,8 @@ test('buildOrderSnapshot freezes order metadata and material quantities', () => 
   assert.equal(snapshot.order.status, 'SUBMITTED');
   assert.equal(snapshot.order.submittedAt, submittedAt.toISOString());
   assert.equal(snapshot.items[0].quantity, 3);
-  assert.equal(snapshot.items[0].materialKey, 'CU_22_ELBOW90');
+  assert.equal(snapshot.items[0].materialKey, 'OTHER_MIRELON_PE_22_13');
+  assert.equal(snapshot.items[0].thickness, '13 mm');
   assert.equal(snapshot.worker.name, 'Roman');
 });
 
@@ -50,7 +52,7 @@ test('createOrderPdf returns a valid PDF buffer with Unicode content', async () 
     company: { name: 'PipeStock Test' },
     project: { name: 'Об’єкт A', address: 'Praha 8' },
     worker: { name: 'Роман', email: 'roman@example.com' },
-    items: [{ categoryLabel: 'Cu', diameter: '22 mm', type: 'Koleno 90°', quantity: 3, unit: 'ks' }],
+    items: [{ categoryLabel: 'Montážní materiál', diameter: '22 mm', thickness: '13 mm', type: 'Mirelon (PE) pěna', quantity: 3, unit: 'm' }],
   };
 
   const pdf = await createOrderPdf(snapshot);

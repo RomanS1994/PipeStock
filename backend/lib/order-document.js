@@ -30,6 +30,7 @@ function normalizeItem(item) {
     categoryKey: item.categoryKey,
     categoryLabel: item.categoryLabel,
     diameter: item.diameter,
+    thickness: item.thickness || null,
     type: item.type,
     unit: item.unit,
     quantity: Number(item.quantity),
@@ -151,12 +152,13 @@ function createDefinition(snapshot) {
       {
         table: {
           headerRows: 1,
-          widths: [24, 72, 62, '*', 48],
+          widths: [24, 68, 52, 46, '*', 48],
           body: [
             [
               { text: '#', style: 'tableHeader' },
               { text: 'Матеріал', style: 'tableHeader' },
               { text: 'Діаметр', style: 'tableHeader' },
+              { text: 'Товщина', style: 'tableHeader' },
               { text: 'Тип', style: 'tableHeader' },
               { text: 'К-сть', style: 'tableHeader', alignment: 'right' },
             ],
@@ -164,6 +166,7 @@ function createDefinition(snapshot) {
               String(index + 1),
               text(item.categoryLabel || item.materialName),
               text(item.diameter),
+              text(item.thickness),
               text(item.type || item.materialName),
               { text: `${item.quantity} ${text(item.unit, '')}`.trim(), alignment: 'right' },
             ]),

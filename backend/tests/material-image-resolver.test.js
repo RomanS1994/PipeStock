@@ -24,3 +24,10 @@ test('mounting material types use distinct product photo cells', () => {
   assert.equal(uniqueCells.size, mountingMaterialTypes.length);
   assert.ok(visuals.every(({ style }) => style.backgroundSize === '400% 400%'));
 });
+
+test('insulation product families use different photos across size and thickness variants', () => {
+  const mirelon = getMaterialVisual({ categoryKey: 'other', type: 'Mirelon (PE) pěna', diameter: '22 mm', thickness: '13 mm' });
+  const rubber = getMaterialVisual({ categoryKey: 'other', type: 'Kaučuková izolace', diameter: '22 mm', thickness: '14.5 mm' });
+
+  assert.notEqual(`${mirelon.src}|${mirelon.style.backgroundPosition}`, `${rubber.src}|${rubber.style.backgroundPosition}`);
+});
