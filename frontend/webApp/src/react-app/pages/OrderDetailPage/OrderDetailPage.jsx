@@ -9,7 +9,7 @@ import {
   useGetOrderQuery,
   useSubmitOrderMutation,
 } from '../../features/orders/ordersApi.js';
-import { getMaterialImage } from '../AddMaterialPage/materialImageResolver.js';
+import { getMaterialVisual } from '../AddMaterialPage/materialImageResolver.js';
 import '../OrderFlow/OrderFlow.css';
 
 const STATUS_LABELS = { DRAFT: 'Draft', SUBMITTED: 'Submitted', COMPLETED: 'Completed' };
@@ -80,12 +80,12 @@ export function OrderDetailPage() {
         {order.items.length ? (
           <div className="orderItemList">
             {order.items.map(item => {
-              const image = getMaterialImage(item);
+              const visual = getMaterialVisual(item);
               const category = getCategoryLabel(item);
               return (
                 <div className="orderItemRow" key={item.id}>
-                  <div className={`orderMaterialMark${image ? ' has-image' : ''}`}>
-                    {image ? <img src={image} alt="" /> : category.slice(0, 2).toUpperCase()}
+                  <div className={`orderMaterialMark${visual ? ' has-image' : ''}`} style={visual?.kind === 'sprite' ? visual.style : undefined}>
+                    {visual?.kind === 'image' ? <img src={visual.src} alt="" /> : visual ? null : category.slice(0, 2).toUpperCase()}
                   </div>
                   <div className="orderItemCopy"><strong>{category} {item.diameter}</strong><span>{item.type}</span></div>
                   <strong className="orderItemQty">{item.quantity} {item.unit}</strong>

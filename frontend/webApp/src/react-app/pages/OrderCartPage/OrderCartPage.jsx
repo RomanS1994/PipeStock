@@ -8,7 +8,7 @@ import {
   useGetOrderQuery,
   useUpdateOrderItemMutation,
 } from '../../features/orders/ordersApi.js';
-import { getMaterialImage } from '../AddMaterialPage/materialImageResolver.js';
+import { getMaterialVisual } from '../AddMaterialPage/materialImageResolver.js';
 import '../OrderFlow/OrderFlow.css';
 import './OrderCartPage.css';
 
@@ -88,13 +88,13 @@ export function OrderCartPage() {
         {items.length ? (
           <div className="orderCartList">
             {items.map(item => {
-              const image = getMaterialImage(item);
+              const visual = getMaterialVisual(item);
               const category = getCategoryLabel(item);
               const busy = pendingId !== null || updateState.isLoading || deleteState.isLoading;
               return (
                 <article className="orderCartItem" key={item.id}>
-                  <div className="orderCartItemImage">
-                    {image ? <img src={image} alt="" loading="lazy" /> : <Icon name="clipboard" size={26} />}
+                  <div className="orderCartItemImage" style={visual?.kind === 'sprite' ? visual.style : undefined}>
+                    {visual?.kind === 'image' ? <img src={visual.src} alt="" loading="lazy" /> : visual ? null : <Icon name="clipboard" size={26} />}
                   </div>
                   <div className="orderCartItemInfo">
                     <strong>{item.type || item.name}</strong>

@@ -183,6 +183,49 @@ const EXTRA_CATEGORY_IMAGES = {
   other: '/materials/category-other.webp',
 };
 
+const MOUNTING_MATERIAL_SPRITE = '/materials/other-materials-sprite.webp';
+const MOUNTING_MATERIAL_CELLS = {
+  'Objímka potrubí': [0, 0],
+  'Montážní lišta': [0, 0],
+  'Izolace potrubí': [1, 0],
+  'Kaučuková izolace': [1, 0],
+  'Izolační páska': [1, 0],
+  'PTFE páska': [2, 0],
+  'Konopí': [2, 0],
+  'Těsnicí pasta': [2, 0],
+  'Sanitární silikon': [2, 0],
+  'Teflonová nit': [2, 0],
+  'Těsnicí šňůra': [2, 0],
+  'Anaerobní těsnění závitů': [2, 0],
+  'Zajišťovač závitů': [2, 0],
+  'Ploché těsnění': [2, 0],
+  'Sada O-kroužků': [2, 0],
+  'Hmoždinka': [0, 1],
+  'Vrut': [0, 1],
+  'Závitová tyč': [0, 1],
+  'Matice': [0, 1],
+  'Podložka': [0, 1],
+  'Montážní konzole': [0, 1],
+  'Matice do montážní lišty': [0, 0],
+  'Spojka montážní lišty': [0, 0],
+  'Mazivo na HT/KG těsnění': [1, 1],
+  'HT těsnění': [1, 1],
+  'KG těsnění': [1, 1],
+  'Přechodová manžeta': [1, 1],
+  'Perlátor': [2, 1],
+  'Flexi hadička': [2, 1],
+  'Řezný kotouč kov': [0, 2],
+  'Řezný kotouč plast': [0, 2],
+  'Vrták': [0, 2],
+  'Brusný papír': [0, 2],
+  'Čisticí hadřík': [0, 2],
+  'Odmašťovač': [0, 2],
+  'Popisovač potrubí': [1, 2],
+  'Štítek na potrubí': [1, 2],
+  'Krycí rozeta': [1, 2],
+  'Požární manžeta': [2, 2],
+};
+
 function normalize(value) {
   return String(value || '')
     .trim()
@@ -210,6 +253,27 @@ export function getMaterialImage(item) {
   if (mappedImage) return withBasePath(mappedImage);
 
   return withBasePath(getBaseMaterialImage(item));
+}
+
+export function getMaterialVisual(item) {
+  if (normalize(item?.categoryKey || item?.categoryLabel) === 'other') {
+    const position = MOUNTING_MATERIAL_CELLS[item?.type];
+    if (position) {
+      return {
+        kind: 'sprite',
+        src: withBasePath(MOUNTING_MATERIAL_SPRITE),
+        style: {
+          backgroundImage: `url("${withBasePath(MOUNTING_MATERIAL_SPRITE)}")`,
+          backgroundPosition: `${position[0] * 50}% ${position[1] * 50}%`,
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: '300% 300%',
+        },
+      };
+    }
+  }
+
+  const src = getMaterialImage(item);
+  return src ? { kind: 'image', src } : null;
 }
 
 export function getMaterialCategoryImage(categoryKey) {

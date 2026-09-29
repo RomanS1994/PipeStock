@@ -66,19 +66,28 @@ export async function uploadImageFile(file, upload) {
   if (upload.overwrite) body.append('overwrite', upload.overwrite);
   body.append('signature', upload.signature);
 
-  const response = await fetch(upload.uploadUrl, { method: 'POST', body });
-  const data = await response.json().catch(() => ({}));
+  window.dispatchEvent(
+    new CustomEvent('pipestock:network-activity', { detail: { active: true } }),
+  );
+  try {
+    const response = await fetch(upload.uploadUrl, { method: 'POST', body });
+    const data = await response.json().catch(() => ({}));
 
-  if (!response.ok || !data?.secure_url) {
-    throw new Error(data?.error?.message || 'Не вдалося завантажити фото');
+    if (!response.ok || !data?.secure_url) {
+      throw new Error(data?.error?.message || 'Не вдалося завантажити фото');
+    }
+
+    return {
+      url: data.secure_url,
+      publicId: data.public_id || upload.publicId,
+      width: data.width || null,
+      height: data.height || null,
+      format: data.format || null,
+      bytes: data.bytes || file.size,
+    };
+  } finally {
+    window.dispatchEvent(
+      new CustomEvent('pipestock:network-activity', { detail: { active: false } }),
+    );
   }
-
-  return {
-    url: data.secure_url,
-    publicId: data.public_id || upload.publicId,
-    width: data.width || null,
-    height: data.height || null,
-    format: data.format || null,
-    bytes: data.bytes || file.size,
-  };
 }

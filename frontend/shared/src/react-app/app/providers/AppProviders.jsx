@@ -16,17 +16,33 @@ function NetworkActivityIndicator() {
       ...Object.values(apiState.mutations || {}),
     ].some(request => request?.status === 'pending');
   });
+  const [hasExternalPendingRequests, setHasExternalPendingRequests] = React.useState(false);
   const [isVisible, setIsVisible] = React.useState(false);
+  const isPending = hasPendingRequests || hasExternalPendingRequests;
 
   React.useEffect(() => {
-    if (!hasPendingRequests) {
+    let externalPendingCount = 0;
+    const handleActivity = event => {
+      externalPendingCount = Math.max(
+        0,
+        externalPendingCount + (event.detail?.active ? 1 : -1),
+      );
+      setHasExternalPendingRequests(externalPendingCount > 0);
+    };
+
+    window.addEventListener('pipestock:network-activity', handleActivity);
+    return () => window.removeEventListener('pipestock:network-activity', handleActivity);
+  }, []);
+
+  React.useEffect(() => {
+    if (!isPending) {
       setIsVisible(false);
       return undefined;
     }
 
     const timer = window.setTimeout(() => setIsVisible(true), 180);
     return () => window.clearTimeout(timer);
-  }, [hasPendingRequests]);
+  }, [isPending]);
 
   return (
     <div

@@ -9,7 +9,7 @@ import {
 } from '../../features/orders/ordersApi.js';
 import '../OrderFlow/OrderFlow.css';
 import './AddMaterialPage.css';
-import { getMaterialCategoryImage, getMaterialImage } from './materialImageResolver.js';
+import { getMaterialCategoryImage, getMaterialVisual } from './materialImageResolver.js';
 import { MaterialSearch } from './MaterialSearch.jsx';
 
 const MAX_QUANTITY = 99999;
@@ -152,9 +152,9 @@ function matchesBaseDiameter(item, baseDiameter) {
 }
 
 function MaterialThumb({ item, className = 'materialTypeMark' }) {
-  const image = getMaterialImage(item);
-  return image
-    ? <span className={`${className} has-image`}><img src={image} alt="" /></span>
+  const visual = getMaterialVisual(item);
+  return visual
+    ? <span className={`${className} has-image`} style={visual.kind === 'sprite' ? visual.style : undefined}>{visual.kind === 'image' ? <img src={visual.src} alt="" /> : null}</span>
     : <span className={className}>{getCategoryDisplayLabel(item?.categoryKey, item?.categoryLabel).slice(0, 2).toUpperCase()}</span>;
 }
 

@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../../features/auth/authSlice.js';
 import { useAddOrderItemMutation, useUpdateOrderItemMutation } from '../../features/orders/ordersApi.js';
-import { getMaterialImage } from './materialImageResolver.js';
+import { getMaterialVisual } from './materialImageResolver.js';
 import { searchMaterials } from './materialSearchMatcher.js';
 import './MaterialSearch.css';
 
@@ -58,12 +58,12 @@ export function MaterialSearch({ catalog, order, orderId, query, onQueryChange, 
         <div className="materialSearchResults" aria-live="polite">
           <p>{matches.length ? `Знайдено: ${matches.length}` : 'Матеріалів не знайдено. Спробуйте іншу назву або розмір.'}</p>
           {matches.slice(0, RESULT_LIMIT).map(item => {
-            const image = getMaterialImage(item);
+            const visual = getMaterialVisual(item);
             const category = CATEGORY_NAMES[String(item.categoryKey).toUpperCase()] || item.categoryLabel;
             return (
               <div className="materialSearchResult" key={item.id}>
                 <button type="button" className="materialSearchResultSelect" disabled={quickBusyId !== null} onClick={() => onSelect(item)} aria-label={`Вибрати ${item.type} ${item.diameter} та вказати кількість`}>
-                  <span className="materialSearchResultImage">{image ? <img src={image} alt="" loading="lazy" /> : null}</span>
+                  <span className="materialSearchResultImage" style={visual?.kind === 'sprite' ? visual.style : undefined}>{visual?.kind === 'image' ? <img src={visual.src} alt="" loading="lazy" /> : null}</span>
                   <span className="materialSearchResultText"><strong>{item.type} · {item.diameter}</strong><small>{category}</small></span>
                 </button>
                 <button type="button" className="materialSearchQuickAdd" disabled={!canEdit || quickBusyId !== null} onClick={() => addToCart(item)} aria-label={`Додати в кошик ${item.type} ${item.diameter}`}>
