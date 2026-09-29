@@ -2,7 +2,7 @@ import { getMaterialCategoryImage as getBaseCategoryImage, getMaterialImage as g
 
 function withBasePath(source) {
   if (!source || source.startsWith('data:') || source.startsWith('http') || !source.startsWith('/')) return source;
-  return `${import.meta.env.BASE_URL}${source.slice(1)}`;
+  return `${import.meta.env?.BASE_URL || '/'}${source.slice(1)}`;
 }
 
 const CATEGORY_TYPE_IMAGES = {
@@ -183,47 +183,52 @@ const EXTRA_CATEGORY_IMAGES = {
   other: '/materials/category-other.webp',
 };
 
-const MOUNTING_MATERIAL_SPRITE = '/materials/other-materials-sprite.webp';
+const MOUNTING_MATERIAL_SPRITES = {
+  1: '/materials/other-materials-sprite-1.webp',
+  2: '/materials/other-materials-sprite-2.webp',
+  3: '/materials/other-materials-sprite-3.webp',
+};
+// Each tuple is [sprite number, column, row] in a 4×4 contact sheet.
 const MOUNTING_MATERIAL_CELLS = {
-  'Objímka potrubí': [0, 0],
-  'Montážní lišta': [0, 0],
-  'Izolace potrubí': [1, 0],
-  'Kaučuková izolace': [1, 0],
-  'Izolační páska': [1, 0],
-  'PTFE páska': [2, 0],
-  'Konopí': [2, 0],
-  'Těsnicí pasta': [2, 0],
-  'Sanitární silikon': [2, 0],
-  'Teflonová nit': [2, 0],
-  'Těsnicí šňůra': [2, 0],
-  'Anaerobní těsnění závitů': [2, 0],
-  'Zajišťovač závitů': [2, 0],
-  'Ploché těsnění': [2, 0],
-  'Sada O-kroužků': [2, 0],
-  'Hmoždinka': [0, 1],
-  'Vrut': [0, 1],
-  'Závitová tyč': [0, 1],
-  'Matice': [0, 1],
-  'Podložka': [0, 1],
-  'Montážní konzole': [0, 1],
-  'Matice do montážní lišty': [0, 0],
-  'Spojka montážní lišty': [0, 0],
-  'Mazivo na HT/KG těsnění': [1, 1],
-  'HT těsnění': [1, 1],
-  'KG těsnění': [1, 1],
-  'Přechodová manžeta': [1, 1],
-  'Perlátor': [2, 1],
-  'Flexi hadička': [2, 1],
-  'Řezný kotouč kov': [0, 2],
-  'Řezný kotouč plast': [0, 2],
-  'Vrták': [0, 2],
-  'Brusný papír': [0, 2],
-  'Čisticí hadřík': [0, 2],
-  'Odmašťovač': [0, 2],
-  'Popisovač potrubí': [1, 2],
-  'Štítek na potrubí': [1, 2],
-  'Krycí rozeta': [1, 2],
-  'Požární manžeta': [2, 2],
+  'Objímka potrubí': [1, 0, 0],
+  'Montážní lišta': [1, 1, 0],
+  'Izolace potrubí': [1, 2, 0],
+  'Kaučuková izolace': [1, 3, 0],
+  'Izolační páska': [1, 0, 1],
+  'PTFE páska': [1, 1, 1],
+  'Konopí': [1, 2, 1],
+  'Těsnicí pasta': [1, 3, 1],
+  'Sanitární silikon': [1, 0, 2],
+  'Teflonová nit': [1, 1, 2],
+  'Těsnicí šňůra': [1, 2, 2],
+  'Anaerobní těsnění závitů': [1, 3, 2],
+  'Zajišťovač závitů': [1, 0, 3],
+  'Ploché těsnění': [1, 1, 3],
+  'Sada O-kroužků': [1, 2, 3],
+  'Mazivo na HT/KG těsnění': [1, 3, 3],
+  'Hmoždinka': [2, 0, 0],
+  'Vrut': [2, 1, 0],
+  'Závitová tyč': [2, 2, 0],
+  'Matice': [2, 3, 0],
+  'Podložka': [2, 0, 1],
+  'Montážní konzole': [2, 1, 1],
+  'Matice do montážní lišty': [2, 2, 1],
+  'Spojka montážní lišty': [2, 3, 1],
+  'HT těsnění': [2, 0, 2],
+  'KG těsnění': [2, 1, 2],
+  'Přechodová manžeta': [2, 2, 2],
+  'Perlátor': [2, 3, 2],
+  'Flexi hadička': [2, 0, 3],
+  'Krycí rozeta': [2, 1, 3],
+  'Požární manžeta': [2, 2, 3],
+  'Řezný kotouč kov': [3, 0, 0],
+  'Řezný kotouč plast': [3, 1, 0],
+  'Vrták': [3, 2, 0],
+  'Brusný papír': [3, 3, 0],
+  'Čisticí hadřík': [3, 0, 1],
+  'Odmašťovač': [3, 1, 1],
+  'Popisovač potrubí': [3, 2, 1],
+  'Štítek na potrubí': [3, 3, 1],
 };
 
 function normalize(value) {
@@ -257,16 +262,19 @@ export function getMaterialImage(item) {
 
 export function getMaterialVisual(item) {
   if (normalize(item?.categoryKey || item?.categoryLabel) === 'other') {
-    const position = MOUNTING_MATERIAL_CELLS[item?.type];
-    if (position) {
+    const cell = MOUNTING_MATERIAL_CELLS[item?.type];
+    if (cell) {
+      const [sprite, column, row] = cell;
+      const image = MOUNTING_MATERIAL_SPRITES[sprite];
+      const imageUrl = withBasePath(image);
       return {
         kind: 'sprite',
-        src: withBasePath(MOUNTING_MATERIAL_SPRITE),
+        src: imageUrl,
         style: {
-          backgroundImage: `url("${withBasePath(MOUNTING_MATERIAL_SPRITE)}")`,
-          backgroundPosition: `${position[0] * 50}% ${position[1] * 50}%`,
+          backgroundImage: `url("${imageUrl}")`,
+          backgroundPosition: `${column * (100 / 3)}% ${row * (100 / 3)}%`,
           backgroundRepeat: 'no-repeat',
-          backgroundSize: '300% 300%',
+          backgroundSize: '400% 400%',
         },
       };
     }
