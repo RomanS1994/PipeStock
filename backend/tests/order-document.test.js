@@ -26,6 +26,16 @@ test('buildOrderSnapshot freezes order metadata and material quantities', () => 
       type: 'Mirelon (PE) pěna',
       unit: 'm',
       quantity: { valueOf: () => 3 },
+    }, {
+      materialKey: 'OTHER_STEEL_INSULATION_76_1_30',
+      materialName: 'Montážní materiál 76.1 mm · tloušťka 30 mm — Kaučuková izolace · Uhlíková ocel',
+      categoryKey: 'OTHER',
+      categoryLabel: 'Montážní materiál',
+      diameter: '76.1 mm',
+      thickness: '30 mm',
+      type: 'Kaučuková izolace · Uhlíková ocel',
+      unit: 'm',
+      quantity: { valueOf: () => 2 },
     }],
   }, { status: 'SUBMITTED', submittedAt });
 
@@ -34,6 +44,9 @@ test('buildOrderSnapshot freezes order metadata and material quantities', () => 
   assert.equal(snapshot.items[0].quantity, 3);
   assert.equal(snapshot.items[0].materialKey, 'OTHER_MIRELON_PE_22_13');
   assert.equal(snapshot.items[0].thickness, '13 mm');
+  assert.equal(snapshot.items[1].diameter, '76.1 mm');
+  assert.equal(snapshot.items[1].thickness, '30 mm');
+  assert.equal(snapshot.items[1].type, 'Kaučuková izolace · Uhlíková ocel');
   assert.equal(snapshot.worker.name, 'Roman');
 });
 
@@ -52,7 +65,10 @@ test('createOrderPdf returns a valid PDF buffer with Unicode content', async () 
     company: { name: 'PipeStock Test' },
     project: { name: 'Об’єкт A', address: 'Praha 8' },
     worker: { name: 'Роман', email: 'roman@example.com' },
-    items: [{ categoryLabel: 'Montážní materiál', diameter: '22 mm', thickness: '13 mm', type: 'Mirelon (PE) pěna', quantity: 3, unit: 'm' }],
+    items: [
+      { categoryLabel: 'Montážní materiál', diameter: '22 mm', thickness: '13 mm', type: 'Mirelon (PE) pěna', quantity: 3, unit: 'm' },
+      { categoryLabel: 'Montážní materiál', diameter: '76.1 mm', thickness: '30 mm', type: 'Kaučuková izolace · Uhlíková ocel', quantity: 2, unit: 'm' },
+    ],
   };
 
   const pdf = await createOrderPdf(snapshot);
