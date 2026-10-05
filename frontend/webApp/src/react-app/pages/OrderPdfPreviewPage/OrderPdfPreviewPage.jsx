@@ -63,6 +63,7 @@ export function OrderPdfPreviewPage() {
     (order?.status === 'DRAFT' && order?.items?.length),
   );
   const isDraft = order?.status === 'DRAFT';
+  const canSubmitDraft = Boolean(isDraft && (manager || order?.createdByMembershipId === membership?.id));
 
   useEffect(() => {
     if (!canPreviewPdf) return undefined;
@@ -113,7 +114,7 @@ export function OrderPdfPreviewPage() {
   }
 
   async function handleSubmitDraft() {
-    if (!order || !order.items?.length) return;
+    if (!order || !order.items?.length || !canSubmitDraft) return;
     setActionError('');
     try {
       await submitOrder(order.id).unwrap();
@@ -207,7 +208,7 @@ export function OrderPdfPreviewPage() {
           <button
             type="button"
             className="orderPdfDraftAction orderPdfDraftAction--submit"
-            disabled={submitState.isLoading || !order.items.length}
+            disabled={submitState.isLoading || !order.items.length || !canSubmitDraft}
             onClick={handleSubmitDraft}
           >
             {submitState.isLoading ? 'Відправляємо…' : manager ? 'Відправити' : 'Відправити менеджеру'}
