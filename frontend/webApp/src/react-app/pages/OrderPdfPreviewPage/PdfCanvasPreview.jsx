@@ -4,7 +4,7 @@ import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
 GlobalWorkerOptions.workerSrc = workerSrc;
 
-export function PdfCanvasPreview({ blob, onError }) {
+export function PdfCanvasPreview({ blob, onError, zoom = 100 }) {
   const [pages, setPages] = useState([]);
 
   useEffect(() => {
@@ -60,15 +60,17 @@ export function PdfCanvasPreview({ blob, onError }) {
   }
 
   return (
-    <div className="orderPdfCanvasPages">
-      {pages.map(page => (
-        <img
-          key={page.pageNumber}
-          className="orderPdfCanvasPage"
-          src={page.dataUrl}
-          alt={`Сторінка PDF ${page.pageNumber}`}
-        />
-      ))}
+    <div className="orderPdfCanvasViewport">
+      <div className="orderPdfCanvasPages" style={{ width: `${zoom}%` }}>
+        {pages.map(page => (
+          <img
+            key={page.pageNumber}
+            className="orderPdfCanvasPage"
+            src={page.dataUrl}
+            alt={`Сторінка PDF ${page.pageNumber}`}
+          />
+        ))}
+      </div>
     </div>
   );
 }
