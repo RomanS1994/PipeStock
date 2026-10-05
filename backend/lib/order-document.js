@@ -70,9 +70,33 @@ export function buildOrderSnapshot(order, overrides = {}) {
   };
 }
 
+const STATUS_LABELS_CS = {
+  DRAFT: 'ROZPRACOVÁNO',
+  SUBMITTED: 'ODESLÁNO',
+  COMPLETED: 'DOKONČENO',
+};
+
+const CATEGORY_LABELS_CS = {
+  'Опалення': 'Vytápění',
+  'Водопостачання': 'Vodoinstalace',
+  'Каналізація': 'Kanalizace',
+  'Сантехніка': 'Sanitární technika',
+  'Інше': 'Ostatní',
+};
+
+export function formatOrderStatusCs(value) {
+  const normalized = String(value ?? '').trim();
+  return STATUS_LABELS_CS[normalized] || normalized || '-';
+}
+
+export function formatOrderCategoryCs(value) {
+  const normalized = String(value ?? '').trim();
+  return CATEGORY_LABELS_CS[normalized] || normalized || '-';
+}
+
 function formatDate(value) {
   if (!value) return '-';
-  return new Intl.DateTimeFormat('uk-UA', {
+  return new Intl.DateTimeFormat('cs-CZ', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -97,8 +121,8 @@ function createDefinition(snapshot) {
     pageSize: 'A4',
     pageMargins: [40, 44, 40, 46],
     info: {
-      title: `PipeStock Order #${order.number || ''}`,
-      subject: 'PipeStock material order',
+      title: `PipeStock zakázka #${order.number || ''}`,
+      subject: 'Soupis materiálu PipeStock',
       author: text(company.name, 'PipeStock'),
       creator: 'PipeStock',
     },
@@ -121,34 +145,34 @@ function createDefinition(snapshot) {
         columns: [
           [
             { text: 'PipeStock', style: 'brand' },
-            { text: text(company.name, 'Company'), style: 'company' },
+            { text: text(company.name, 'Firma'), style: 'company' },
           ],
           [
             { text: `#${text(order.number)}`, style: 'orderNumber', alignment: 'right' },
-            { text: text(order.status), style: 'status', alignment: 'right' },
+            { text: formatOrderStatusCs(order.status), style: 'status', alignment: 'right' },
           ],
         ],
         margin: [0, 0, 0, 22],
       },
-      { text: text(order.title, 'Order'), style: 'title' },
-      { text: text(project.name, 'Object'), style: 'subtitle', margin: [0, 2, 0, 16] },
+      { text: text(order.title, 'Zakázka'), style: 'title' },
+      { text: text(project.name, 'Objekt'), style: 'subtitle', margin: [0, 2, 0, 16] },
       {
         table: {
           widths: [90, '*'],
           body: [
-            [{ text: 'Об’єкт', style: 'label' }, text(project.name)],
-            [{ text: 'Адреса', style: 'label' }, text(project.address)],
-            [{ text: 'Працівник', style: 'label' }, text(worker.name)],
-            [{ text: 'Email', style: 'label' }, text(worker.email)],
-            [{ text: 'Категорія', style: 'label' }, text(order.category)],
-            [{ text: 'Відправлено', style: 'label' }, formatDate(order.submittedAt)],
-            [{ text: 'Завершено', style: 'label' }, formatDate(order.completedAt)],
+            [{ text: 'Objekt', style: 'label' }, text(project.name)],
+            [{ text: 'Adresa', style: 'label' }, text(project.address)],
+            [{ text: 'Pracovník', style: 'label' }, text(worker.name)],
+            [{ text: 'E-mail', style: 'label' }, text(worker.email)],
+            [{ text: 'Kategorie', style: 'label' }, formatOrderCategoryCs(order.category)],
+            [{ text: 'Odesláno', style: 'label' }, formatDate(order.submittedAt)],
+            [{ text: 'Dokončeno', style: 'label' }, formatDate(order.completedAt)],
           ],
         },
         layout: 'lightHorizontalLines',
         margin: [0, 0, 0, 22],
       },
-      { text: `Матеріали (${items.length})`, style: 'sectionTitle', margin: [0, 0, 0, 8] },
+      { text: `Materiály (${items.length})`, style: 'sectionTitle', margin: [0, 0, 0, 8] },
       {
         table: {
           headerRows: 1,
@@ -156,11 +180,11 @@ function createDefinition(snapshot) {
           body: [
             [
               { text: '#', style: 'tableHeader' },
-              { text: 'Матеріал', style: 'tableHeader' },
-              { text: 'Діаметр', style: 'tableHeader' },
-              { text: 'Товщина', style: 'tableHeader' },
-              { text: 'Тип', style: 'tableHeader' },
-              { text: 'К-сть', style: 'tableHeader', alignment: 'right' },
+              { text: 'Materiál', style: 'tableHeader' },
+              { text: 'Průměr', style: 'tableHeader' },
+              { text: 'Tloušťka', style: 'tableHeader' },
+              { text: 'Typ', style: 'tableHeader' },
+              { text: 'Množství', style: 'tableHeader', alignment: 'right' },
             ],
             ...items.map((item, index) => [
               String(index + 1),
@@ -186,7 +210,7 @@ function createDefinition(snapshot) {
       },
       {
         stack: [
-          { text: 'Remarks', style: 'sectionTitle', margin: [0, 0, 0, 8] },
+          { text: 'Poznámka', style: 'sectionTitle', margin: [0, 0, 0, 8] },
           {
             table: {
               widths: ['*'],
@@ -205,14 +229,14 @@ function createDefinition(snapshot) {
           {
             width: '*',
             stack: [
-              { text: 'Підпис', style: 'label', margin: [0, 0, 0, 14] },
+              { text: 'Podpis', style: 'label', margin: [0, 0, 0, 14] },
               { text: '____________________________', color: '#98A2B3' },
             ],
           },
           {
             width: 150,
             stack: [
-              { text: 'Дата', style: 'label', margin: [0, 0, 0, 14] },
+              { text: 'Datum', style: 'label', margin: [0, 0, 0, 14] },
               { text: '____________________', color: '#98A2B3' },
             ],
           },
@@ -221,7 +245,7 @@ function createDefinition(snapshot) {
         margin: [0, 24, 0, 0],
       },
       {
-        text: `Snapshot v${snapshot.version || 1} · ${formatDate(snapshot.createdAt)}`,
+        text: `Verze dokumentu ${snapshot.version || 1} · ${formatDate(snapshot.createdAt)}`,
         color: '#98A2B3',
         fontSize: 8,
         margin: [0, 18, 0, 0],
