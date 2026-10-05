@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildOrderSnapshot, createOrderPdf } from '../lib/order-document.js';
+import { buildOrderSnapshot, createOrderPdf, formatOrderCategoryCs, formatOrderStatusCs } from '../lib/order-document.js';
 
 test('buildOrderSnapshot freezes order metadata and material quantities', () => {
   const submittedAt = new Date('2026-09-11T18:45:00.000Z');
@@ -75,4 +75,17 @@ test('createOrderPdf returns a valid PDF buffer with Unicode content', async () 
   assert.ok(Buffer.isBuffer(pdf));
   assert.ok(pdf.length > 1000);
   assert.equal(pdf.subarray(0, 4).toString('ascii'), '%PDF');
+});
+
+
+test('Czech PDF labels map stored order status and legacy categories', () => {
+  assert.equal(formatOrderStatusCs('DRAFT'), 'ROZPRACOVÁNO');
+  assert.equal(formatOrderStatusCs('SUBMITTED'), 'ODESLÁNO');
+  assert.equal(formatOrderStatusCs('COMPLETED'), 'DOKONČENO');
+  assert.equal(formatOrderCategoryCs('Опалення'), 'Vytápění');
+  assert.equal(formatOrderCategoryCs('Водопостачання'), 'Vodoinstalace');
+  assert.equal(formatOrderCategoryCs('Каналізація'), 'Kanalizace');
+  assert.equal(formatOrderCategoryCs('Сантехніка'), 'Sanitární technika');
+  assert.equal(formatOrderCategoryCs('Інше'), 'Ostatní');
+  assert.equal(formatOrderCategoryCs('Jiná vlastní hodnota'), 'Jiná vlastní hodnota');
 });
