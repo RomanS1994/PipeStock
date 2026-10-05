@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BackLink, Button } from '@shared/app/components/ui/PipeStockUI.jsx';
 import { OrderDocumentActions } from '../../components/OrderDocumentActions/OrderDocumentActions.jsx';
 import { useDownloadOrderPdfMutation, useGetOrderQuery } from '../../features/orders/ordersApi.js';
+import { PdfCanvasPreview } from './PdfCanvasPreview.jsx';
 import './OrderPdfPreviewPage.css';
 
 function formatDocumentDate(order) {
@@ -25,7 +26,7 @@ export function OrderPdfPreviewPage() {
     refetch: refetchOrder,
   } = useGetOrderQuery(orderId);
   const [downloadOrderPdf] = useDownloadOrderPdfMutation();
-  const [pdfUrl, setPdfUrl] = useState('');
+  const [pdfBlob, setPdfBlob] = useState(null);
   const [pdfError, setPdfError] = useState('');
   const [retryKey, setRetryKey] = useState(0);
   const canPreviewPdf = Boolean(
@@ -37,22 +38,15 @@ export function OrderPdfPreviewPage() {
     if (!canPreviewPdf) return undefined;
 
     let active = true;
-    let objectUrl = '';
 
     async function loadPreview() {
-      setPdfUrl('');
+      setPdfBlob(null);
       setPdfError('');
       try {
         const blob = await downloadOrderPdf(order.id).unwrap();
-        objectUrl = URL.createObjectURL(blob);
-        if (active) {
-          setPdfUrl(objectUrl);
-        } else {
-          URL.revokeObjectURL(objectUrl);
-          objectUrl = '';
-        }
+        if (active) setPdfBlob(blob);
       } catch {
-        if (active) setPdfError('Не вдалося відкрити PDF.');
+        if (active) setPdfError('Не вдалося завантажити PDF.');
       }
     }
 
@@ -60,9 +54,12 @@ export function OrderPdfPreviewPage() {
 
     return () => {
       active = false;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [canPreviewPdf, downloadOrderPdf, order?.id, order?.itemCount, retryKey]);
+
+  const handleRenderError = useCallback(() => {
+    setPdfError('Не вдалося відобразити PDF.');
+  }, []);
 
   if (orderLoading) {
     return <section className="screenCard orderPdfPreviewState"><strong>Завантажуємо документ…</strong></section>;
@@ -104,12 +101,8 @@ export function OrderPdfPreviewPage() {
 
       <section className="screenCard orderPdfPreviewCard">
         {pdfError ? <div className="orderPdfPreviewState"><strong>{pdfError}</strong><Button variant="text" onClick={() => setRetryKey(value => value + 1)}>Спробувати ще раз</Button></div> : null}
-        {!pdfError && !pdfUrl ? <div className="orderPdfPreviewState"><strong>Готуємо PDF…</strong></div> : null}
-        {pdfUrl ? (
-          <object className="orderPdfPreviewDocument" data={pdfUrl} type="application/pdf" aria-label={`PDF заказа #${order.number}`}>
-            <p>Ваш браузер не показує PDF у вікні. Скористайтеся кнопкою PDF нижче.</p>
-          </object>
-        ) : null}
+        {!pdfError && !pdfBlob ? <div className="orderPdfPreviewState"><strong>Готуємо PDF…</strong></div> : null}
+        {!pdfError && pdfBlob ? <PdfCanvasPreview blob={pdfBlob} onError={handleRenderError} /> : null}
       </section>
 
       <OrderDocumentActions order={order} className="orderPdfPreviewActions" hidePreview />
