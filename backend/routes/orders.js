@@ -549,22 +549,28 @@ async function downloadOrderPdf(request, response, orderId) {
   const user = await requireAuth(request);
   const membership = requireMembership(user);
   const order = await findOrder(orderId, membership);
-  if (order.status === 'DRAFT') throw new HttpError(409, 'Submit the order before downloading PDF');
 
-  let snapshot = order.snapshot;
-  if (!snapshot) {
-    snapshot = await prisma.orderSnapshot.upsert({
-      where: { orderId },
-      update: {},
-      create: {
-        orderId,
-        version: 1,
-        payload: buildOrderSnapshot(order),
-      },
-    });
+  let snapshotPayload;
+  if (order.status === 'DRAFT') {
+    if (!order.items?.length) throw new HttpError(409, 'Add at least one material before previewing PDF');
+    snapshotPayload = buildOrderSnapshot(order);
+  } else {
+    let snapshot = order.snapshot;
+    if (!snapshot) {
+      snapshot = await prisma.orderSnapshot.upsert({
+        where: { orderId },
+        update: {},
+        create: {
+          orderId,
+          version: 1,
+          payload: buildOrderSnapshot(order),
+        },
+      });
+    }
+    snapshotPayload = snapshot.payload;
   }
 
-  const buffer = await createOrderPdf(snapshot.payload);
+  const buffer = await createOrderPdf(snapshotPayload);
   if (response.writableEnded) return;
   response.writeHead(200, {
     'Content-Type': 'application/pdf',
