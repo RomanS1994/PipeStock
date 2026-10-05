@@ -28,9 +28,13 @@ export function OrderPdfPreviewPage() {
   const [pdfUrl, setPdfUrl] = useState('');
   const [pdfError, setPdfError] = useState('');
   const [retryKey, setRetryKey] = useState(0);
+  const canPreviewPdf = Boolean(
+    order?.documentAvailable ||
+    (order?.status === 'DRAFT' && order?.items?.length),
+  );
 
   useEffect(() => {
-    if (!order?.documentAvailable) return undefined;
+    if (!canPreviewPdf) return undefined;
 
     let active = true;
     let objectUrl = '';
@@ -58,7 +62,7 @@ export function OrderPdfPreviewPage() {
       active = false;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [downloadOrderPdf, order?.documentAvailable, order?.id, retryKey]);
+  }, [canPreviewPdf, downloadOrderPdf, order?.id, order?.itemCount, retryKey]);
 
   if (orderLoading) {
     return <section className="screenCard orderPdfPreviewState"><strong>Завантажуємо документ…</strong></section>;
@@ -74,8 +78,8 @@ export function OrderPdfPreviewPage() {
     );
   }
 
-  if (!order.documentAvailable) {
-    return <section className="screenCard orderPdfPreviewState"><strong>PDF ще недоступний</strong><p>Документ з’явиться після відправлення заказа.</p><Button variant="text" onClick={() => navigate(`/orders/${order.id}`)}>Назад до заказа</Button></section>;
+  if (!canPreviewPdf) {
+    return <section className="screenCard orderPdfPreviewState"><strong>PDF ще недоступний</strong><p>Додайте хоча б один матеріал, щоб переглянути PDF перед відправленням.</p><Button variant="text" onClick={() => navigate(`/orders/${order.id}`)}>Назад до заказа</Button></section>;
   }
 
   return (
@@ -88,6 +92,8 @@ export function OrderPdfPreviewPage() {
         </div>
         <span />
       </header>
+
+      {order.status === 'DRAFT' ? <section className="screenCard orderPdfPreviewState"><strong>Попередній перегляд Draft</strong><p>Це тимчасовий PDF із поточними матеріалами. Після відправлення буде зафіксовано фінальну версію.</p></section> : null}
 
       <section className="orderPdfPreviewMeta">
         <div><span>Об’єкт</span><strong>{order.project?.name || '—'}</strong></div>
