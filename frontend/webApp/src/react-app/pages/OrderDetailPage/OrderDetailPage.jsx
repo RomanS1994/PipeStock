@@ -144,6 +144,11 @@ export function OrderDetailPage() {
       {submitState.error ? <p className="orderError">{submitState.error?.data?.error}</p> : null}
       {completeState.error ? <p className="orderError">{completeState.error?.data?.error}</p> : null}
 
+      {canEdit && order.items.length ? (
+        <Link className="psButton psButton--secondary psButton--full orderButtonLink" to={`/orders/${order.id}/pdf`}>
+          Переглянути PDF
+        </Link>
+      ) : null}
       {canEdit ? (
         <Button variant="secondary" fullWidth disabled={submitState.isLoading || deleteState.isLoading || !order.items.length} onClick={() => submitOrder(order.id)}>
           {submitState.isLoading ? 'Відправляємо…' : manager ? 'Відправити' : 'Відправити менеджеру'}
