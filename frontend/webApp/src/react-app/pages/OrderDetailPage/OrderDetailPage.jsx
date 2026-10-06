@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { BackLink, Button, StatusChip } from '@shared/app/components/ui/PipeStockUI.jsx';
@@ -8,6 +9,7 @@ import {
   useDeleteOrderItemMutation,
   useGetOrderQuery,
   useSubmitOrderMutation,
+  useUpdateOrderItemMutation,
 } from '../../features/orders/ordersApi.js';
 import { getMaterialVisual } from '../AddMaterialPage/materialImageResolver.js';
 import '../OrderFlow/OrderFlow.css';
@@ -45,12 +47,32 @@ export function OrderDetailPage() {
   const [submitOrder, submitState] = useSubmitOrderMutation();
   const [completeOrder, completeState] = useCompleteOrderMutation();
   const [deleteItem, deleteState] = useDeleteOrderItemMutation();
+  const [updateItem, updateState] = useUpdateOrderItemMutation();
+  const [quantityBusyId, setQuantityBusyId] = useState(null);
+  const [quantityError, setQuantityError] = useState('');
 
   if (isLoading) return <section className="screenCard">Завантажуємо заказ…</section>;
   if (isError || !order) return <section className="screenCard"><strong>Не вдалося відкрити заказ</strong><button type="button" onClick={refetch}>Спробувати ще раз</button></section>;
 
   const canEdit = order.status === 'DRAFT' && (manager || order.createdByMembershipId === membership?.id);
   const history = order.history || [];
+
+  async function changeQuantity(item, delta) {
+    if (!canEdit || quantityBusyId) return;
+    const current = Number(item.quantity);
+    const next = Math.max(0.01, Math.min(99999, Math.round((current + delta) * 100) / 100));
+    if (next === current) return;
+
+    setQuantityBusyId(item.id);
+    setQuantityError('');
+    try {
+      await updateItem({ orderId: order.id, itemId: item.id, quantity: next }).unwrap();
+    } catch (error) {
+      setQuantityError(error?.data?.error || 'Не вдалося змінити кількість.');
+    } finally {
+      setQuantityBusyId(null);
+    }
+  }
 
   return (
     <div className="pageStack orderFlowPage">
@@ -88,14 +110,39 @@ export function OrderDetailPage() {
                   <div className={`orderMaterialMark${visual ? ' has-image' : ''}`} style={visual?.kind === 'sprite' ? visual.style : undefined}>
                     {visual?.kind === 'image' ? <img src={visual.src} alt="" /> : visual ? null : category.slice(0, 2).toUpperCase()}
                   </div>
-                  <div className="orderItemCopy"><strong>{category} {item.diameter}</strong><span>{item.type}{item.thickness ? ` · ${item.thickness}` : ''}</span></div>
-                  <strong className="orderItemQty">{item.quantity} {item.unit}</strong>
+                  <div className="orderItemCopy">
+                    <strong>{category} {item.diameter}</strong>
+                    <span>{item.type}{item.thickness ? ` · ${item.thickness}` : ''}</span>
+                    <small className="orderItemBadge">{String(item.categoryKey || '').toUpperCase() === 'STEEL' ? 'Ocel' : category}</small>
+                  </div>
+                  {canEdit ? (
+                    <div className="orderItemQuantityControl" aria-label={`Кількість ${item.type} ${item.diameter}`}>
+                      <button
+                        type="button"
+                        aria-label="Зменшити кількість"
+                        disabled={quantityBusyId !== null || Number(item.quantity) <= 0.01}
+                        onClick={() => changeQuantity(item, -1)}
+                      >
+                        −
+                      </button>
+                      <strong>{quantityBusyId === item.id ? '…' : item.quantity}</strong>
+                      <button
+                        type="button"
+                        aria-label="Збільшити кількість"
+                        disabled={quantityBusyId !== null || Number(item.quantity) >= 99999}
+                        onClick={() => changeQuantity(item, 1)}
+                      >
+                        +
+                      </button>
+                      <span>{item.unit}</span>
+                    </div>
+                  ) : <strong className="orderItemQty">{item.quantity} {item.unit}</strong>}
                   {canEdit ? (
                     <button
                       className="orderRemoveItem"
                       type="button"
                       aria-label="Видалити матеріал"
-                      disabled={deleteState.isLoading}
+                      disabled={deleteState.isLoading || quantityBusyId !== null}
                       onClick={() => deleteItem({ orderId: order.id, itemId: item.id })}
                     >
                       ×
@@ -108,6 +155,7 @@ export function OrderDetailPage() {
         ) : <div className="orderEmptyMaterials"><strong>Матеріалів ще немає</strong><p>Додайте перший матеріал до заказа.</p></div>}
 
         {deleteState.error ? <p className="orderError">{deleteState.error?.data?.error || 'Не вдалося видалити матеріал'}</p> : null}
+        {quantityError || updateState.error ? <p className="orderError">{quantityError || updateState.error?.data?.error || 'Не вдалося змінити кількість'}</p> : null}
         {canEdit ? <Link className="psButton psButton--primary psButton--full orderButtonLink" to={`/orders/${order.id}/materials/new`}>+ Додати матеріал</Link> : null}
       </section>
 
@@ -144,15 +192,25 @@ export function OrderDetailPage() {
       {submitState.error ? <p className="orderError">{submitState.error?.data?.error}</p> : null}
       {completeState.error ? <p className="orderError">{completeState.error?.data?.error}</p> : null}
 
-      {canEdit && order.items.length ? (
-        <Link className="psButton psButton--secondary psButton--full orderButtonLink" to={`/orders/${order.id}/pdf`}>
-          Переглянути PDF
-        </Link>
-      ) : null}
       {canEdit ? (
-        <Button variant="secondary" fullWidth disabled={submitState.isLoading || deleteState.isLoading || !order.items.length} onClick={() => submitOrder(order.id)}>
-          {submitState.isLoading ? 'Відправляємо…' : manager ? 'Відправити' : 'Відправити менеджеру'}
-        </Button>
+        <nav className="orderDraftStickyActions" aria-label="Дії з Draft-заказом">
+          <Link
+            className={`orderDraftStickyAction orderDraftStickyAction--pdf${order.items.length ? '' : ' is-disabled'}`}
+            to={order.items.length ? `/orders/${order.id}/pdf` : '#'}
+            aria-disabled={!order.items.length}
+            onClick={event => { if (!order.items.length) event.preventDefault(); }}
+          >
+            Переглянути PDF
+          </Link>
+          <button
+            type="button"
+            className="orderDraftStickyAction orderDraftStickyAction--submit"
+            disabled={submitState.isLoading || deleteState.isLoading || updateState.isLoading || !order.items.length}
+            onClick={() => submitOrder(order.id)}
+          >
+            {submitState.isLoading ? 'Відправляємо…' : manager ? 'Відправити' : 'Відправити менеджеру'}
+          </button>
+        </nav>
       ) : null}
       {manager && order.status === 'SUBMITTED' ? (
         <Button fullWidth disabled={completeState.isLoading} onClick={() => completeOrder(order.id)}>
