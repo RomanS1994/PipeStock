@@ -79,13 +79,12 @@ export function OrderDetailPage() {
       <header className="orderTopbar">
         <BackLink to={location.state?.returnTo || `/objects/${order.project.id}`} />
         <strong>Заказ #{order.number}</strong>
-        <span />
+        <StatusChip status={order.status}>{STATUS_LABELS[order.status]}</StatusChip>
       </header>
 
       <section className="screenCard orderSummaryCard">
         <div className="orderSummaryHeading">
           <div><h1>{order.title}</h1><p>{order.project.name}</p></div>
-          <StatusChip status={order.status}>{STATUS_LABELS[order.status]}</StatusChip>
         </div>
         <dl className="orderMetaGrid">
           <div><dt>Категорія</dt><dd>{order.category || '—'}</dd></div>
