@@ -3,3 +3,325 @@
 /* Approved PipeStock mockup — order detail */
 .orderFlowPage{padding-top:max(10px,env(safe-area-inset-top));gap:14px}.orderTopbar{min-height:38px;margin-bottom:2px}.orderTopbar>strong{font-size:15px;font-weight:700;color:#667085}.orderSummaryCard,.orderMaterialsCard,.orderHistoryCard,.orderDocumentCard{border:1px solid #e2e7ee;border-radius:18px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.03)}.orderSummaryCard{gap:14px;padding:16px}.orderSummaryHeading{align-items:flex-start}.orderSummaryHeading h1{font-size:24px;line-height:1.1;letter-spacing:-.025em;font-weight:800;color:#111827}.orderSummaryHeading p{margin-top:5px;color:#6f7c90;font-size:14px}.orderMetaGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.orderMetaGrid>div{min-height:64px;padding:10px 11px;border:1px solid #edf0f4;border-radius:14px;background:#f8fafc}.orderMetaGrid dt{font-size:11px;color:#8a96a8}.orderMetaGrid dd{font-size:13px;line-height:1.25;font-weight:750;color:#111827}.orderMaterialsCard{gap:12px;padding:16px}.orderSectionHeader strong{font-size:17px;font-weight:800;color:#111827}.orderItemList{gap:0}.orderItemRow{grid-template-columns:58px minmax(0,1fr) auto auto;min-height:78px;gap:12px;padding:10px 0;border-bottom:1px solid #edf0f4}.orderMaterialMark{width:58px;height:58px;border-radius:12px;background:#fff}.orderMaterialMark.has-image{border:0;background:#fff}.orderMaterialMark img{padding:2px}.orderItemCopy{gap:4px}.orderItemCopy strong{font-size:14px;font-weight:800;color:#111827}.orderItemCopy span{font-size:12px;color:#78869a}.orderItemQty{font-size:14px;font-weight:800;color:#111827}.orderRemoveItem{width:30px;height:30px;min-height:30px;border-radius:50%;background:#fff4f3;color:#ef4444;font-size:18px}.orderButtonLink{min-height:52px;margin-top:4px;border-radius:15px;font-size:15px;font-weight:750}.orderHistoryCard{gap:14px;padding:16px}.orderTimelineItem{grid-template-columns:18px minmax(0,1fr) auto;gap:11px;padding-bottom:16px}.orderTimelineItem:not(:last-child)::before{left:8px;top:20px;background:#e4e9f0}.orderTimelineDot{width:18px;height:18px;border:5px solid #eaf4ff;background:#0a84ff}.orderTimelineItem>div strong{font-size:13px;font-weight:750;color:#111827}.orderTimelineItem>div span,.orderTimelineItem time{font-size:11px;color:#8a96a8}.orderDocumentCard{gap:14px;padding:16px}.orderDocumentCardHeading{gap:13px}.orderDocumentCardMark{width:50px;height:50px;flex-basis:50px;border-radius:14px;background:#fff1f1;color:#e5484d;font-size:12px}.orderDocumentCardHeading strong{font-size:15px;font-weight:800;color:#111827}.orderDocumentCardHeading span:last-child{font-size:12px;color:#8491a4}.orderFlowPage>.psButton{min-height:52px;border-radius:15px;font-size:15px;font-weight:750}
 @media(max-width:420px){.orderSummaryCard,.orderMaterialsCard,.orderHistoryCard,.orderDocumentCard{border-radius:17px}.orderSummaryCard{padding:14px}.orderSummaryHeading{display:flex;gap:10px}.orderSummaryHeading>.psStatusChip{justify-self:auto}.orderSummaryHeading h1{font-size:22px}.orderMetaGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.orderItemRow{grid-template-columns:52px minmax(0,1fr) auto auto;gap:10px}.orderMaterialMark{width:52px;height:52px}.orderTimelineItem{grid-template-columns:18px minmax(0,1fr)}.orderTimelineItem time{grid-column:2;text-align:left;margin-top:2px}}
+
+
+/* Compact approved draft order layout */
+.orderFlowPage{
+  padding-bottom:calc(112px + env(safe-area-inset-bottom));
+}
+.orderTopbar{
+  grid-template-columns:40px minmax(0,1fr) auto;
+  align-items:center;
+}
+.orderTopbar>.psStatusChip{
+  justify-self:end;
+  flex:0 0 auto;
+}
+.orderSummaryCard{
+  gap:12px;
+  padding:14px;
+}
+.orderSummaryHeading h1{
+  font-size:22px;
+}
+.orderSummaryHeading p{
+  margin-top:4px;
+  font-size:13px;
+}
+.orderMetaGrid{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:0;
+  overflow:hidden;
+  border:1px solid #edf0f4;
+  border-radius:14px;
+  background:#f8fafc;
+}
+.orderMetaGrid>div{
+  min-height:58px;
+  gap:3px;
+  padding:9px 10px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+}
+.orderMetaGrid>div+div{
+  border-left:1px solid #e6ebf1;
+}
+.orderMetaGrid dt{
+  font-size:10px;
+}
+.orderMetaGrid dd{
+  font-size:12px;
+  line-height:1.2;
+}
+.orderMaterialsCard{
+  gap:10px;
+  padding:14px;
+}
+.orderSectionHeader{
+  align-items:center;
+}
+.orderSectionHeader strong{
+  font-size:16px;
+}
+.orderItemRow{
+  grid-template-columns:44px minmax(0,1fr) auto 28px;
+  min-height:66px;
+  gap:8px;
+  padding:7px 0;
+}
+.orderMaterialMark{
+  width:44px;
+  height:44px;
+  border-radius:10px;
+}
+.orderMaterialMark img{
+  padding:1px;
+}
+.orderItemCopy{
+  gap:2px;
+}
+.orderItemCopy strong{
+  display:-webkit-box;
+  overflow:hidden;
+  font-size:13px;
+  line-height:1.15;
+  white-space:normal;
+  text-overflow:ellipsis;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  overflow-wrap:anywhere;
+}
+.orderItemCopy span{
+  font-size:11px;
+}
+.orderItemBadge{
+  justify-self:start;
+  max-width:100%;
+  margin-top:1px;
+  padding:2px 7px;
+  overflow:hidden;
+  border-radius:999px;
+  background:#eef2f6;
+  color:#6f7c90;
+  font-size:9px;
+  font-weight:700;
+  line-height:1.35;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.orderItemQuantityControl{
+  display:grid;
+  grid-template-columns:30px minmax(28px,auto) 30px;
+  grid-template-rows:32px 14px;
+  align-items:center;
+  min-width:92px;
+  overflow:hidden;
+  border:1px solid #d7e6fb;
+  border-radius:14px;
+  background:#f8fbff;
+}
+.orderItemQuantityControl button{
+  display:grid;
+  width:30px;
+  height:32px;
+  min-height:0;
+  padding:0;
+  place-items:center;
+  border:0;
+  background:#eef6ff;
+  color:#1263eb;
+  font-size:18px;
+  font-weight:700;
+}
+.orderItemQuantityControl button:disabled{
+  color:#b9c7db;
+}
+.orderItemQuantityControl strong{
+  min-width:0;
+  padding:0 4px;
+  overflow:hidden;
+  text-align:center;
+  color:#111827;
+  font-size:13px;
+  font-weight:800;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.orderItemQuantityControl>span{
+  grid-column:1/-1;
+  align-self:start;
+  padding-top:1px;
+  text-align:center;
+  color:#8290a4;
+  font-size:9px;
+  line-height:1;
+}
+.orderRemoveItem{
+  width:28px;
+  height:28px;
+  min-height:28px;
+  border-radius:50%;
+  background:#fff1f1;
+  font-size:17px;
+}
+.orderButtonLink{
+  min-height:46px;
+  margin-top:2px;
+  border-radius:14px;
+  font-size:14px;
+}
+.orderDraftStickyActions{
+  position:fixed;
+  right:0;
+  bottom:0;
+  left:0;
+  z-index:35;
+  display:grid;
+  grid-template-columns:1fr 1.2fr;
+  gap:8px;
+  padding:10px max(12px,calc((100vw - 560px)/2)) max(10px,env(safe-area-inset-bottom));
+  border-top:1px solid #e6ebf1;
+  background:rgba(247,249,252,.97);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+.orderDraftStickyAction{
+  display:flex;
+  min-width:0;
+  min-height:50px;
+  align-items:center;
+  justify-content:center;
+  padding:8px 12px;
+  border:1px solid #d8e8ff;
+  border-radius:15px;
+  background:#eef6ff;
+  color:#1263eb;
+  font:inherit;
+  font-size:13px;
+  font-weight:800;
+  line-height:1.2;
+  text-align:center;
+  text-decoration:none;
+}
+.orderDraftStickyAction--submit{
+  border-color:#1263eb;
+  background:#1263eb;
+  color:#fff;
+}
+.orderDraftStickyAction:disabled,
+.orderDraftStickyAction.is-disabled{
+  opacity:.5;
+  pointer-events:none;
+}
+
+@media(max-width:420px){
+  .orderFlowPage{
+    gap:12px;
+    padding-top:max(6px,env(safe-area-inset-top));
+  }
+  .orderTopbar{
+    min-height:36px;
+  }
+  .orderTopbar>strong{
+    font-size:14px;
+  }
+  .orderSummaryCard{
+    padding:13px;
+  }
+  .orderSummaryHeading h1{
+    font-size:21px;
+  }
+  .orderMetaGrid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .orderMetaGrid>div{
+    min-height:52px;
+    padding:8px 9px;
+  }
+  .orderMetaGrid>div:nth-child(3){
+    border-top:1px solid #e6ebf1;
+    border-left:0;
+  }
+  .orderMetaGrid>div:nth-child(4){
+    border-top:1px solid #e6ebf1;
+  }
+  .orderMaterialsCard{
+    padding:13px;
+  }
+  .orderItemRow{
+    grid-template-columns:40px minmax(0,1fr) 90px 26px;
+    min-height:62px;
+    gap:7px;
+    padding:6px 0;
+  }
+  .orderMaterialMark{
+    width:40px;
+    height:40px;
+  }
+  .orderItemCopy strong{
+    font-size:12px;
+  }
+  .orderItemCopy span{
+    font-size:10px;
+  }
+  .orderItemBadge{
+    padding:1px 6px;
+    font-size:8px;
+  }
+  .orderItemQuantityControl{
+    grid-template-columns:28px minmax(26px,auto) 28px;
+    grid-template-rows:30px 12px;
+    min-width:86px;
+    border-radius:13px;
+  }
+  .orderItemQuantityControl button{
+    width:28px;
+    height:30px;
+    font-size:17px;
+  }
+  .orderItemQuantityControl strong{
+    font-size:12px;
+  }
+  .orderItemQuantityControl>span{
+    font-size:8px;
+  }
+  .orderRemoveItem{
+    width:26px;
+    height:26px;
+    min-height:26px;
+    font-size:16px;
+  }
+  .orderDraftStickyActions{
+    padding-right:10px;
+    padding-left:10px;
+  }
+  .orderDraftStickyAction{
+    min-height:50px;
+    padding:7px 9px;
+    font-size:12px;
+  }
+}
+
+@media(max-width:360px){
+  .orderItemRow{
+    grid-template-columns:36px minmax(0,1fr) 82px 24px;
+    gap:6px;
+  }
+  .orderMaterialMark{
+    width:36px;
+    height:36px;
+  }
+  .orderItemQuantityControl{
+    grid-template-columns:26px minmax(24px,auto) 26px;
+    min-width:78px;
+  }
+  .orderItemQuantityControl button{
+    width:26px;
+  }
+  .orderRemoveItem{
+    width:24px;
+    height:24px;
+    min-height:24px;
+  }
+}
