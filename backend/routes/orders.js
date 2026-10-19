@@ -4,6 +4,7 @@ import { HttpError } from '../lib/errors.js';
 import { readJsonBody, sendJson } from '../lib/http.js';
 import { getCatalogCategoryLabel, getCatalogDisplayName, getCatalogImageUrl, serializeCatalogItem } from '../lib/material-catalog-presentation.js';
 import { buildOrderSnapshot, createOrderPdf } from '../lib/order-document.js';
+import { mergeOrderItemQuantity } from '../lib/order-item-quantity.js';
 
 const ORDER_TITLE_MAX_LENGTH = 120;
 const ORDER_NOTE_MAX_LENGTH = 500;
@@ -401,8 +402,12 @@ async function addItem(request, response, orderId) {
     });
 
     if (existing) {
-      const mergedQuantity = Math.round((Number(existing.quantity) + quantity) * 100) / 100;
-      parseQuantity(mergedQuantity);
+      let mergedQuantity;
+      try {
+        mergedQuantity = mergeOrderItemQuantity(existing.quantity, quantity);
+      } catch {
+        throw new HttpError(400, `Quantity must be greater than zero and at most ${MAX_QUANTITY}`);
+      }
       const item = await tx.orderItem.update({
         where: { id: existing.id },
         data: { quantity: mergedQuantity },
