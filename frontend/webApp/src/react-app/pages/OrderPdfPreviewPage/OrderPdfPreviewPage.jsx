@@ -207,7 +207,7 @@ export function OrderPdfPreviewPage() {
       {actionError ? <p className="orderError orderPdfActionError" role="alert">{actionError}</p> : null}
 
       {isDraft ? (
-        <nav className="orderPdfDraftActions" aria-label="Дії з Draft PDF">
+        <nav className={`orderPdfDraftActions${sectionId ? ' is-section' : ''}`} aria-label="Дії з Draft PDF">
           <button type="button" className="orderPdfDraftAction orderPdfDraftAction--back" onClick={() => navigate(sectionId ? `/orders/${order.id}/sections/${sectionId}` : `/orders/${order.id}`)}>
             Назад
           </button>
