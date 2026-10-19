@@ -124,7 +124,7 @@ const orderSummaryInclude = {
       user: { select: { id: true, name: true, email: true } },
     },
   },
-  _count: { select: { items: true } },
+  _count: { select: { items: true, sections: true } },
 };
 
 function serializeItem(item) {
@@ -204,6 +204,7 @@ function serializeOrderSummary(order) {
     worker: order.createdByMembership?.user || null,
     createdByMembershipId: order.createdByMembershipId,
     itemCount: order._count?.items || 0,
+    sectionCount: order._count?.sections || 0,
     documentAvailable: order.status !== 'DRAFT',
   };
 }
