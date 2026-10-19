@@ -198,6 +198,7 @@ model Order {
   company             Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   project             Project           @relation(fields: [projectId], references: [id], onDelete: Restrict)
   createdByMembership CompanyMembership @relation("OrderCreator", fields: [createdByMembershipId], references: [id], onDelete: Restrict)
+  sections            OrderSection[]
   items               OrderItem[]
   snapshot            OrderSnapshot?
   events              OrderEvent[]
@@ -208,9 +209,25 @@ model Order {
   @@map("orders")
 }
 
+model OrderSection {
+  id        String   @id @default(cuid())
+  orderId   String
+  name      String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  items OrderItem[]
+
+  @@index([orderId, sortOrder])
+  @@map("order_sections")
+}
+
 model OrderItem {
   id            String   @id @default(cuid())
   orderId       String
+  sectionId     String
   catalogItemId String?
   materialKey   String
   materialName  String
@@ -226,10 +243,12 @@ model OrderItem {
   updatedAt     DateTime @updatedAt
 
   order       Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  section     OrderSection         @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   catalogItem MaterialCatalogItem? @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
 
-  @@unique([orderId, catalogItemId])
+  @@unique([sectionId, catalogItemId])
   @@index([orderId])
+  @@index([sectionId])
   @@index([catalogItemId])
   @@map("order_items")
 }
