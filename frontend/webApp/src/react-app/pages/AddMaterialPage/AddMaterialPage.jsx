@@ -510,7 +510,7 @@ export function AddMaterialPage({ order, orderLoading, orderError, refetchOrder 
 
       {!isLoading && !catalogError && step === 1 ? (
         <section className="materialWizardStage">
-          <MaterialSearch catalog={catalog} order={order} orderId={orderId} query={search} onQueryChange={setSearch} onSelect={selectShortcut} />
+          <MaterialSearch catalog={catalog} order={order} orderId={orderId} sectionId={sectionId} query={search} onQueryChange={setSearch} onSelect={selectShortcut} />
           {!search.trim() ? (
             <>
               {showShortcuts && favorites.length ? (
