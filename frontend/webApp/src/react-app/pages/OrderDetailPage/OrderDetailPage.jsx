@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { BackLink, Button, StatusChip } from '@shared/app/components/ui/PipeStockUI.jsx';
@@ -6,216 +6,161 @@ import { OrderDocumentActions } from '../../components/OrderDocumentActions/Orde
 import { selectUser } from '../../features/auth/authSlice.js';
 import {
   useCompleteOrderMutation,
-  useDeleteOrderItemMutation,
+  useCreateOrderSectionMutation,
   useGetOrderQuery,
   useSubmitOrderMutation,
-  useUpdateOrderItemMutation,
 } from '../../features/orders/ordersApi.js';
 import { getMaterialVisual } from '../AddMaterialPage/materialImageResolver.js';
 import '../OrderFlow/OrderFlow.css';
 
 const STATUS_LABELS = { DRAFT: 'Draft', SUBMITTED: 'Submitted', COMPLETED: 'Completed' };
 const CATEGORY_LABELS = { CU: 'Měď', STEEL: 'Uhlíková ocel', OTHER: 'Montážní materiál' };
-const EVENT_LABELS = {
-  CREATED: 'Заказ створено',
-  SUBMITTED: 'Відправлено менеджеру',
-  COMPLETED: 'Заказ завершено',
-};
-
-function formatEventDate(value) {
-  if (!value) return '';
-  return new Intl.DateTimeFormat('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(value));
-}
 
 function getCategoryLabel(item) {
   return CATEGORY_LABELS[String(item?.categoryKey || '').toUpperCase()] || item?.categoryLabel || '';
+}
+
+function formatDate(value) {
+  if (!value) return '—';
+  return new Intl.DateTimeFormat('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(value));
 }
 
 export function OrderDetailPage() {
   const { orderId } = useParams();
   const location = useLocation();
   const user = useSelector(selectUser);
-  const membership = (user?.memberships || []).find(item => item.status === 'ACTIVE');
+  const membership = (user?.memberships || []).find(item => item.status === 'ACTIVE' && !item.deletedAt);
   const manager = membership?.role === 'MANAGER';
   const { data: order, isLoading, isError, refetch } = useGetOrderQuery(orderId);
   const [submitOrder, submitState] = useSubmitOrderMutation();
   const [completeOrder, completeState] = useCompleteOrderMutation();
-  const [deleteItem, deleteState] = useDeleteOrderItemMutation();
-  const [updateItem, updateState] = useUpdateOrderItemMutation();
-  const [quantityBusyId, setQuantityBusyId] = useState(null);
-  const [quantityError, setQuantityError] = useState('');
+  const [createSection, createSectionState] = useCreateOrderSectionMutation();
+  const [tab, setTab] = useState('sections');
+  const [showCreateSection, setShowCreateSection] = useState(false);
+  const [sectionName, setSectionName] = useState('');
+  const [sectionError, setSectionError] = useState('');
+  const [search, setSearch] = useState('');
+
+  const canEdit = order?.status === 'DRAFT' && (manager || order?.createdByMembershipId === membership?.id);
+  const aggregatedItems = order?.aggregatedItems || [];
+  const filteredItems = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase('cs-CZ');
+    if (!query) return aggregatedItems;
+    return aggregatedItems.filter(item => [getCategoryLabel(item), item.diameter, item.thickness, item.type, item.materialName].filter(Boolean).join(' ').toLocaleLowerCase('cs-CZ').includes(query));
+  }, [aggregatedItems, search]);
+
+  const groupedItems = useMemo(() => {
+    const groups = new Map();
+    filteredItems.forEach(item => {
+      const label = getCategoryLabel(item) || 'Інше';
+      if (!groups.has(label)) groups.set(label, []);
+      groups.get(label).push(item);
+    });
+    return [...groups.entries()];
+  }, [filteredItems]);
+
+  async function handleCreateSection() {
+    const name = sectionName.trim();
+    if (!name) return;
+    setSectionError('');
+    try {
+      await createSection({ orderId, name }).unwrap();
+      setSectionName('');
+      setShowCreateSection(false);
+    } catch (error) {
+      setSectionError(error?.data?.error || 'Не вдалося створити розділ.');
+    }
+  }
 
   if (isLoading) return <section className="screenCard">Завантажуємо заказ…</section>;
   if (isError || !order) return <section className="screenCard"><strong>Не вдалося відкрити заказ</strong><button type="button" onClick={refetch}>Спробувати ще раз</button></section>;
 
-  const canEdit = order.status === 'DRAFT' && (manager || order.createdByMembershipId === membership?.id);
-  const history = order.history || [];
-
-  async function changeQuantity(item, delta) {
-    if (!canEdit || quantityBusyId) return;
-    const current = Number(item.quantity);
-    const next = Math.max(0.01, Math.min(99999, Math.round((current + delta) * 100) / 100));
-    if (next === current) return;
-
-    setQuantityBusyId(item.id);
-    setQuantityError('');
-    try {
-      await updateItem({ orderId: order.id, itemId: item.id, quantity: next }).unwrap();
-    } catch (error) {
-      setQuantityError(error?.data?.error || 'Не вдалося змінити кількість.');
-    } finally {
-      setQuantityBusyId(null);
-    }
-  }
-
   return (
-    <div className="pageStack orderFlowPage">
+    <div className="pageStack orderFlowPage orderPlanningPage">
       <header className="orderTopbar">
         <BackLink to={location.state?.returnTo || `/objects/${order.project.id}`} />
         <strong>Заказ #{order.number}</strong>
         <StatusChip status={order.status}>{STATUS_LABELS[order.status]}</StatusChip>
       </header>
 
-      <section className="screenCard orderSummaryCard">
-        <div className="orderSummaryHeading">
-          <div><h1>{order.title}</h1><p>{order.project.name}</p></div>
-        </div>
-        <dl className="orderMetaGrid">
-          <div><dt>Категорія</dt><dd>{order.category || '—'}</dd></div>
-          <div><dt>Працівник</dt><dd>{order.worker?.name || '—'}</dd></div>
-          <div><dt>Матеріалів</dt><dd>{order.itemCount}</dd></div>
-          <div><dt>Примітка</dt><dd>{order.note || '—'}</dd></div>
+      <section className="screenCard orderPlanningSummary">
+        <div className="orderPlanningTitle"><div><h1>{order.title}</h1><p>{order.project.name}</p></div></div>
+        <dl className="orderPlanningMeta">
+          <div><dt>Об’єкт</dt><dd>{order.project.name}</dd></div>
+          <div><dt>Дата</dt><dd>{formatDate(order.createdAt)}</dd></div>
+          <div><dt>Розділів</dt><dd>{order.sectionCount || 0}</dd></div>
+          <div><dt>Матеріалів</dt><dd>{aggregatedItems.length}</dd></div>
         </dl>
       </section>
 
-      <section className="screenCard orderMaterialsCard">
-        <div className="orderSectionHeader">
-          <div><strong>Матеріали ({order.itemCount})</strong></div>
-        </div>
+      <nav className="orderPlanningTabs" aria-label="Заказ">
+        <button type="button" className={tab === 'sections' ? 'is-active' : ''} onClick={() => setTab('sections')}>Розділи</button>
+        <button type="button" className={tab === 'materials' ? 'is-active' : ''} onClick={() => setTab('materials')}>Всі матеріали</button>
+      </nav>
 
-        {order.items.length ? (
-          <div className="orderItemList">
-            {order.items.map(item => {
-              const visual = getMaterialVisual(item);
-              const category = getCategoryLabel(item);
-              return (
-                <div className="orderItemRow" key={item.id}>
-                  <div className={`orderMaterialMark${visual ? ' has-image' : ''}`} style={visual?.kind === 'sprite' ? visual.style : undefined}>
-                    {visual?.kind === 'image' ? <img src={visual.src} alt="" /> : visual ? null : category.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div className="orderItemCopy">
-                    <strong>{category} {item.diameter}</strong>
-                    <span>{item.type}{item.thickness ? ` · ${item.thickness}` : ''}</span>
-                    <small className="orderItemBadge">{String(item.categoryKey || '').toUpperCase() === 'STEEL' ? 'Ocel' : category}</small>
-                  </div>
-                  {canEdit ? (
-                    <div className="orderItemQuantityControl" aria-label={`Кількість ${item.type} ${item.diameter}`}>
-                      <button
-                        type="button"
-                        aria-label="Зменшити кількість"
-                        disabled={quantityBusyId !== null || Number(item.quantity) <= 0.01}
-                        onClick={() => changeQuantity(item, -1)}
-                      >
-                        −
-                      </button>
-                      <strong>{quantityBusyId === item.id ? '…' : item.quantity}</strong>
-                      <button
-                        type="button"
-                        aria-label="Збільшити кількість"
-                        disabled={quantityBusyId !== null || Number(item.quantity) >= 99999}
-                        onClick={() => changeQuantity(item, 1)}
-                      >
-                        +
-                      </button>
-                      <span>{item.unit}</span>
-                    </div>
-                  ) : <strong className="orderItemQty">{item.quantity} {item.unit}</strong>}
-                  {canEdit ? (
-                    <button
-                      className="orderRemoveItem"
-                      type="button"
-                      aria-label="Видалити матеріал"
-                      disabled={deleteState.isLoading || quantityBusyId !== null}
-                      onClick={() => deleteItem({ orderId: order.id, itemId: item.id })}
-                    >
-                      ×
-                    </button>
-                  ) : null}
-                </div>
-              );
-            })}
+      {tab === 'sections' ? (
+        <section className="orderPlanningSections">
+          <div className="orderPlanningSectionHeader">
+            <h2>Розділи</h2>
+            {canEdit ? <button type="button" onClick={() => setShowCreateSection(value => !value)}>+ Додати розділ</button> : null}
           </div>
-        ) : <div className="orderEmptyMaterials"><strong>Матеріалів ще немає</strong><p>Додайте перший матеріал до заказа.</p></div>}
 
-        {deleteState.error ? <p className="orderError">{deleteState.error?.data?.error || 'Не вдалося видалити матеріал'}</p> : null}
-        {quantityError || updateState.error ? <p className="orderError">{quantityError || updateState.error?.data?.error || 'Не вдалося змінити кількість'}</p> : null}
-        {canEdit ? <Link className="psButton psButton--primary psButton--full orderButtonLink" to={`/orders/${order.id}/materials/new`}>+ Додати матеріал</Link> : null}
-      </section>
+          {showCreateSection ? (
+            <div className="screenCard orderPlanningCreateSection">
+              <input autoFocus value={sectionName} maxLength={120} placeholder="Наприклад: Byt 101" onChange={event => setSectionName(event.target.value)} />
+              <Button type="button" disabled={!sectionName.trim() || createSectionState.isLoading} onClick={handleCreateSection}>{createSectionState.isLoading ? 'Створюємо…' : 'Створити'}</Button>
+              {sectionError ? <p className="orderError">{sectionError}</p> : null}
+            </div>
+          ) : null}
 
-      {order.status !== 'DRAFT' && history.length ? (
-        <section className="screenCard orderHistoryCard">
-          <div className="orderSectionHeader">
-            <div><strong>Історія</strong><span>Основні етапи заказу</span></div>
-          </div>
-          <div className="orderTimeline">
-            {history.map(event => (
-              <div className="orderTimelineItem" key={event.id}>
-                <span className={`orderTimelineDot is-${event.type.toLowerCase()}`} />
-                <div>
-                  <strong>{EVENT_LABELS[event.type] || event.type}</strong>
-                  <span>{event.actor?.name || 'Система'}</span>
-                </div>
-                <time dateTime={event.createdAt}>{formatEventDate(event.createdAt)}</time>
-              </div>
+          <div className="orderPlanningSectionList">
+            {(order.sections || []).map(section => (
+              <Link key={section.id} className="orderPlanningSectionCard" to={`/orders/${order.id}/sections/${section.id}`}>
+                <span className="orderPlanningSectionIcon">⌂</span>
+                <span><strong>{section.name}</strong><small>{section.itemCount} матеріалів</small></span>
+                <b>›</b>
+              </Link>
             ))}
           </div>
+          {!order.sections?.length ? <div className="screenCard orderPlanningEmpty"><strong>Розділів ще немає</strong><p>Створіть перший розділ — наприклад квартиру, кімнату або спільну зону.</p></div> : null}
         </section>
-      ) : null}
-
-      {order.documentAvailable ? (
-        <section className="screenCard orderDocumentCard">
-          <div className="orderDocumentCardHeading">
-            <span className="orderDocumentCardMark">PDF</span>
-            <div><strong>Матеріали заказа #{order.number}</strong><span>PDF документ</span></div>
-          </div>
-          <OrderDocumentActions order={order} />
+      ) : (
+        <section className="orderPlanningAllMaterials">
+          <label className="orderPlanningSearch"><span>⌕</span><input value={search} placeholder="Пошук матеріалу" onChange={event => setSearch(event.target.value)} /></label>
+          {groupedItems.map(([group, items]) => (
+            <div className="orderPlanningMaterialGroup" key={group}>
+              <h3>{group} ({items.length})</h3>
+              <div className="screenCard orderPlanningMaterialList">
+                {items.map(item => {
+                  const visual = getMaterialVisual(item);
+                  return (
+                    <div className="orderPlanningMaterialRow" key={item.catalogItemId || item.materialKey}>
+                      <div className="orderPlanningMaterialImage" style={visual?.kind === 'sprite' ? visual.style : undefined}>{visual?.kind === 'image' ? <img src={visual.src} alt="" /> : null}</div>
+                      <div><strong>{getCategoryLabel(item)} {item.diameter}</strong><span>{item.type}{item.thickness ? ` · ${item.thickness}` : ''}</span></div>
+                      <b>{item.quantity} {item.unit}</b>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+          {!filteredItems.length ? <div className="screenCard orderPlanningEmpty"><strong>Матеріалів немає</strong><p>{search ? 'За пошуком нічого не знайдено.' : 'Додайте матеріали у розділи заказа.'}</p></div> : null}
         </section>
-      ) : null}
+      )}
 
       {submitState.error ? <p className="orderError">{submitState.error?.data?.error}</p> : null}
       {completeState.error ? <p className="orderError">{completeState.error?.data?.error}</p> : null}
 
       {canEdit ? (
         <nav className="orderDraftStickyActions" aria-label="Дії з Draft-заказом">
-          <Link
-            className={`orderDraftStickyAction orderDraftStickyAction--pdf${order.items.length ? '' : ' is-disabled'}`}
-            to={order.items.length ? `/orders/${order.id}/pdf` : '#'}
-            aria-disabled={!order.items.length}
-            onClick={event => { if (!order.items.length) event.preventDefault(); }}
-          >
-            Переглянути PDF
-          </Link>
-          <button
-            type="button"
-            className="orderDraftStickyAction orderDraftStickyAction--submit"
-            disabled={submitState.isLoading || deleteState.isLoading || updateState.isLoading || !order.items.length}
-            onClick={() => submitOrder(order.id)}
-          >
-            {submitState.isLoading ? 'Відправляємо…' : manager ? 'Відправити' : 'Відправити менеджеру'}
-          </button>
+          <Link className={`orderDraftStickyAction orderDraftStickyAction--pdf${aggregatedItems.length ? '' : ' is-disabled'}`} to={aggregatedItems.length ? `/orders/${order.id}/pdf` : '#'} onClick={event => { if (!aggregatedItems.length) event.preventDefault(); }}>Переглянути PDF</Link>
+          <button type="button" className="orderDraftStickyAction orderDraftStickyAction--submit" disabled={submitState.isLoading || !aggregatedItems.length} onClick={() => submitOrder(order.id)}>{submitState.isLoading ? 'Відправляємо…' : manager ? 'Відправити' : 'Відправити менеджеру'}</button>
         </nav>
       ) : null}
-      {manager && order.status === 'SUBMITTED' ? (
-        <Button fullWidth disabled={completeState.isLoading} onClick={() => completeOrder(order.id)}>
-          {completeState.isLoading ? 'Завершуємо…' : 'Позначити завершеним'}
-        </Button>
-      ) : null}
+
+      {order.documentAvailable ? <section className="screenCard orderDocumentCard"><div className="orderDocumentCardHeading"><span className="orderDocumentCardMark">PDF</span><div><strong>Матеріали заказа #{order.number}</strong><span>Зведений PDF по всіх розділах</span></div></div><OrderDocumentActions order={order} /></section> : null}
+
+      {manager && order.status === 'SUBMITTED' ? <Button fullWidth disabled={completeState.isLoading} onClick={() => completeOrder(order.id)}>{completeState.isLoading ? 'Завершуємо…' : 'Позначити завершеним'}</Button> : null}
     </div>
   );
 }
