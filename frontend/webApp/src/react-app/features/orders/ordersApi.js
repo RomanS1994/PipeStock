@@ -38,6 +38,11 @@ export const ordersApi = baseApi.injectEndpoints({
       ],
     }),
     downloadOrderPdf: builder.mutation({ query: orderId => ({ url: `/orders/${encodeURIComponent(orderId)}/pdf`, method: 'GET', responseHandler: readPdfResponse, cache: 'no-store' }) }),
+    getOrderSection: builder.query({ query: ({ orderId, sectionId }) => `/orders/${encodeURIComponent(orderId)}/sections/${encodeURIComponent(sectionId)}`, transformResponse: response => response?.section || null, providesTags: (_result, _error, { orderId }) => [{ type: 'Orders', id: orderId }] }),
+    createOrderSection: builder.mutation({ query: ({ orderId, name }) => ({ url: `/orders/${encodeURIComponent(orderId)}/sections`, method: 'POST', body: { name } }), invalidatesTags: (_result, _error, { orderId }) => [{ type: 'Orders', id: orderId }, { type: 'Orders', id: 'GLOBAL' }] }),
+    updateOrderSection: builder.mutation({ query: ({ orderId, sectionId, name }) => ({ url: `/orders/${encodeURIComponent(orderId)}/sections/${encodeURIComponent(sectionId)}`, method: 'PATCH', body: { name } }), invalidatesTags: (_result, _error, { orderId }) => [{ type: 'Orders', id: orderId }] }),
+    deleteOrderSection: builder.mutation({ query: ({ orderId, sectionId }) => ({ url: `/orders/${encodeURIComponent(orderId)}/sections/${encodeURIComponent(sectionId)}`, method: 'DELETE' }), invalidatesTags: (_result, _error, { orderId }) => [{ type: 'Orders', id: orderId }, { type: 'Orders', id: 'GLOBAL' }] }),
+    downloadOrderSectionPdf: builder.mutation({ query: ({ orderId, sectionId }) => ({ url: `/orders/${encodeURIComponent(orderId)}/sections/${encodeURIComponent(sectionId)}/pdf`, method: 'GET', responseHandler: readPdfResponse, cache: 'no-store' }) }),
     getMaterialBootstrap: builder.query({
       query: () => '/materials/bootstrap',
       transformResponse: response => ({
@@ -67,7 +72,7 @@ export const ordersApi = baseApi.injectEndpoints({
 
 export const {
   useGetOrdersQuery, useGetHistoryOrdersQuery, useGetProjectOrdersQuery, useCreateOrderMutation, useGetOrderQuery, useGetOrderHistoryQuery, useUpdateOrderMutation,
-  useDeleteOrderMutation, useDownloadOrderPdfMutation, useGetMaterialBootstrapQuery, useGetMaterialCatalogQuery, useGetFavoriteMaterialsQuery,
+  useDeleteOrderMutation, useDownloadOrderPdfMutation, useGetOrderSectionQuery, useCreateOrderSectionMutation, useUpdateOrderSectionMutation, useDeleteOrderSectionMutation, useDownloadOrderSectionPdfMutation, useGetMaterialBootstrapQuery, useGetMaterialCatalogQuery, useGetFavoriteMaterialsQuery,
   useGetRecentMaterialsQuery, useAddFavoriteMaterialMutation, useRemoveFavoriteMaterialMutation, useAddOrderItemMutation,
   useUpdateOrderItemMutation, useDeleteOrderItemMutation, useSubmitOrderMutation, useCompleteOrderMutation,
 } = ordersApi;
