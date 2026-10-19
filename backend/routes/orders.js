@@ -391,11 +391,26 @@ async function addItem(request, response, orderId) {
   });
   if (!catalogItem) throw new HttpError(404, 'Material was not found');
 
-  const item = await prisma.$transaction(async tx => {
+  const result = await prisma.$transaction(async tx => {
     await lockMembershipAccess(tx, membership);
     await lockProjectAccess(tx, accessibleOrder.project.id, membership);
     await lockDraftForWrite(tx, orderId, membership);
-    return tx.orderItem.create({
+
+    const existing = await tx.orderItem.findFirst({
+      where: { orderId, catalogItemId: catalogItem.id },
+    });
+
+    if (existing) {
+      const mergedQuantity = Math.round((Number(existing.quantity) + quantity) * 100) / 100;
+      parseQuantity(mergedQuantity);
+      const item = await tx.orderItem.update({
+        where: { id: existing.id },
+        data: { quantity: mergedQuantity },
+      });
+      return { item, created: false };
+    }
+
+    const item = await tx.orderItem.create({
       data: {
         orderId,
         catalogItemId: catalogItem.id,
@@ -411,8 +426,9 @@ async function addItem(request, response, orderId) {
         quantity,
       },
     });
+    return { item, created: true };
   });
-  sendJson(response, 201, { item: serializeItem(item) });
+  sendJson(response, result.created ? 201 : 200, { item: serializeItem(result.item), merged: !result.created });
 }
 
 async function updateItem(request, response, orderId, itemId) {
