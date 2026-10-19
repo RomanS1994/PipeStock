@@ -49,7 +49,7 @@ export function OrdersPage() {
   }
 
   function getMetaLine(order) {
-    const parts = [order.project?.name || 'Без об’єкта', `${Number(order.itemCount) || 0} поз.`];
+    const parts = [order.project?.name || 'Без об’єкта', `${Number(order.sectionCount) || 0} розд.`, `${Number(order.itemCount) || 0} поз.`];
     if (manager && order.worker?.name && order.worker.id !== user?.id) parts.push(order.worker.name);
     return parts.join(' · ');
   }
