@@ -228,6 +228,7 @@ model OrderItem {
   order       Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
   catalogItem MaterialCatalogItem? @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
 
+  @@unique([orderId, catalogItemId])
   @@index([orderId])
   @@index([catalogItemId])
   @@map("order_items")
