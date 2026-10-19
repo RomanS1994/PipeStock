@@ -23,6 +23,7 @@ import { ObjectsPage } from './pages/ObjectsPage/ObjectsPage.jsx';
 import { OrderCartPage } from './pages/OrderCartPage/OrderCartPage.jsx';
 import { OrderDetailPage } from './pages/OrderDetailPage/OrderDetailPage.jsx';
 import { OrderPdfPreviewPage } from './pages/OrderPdfPreviewPage/OrderPdfPreviewPage.jsx';
+import { OrderSectionPage } from './pages/OrderSectionPage/OrderSectionPage.jsx';
 import { OrdersPage } from './pages/OrdersPage/OrdersPage.jsx';
 import { ProfilePage } from './pages/ProfilePage/ProfilePage.jsx';
 
@@ -47,6 +48,9 @@ export const router = createBrowserRouter([
       { path: 'orders/:orderId', element: <ProtectedRoute><OrderDetailPage /></ProtectedRoute> },
       { path: 'orders/:orderId/cart', element: <ProtectedRoute><OrderCartPage /></ProtectedRoute> },
       { path: 'orders/:orderId/pdf', element: <ProtectedRoute><OrderPdfPreviewPage /></ProtectedRoute> },
+      { path: 'orders/:orderId/sections/:sectionId', element: <ProtectedRoute><OrderSectionPage /></ProtectedRoute> },
+      { path: 'orders/:orderId/sections/:sectionId/pdf', element: <ProtectedRoute><OrderPdfPreviewPage /></ProtectedRoute> },
+      { path: 'orders/:orderId/sections/:sectionId/materials/new', element: <ProtectedRoute><CartAwareAddMaterialPage /></ProtectedRoute> },
       { path: 'orders/:orderId/materials/new', element: <ProtectedRoute><CartAwareAddMaterialPage /></ProtectedRoute> },
       { path: 'employees', element: <ProtectedRoute requireManager><EmployeesPage /></ProtectedRoute> },
       { path: 'employees/invite', element: <ProtectedRoute requireManager><InviteEmployeePage /></ProtectedRoute> },
