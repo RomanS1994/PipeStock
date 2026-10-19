@@ -10,7 +10,7 @@ const RESULT_LIMIT = 40;
 const MAX_QUANTITY = 99999;
 const CATEGORY_NAMES = { CU: 'Měď', STEEL: 'Uhlíková ocel', OTHER: 'Montážní materiál' };
 
-export function MaterialSearch({ catalog, order, orderId, query, onQueryChange, onSelect }) {
+export function MaterialSearch({ catalog, order, orderId, sectionId, query, onQueryChange, onSelect }) {
   const user = useSelector(selectUser);
   const membership = (user?.memberships || []).find(item => item.status === 'ACTIVE' && !item.deletedAt);
   const [addItem] = useAddOrderItemMutation();
@@ -29,13 +29,13 @@ export function MaterialSearch({ catalog, order, orderId, query, onQueryChange, 
     setFeedback('');
     setFailed(false);
     try {
-      const existing = order.items.find(row => row.catalogItemId === item.id);
+      const existing = order.items.find(row => row.sectionId === sectionId && row.catalogItemId === item.id);
       if (existing) {
         const next = Number(existing.quantity) + 1;
         if (next > MAX_QUANTITY) throw new Error('Досягнуто максимальної кількості 99999.');
         await updateItem({ orderId, itemId: existing.id, quantity: next }).unwrap();
       } else {
-        await addItem({ orderId, catalogItemId: item.id, quantity: 1 }).unwrap();
+        await addItem({ orderId, sectionId, catalogItemId: item.id, quantity: 1 }).unwrap();
       }
       setFeedback(`Додано в кошик: ${item.type} · ${item.diameter}${item.thickness ? ` · ${item.thickness}` : ''}`);
     } catch (error) {
