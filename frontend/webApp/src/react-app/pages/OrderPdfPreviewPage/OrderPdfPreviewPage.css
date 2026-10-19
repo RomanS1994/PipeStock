@@ -274,3 +274,5 @@
     font-size:11px;
   }
 }
+
+.orderPdfDraftActions.is-section{grid-template-columns:1fr 1.25fr}
