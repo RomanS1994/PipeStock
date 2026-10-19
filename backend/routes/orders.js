@@ -5,6 +5,7 @@ import { readJsonBody, sendJson } from '../lib/http.js';
 import { getCatalogCategoryLabel, getCatalogDisplayName, getCatalogImageUrl, serializeCatalogItem } from '../lib/material-catalog-presentation.js';
 import { buildOrderSnapshot, createOrderPdf } from '../lib/order-document.js';
 import { mergeOrderItemQuantity } from '../lib/order-item-quantity.js';
+import { aggregateOrderItems, normalizeOrderSectionName } from '../lib/order-sections.js';
 
 const ORDER_TITLE_MAX_LENGTH = 120;
 const ORDER_NOTE_MAX_LENGTH = 500;
@@ -105,7 +106,14 @@ const orderInclude = {
       user: { select: { id: true, name: true, email: true } },
     },
   },
-  items: { orderBy: { createdAt: 'asc' } },
+  sections: {
+    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+    include: { _count: { select: { items: true } } },
+  },
+  items: {
+    orderBy: { createdAt: 'asc' },
+    include: { section: { select: { id: true, name: true, sortOrder: true } } },
+  },
   snapshot: true,
 };
 
@@ -123,6 +131,8 @@ function serializeItem(item) {
   return {
     id: item.id,
     catalogItemId: item.catalogItemId,
+    sectionId: item.sectionId,
+    section: item.section ? { id: item.section.id, name: item.section.name, sortOrder: item.section.sortOrder ?? 0 } : null,
     materialKey: item.materialKey,
     materialName: item.materialName,
     categoryKey: item.categoryKey,
@@ -138,7 +148,20 @@ function serializeItem(item) {
   };
 }
 
+function serializeSection(section) {
+  return {
+    id: section.id,
+    name: section.name,
+    sortOrder: section.sortOrder ?? 0,
+    itemCount: section._count?.items ?? section.items?.length ?? 0,
+    items: section.items ? section.items.map(serializeItem) : undefined,
+    createdAt: section.createdAt,
+    updatedAt: section.updatedAt,
+  };
+}
+
 function serializeOrder(order) {
+  const serializedItems = (order.items || []).map(serializeItem);
   const result = {
     id: order.id,
     number: order.number,
@@ -153,8 +176,11 @@ function serializeOrder(order) {
     project: order.project,
     worker: order.createdByMembership?.user || null,
     createdByMembershipId: order.createdByMembershipId,
-    items: (order.items || []).map(serializeItem),
-    itemCount: order.items?.length || 0,
+    sections: (order.sections || []).map(serializeSection),
+    sectionCount: order.sections?.length || 0,
+    items: serializedItems,
+    aggregatedItems: aggregateOrderItems(serializedItems),
+    itemCount: serializedItems.length,
     documentAvailable: order.status !== 'DRAFT',
     snapshotCreatedAt: order.snapshot?.createdAt || null,
   };
@@ -385,7 +411,9 @@ async function addItem(request, response, orderId) {
   const accessibleOrder = await findOrder(orderId, membership);
   const body = await readJsonBody(request);
   const catalogItemId = normalizeText(body.catalogItemId);
+  const sectionId = normalizeText(body.sectionId);
   if (!catalogItemId) throw new HttpError(400, 'Material is required');
+  if (!sectionId) throw new HttpError(400, 'Section is required');
   const quantity = parseQuantity(body.quantity);
   const catalogItem = await prisma.materialCatalogItem.findFirst({
     where: { id: catalogItemId, isActive: true },
@@ -396,9 +424,11 @@ async function addItem(request, response, orderId) {
     await lockMembershipAccess(tx, membership);
     await lockProjectAccess(tx, accessibleOrder.project.id, membership);
     await lockDraftForWrite(tx, orderId, membership);
+    const section = await tx.orderSection.findFirst({ where: { id: sectionId, orderId } });
+    if (!section) throw new HttpError(404, 'Section not found');
 
     const existing = await tx.orderItem.findFirst({
-      where: { orderId, catalogItemId: catalogItem.id },
+      where: { sectionId, catalogItemId: catalogItem.id },
     });
 
     if (existing) {
@@ -418,6 +448,7 @@ async function addItem(request, response, orderId) {
     const item = await tx.orderItem.create({
       data: {
         orderId,
+        sectionId,
         catalogItemId: catalogItem.id,
         materialKey: catalogItem.key,
         materialName: getCatalogDisplayName(catalogItem),
@@ -434,6 +465,142 @@ async function addItem(request, response, orderId) {
     return { item, created: true };
   });
   sendJson(response, result.created ? 201 : 200, { item: serializeItem(result.item), merged: !result.created });
+}
+
+
+async function createSection(request, response, orderId) {
+  const user = await requireAuth(request);
+  const membership = requireMembership(user);
+  const accessibleOrder = await findOrder(orderId, membership);
+  const body = await readJsonBody(request);
+  let name;
+  try {
+    name = normalizeOrderSectionName(body.name);
+  } catch (error) {
+    throw new HttpError(400, error.message);
+  }
+
+  const section = await prisma.$transaction(async tx => {
+    await lockMembershipAccess(tx, membership);
+    await lockProjectAccess(tx, accessibleOrder.project.id, membership);
+    await lockDraftForWrite(tx, orderId, membership);
+    const last = await tx.orderSection.findFirst({
+      where: { orderId },
+      orderBy: [{ sortOrder: 'desc' }, { createdAt: 'desc' }],
+      select: { sortOrder: true },
+    });
+    return tx.orderSection.create({
+      data: { orderId, name, sortOrder: (last?.sortOrder ?? -1) + 1 },
+      include: { _count: { select: { items: true } } },
+    });
+  });
+
+  sendJson(response, 201, { section: serializeSection(section) });
+}
+
+async function getSection(request, response, orderId, sectionId) {
+  const user = await requireAuth(request);
+  const membership = requireMembership(user);
+  await findOrder(orderId, membership);
+  const section = await prisma.orderSection.findFirst({
+    where: { id: sectionId, orderId },
+    include: {
+      items: {
+        orderBy: { createdAt: 'asc' },
+        include: { section: { select: { id: true, name: true, sortOrder: true } } },
+      },
+    },
+  });
+  if (!section) throw new HttpError(404, 'Section not found');
+  sendJson(response, 200, { section: serializeSection(section) });
+}
+
+async function updateSection(request, response, orderId, sectionId) {
+  const user = await requireAuth(request);
+  const membership = requireMembership(user);
+  const accessibleOrder = await findOrder(orderId, membership);
+  const body = await readJsonBody(request);
+  let name;
+  try {
+    name = normalizeOrderSectionName(body.name);
+  } catch (error) {
+    throw new HttpError(400, error.message);
+  }
+
+  const section = await prisma.$transaction(async tx => {
+    await lockMembershipAccess(tx, membership);
+    await lockProjectAccess(tx, accessibleOrder.project.id, membership);
+    await lockDraftForWrite(tx, orderId, membership);
+    const existing = await tx.orderSection.findFirst({ where: { id: sectionId, orderId } });
+    if (!existing) throw new HttpError(404, 'Section not found');
+    return tx.orderSection.update({
+      where: { id: sectionId },
+      data: { name },
+      include: { _count: { select: { items: true } } },
+    });
+  });
+  sendJson(response, 200, { section: serializeSection(section) });
+}
+
+async function deleteSection(request, response, orderId, sectionId) {
+  const user = await requireAuth(request);
+  const membership = requireMembership(user);
+  const accessibleOrder = await findOrder(orderId, membership);
+  await prisma.$transaction(async tx => {
+    await lockMembershipAccess(tx, membership);
+    await lockProjectAccess(tx, accessibleOrder.project.id, membership);
+    await lockDraftForWrite(tx, orderId, membership);
+    const result = await tx.orderSection.deleteMany({ where: { id: sectionId, orderId } });
+    if (!result.count) throw new HttpError(404, 'Section not found');
+  });
+  sendJson(response, 200, { ok: true });
+}
+
+function buildSectionSnapshot(order, sectionId) {
+  const base = buildOrderSnapshot(order);
+  const section = (base.sections || []).find(item => item.id === sectionId);
+  if (!section) throw new HttpError(404, 'Section not found');
+  return {
+    ...base,
+    order: { ...base.order, title: `${base.order.title} · ${section.name}` },
+    items: section.items || [],
+    section: { id: section.id, name: section.name },
+  };
+}
+
+async function downloadSectionPdf(request, response, orderId, sectionId) {
+  const user = await requireAuth(request);
+  const membership = requireMembership(user);
+  const order = await findOrder(orderId, membership);
+  let payload;
+
+  if (order.status === 'DRAFT') {
+    const section = order.sections?.find(item => item.id === sectionId);
+    if (!section) throw new HttpError(404, 'Section not found');
+    const hasItems = order.items?.some(item => item.sectionId === sectionId);
+    if (!hasItems) throw new HttpError(409, 'Add at least one material before previewing PDF');
+    payload = buildSectionSnapshot(order, sectionId);
+  } else if (order.snapshot?.payload?.sections) {
+    const section = order.snapshot.payload.sections.find(item => item.id === sectionId);
+    if (!section) throw new HttpError(404, 'Section not found');
+    payload = {
+      ...order.snapshot.payload,
+      order: { ...order.snapshot.payload.order, title: `${order.snapshot.payload.order.title} · ${section.name}` },
+      items: section.items || [],
+      section: { id: section.id, name: section.name },
+    };
+  } else {
+    payload = buildSectionSnapshot(order, sectionId);
+  }
+
+  const buffer = await createOrderPdf(payload);
+  response.writeHead(200, {
+    'Content-Type': 'application/pdf',
+    'Content-Disposition': `attachment; filename="pipestock-order-${order.number}-section.pdf"`,
+    'Content-Length': String(buffer.length),
+    'Cache-Control': 'private, no-store',
+  });
+  response.end(buffer);
 }
 
 async function updateItem(request, response, orderId, itemId) {
@@ -619,6 +786,36 @@ export async function handleOrderRoutes(request, response, { pathName }) {
       await createOrder(request, response, projectId);
       return true;
     }
+  }
+
+  const sectionPdfMatch = pathName.match(/^\/api\/orders\/([^/]+)\/sections\/([^/]+)\/pdf$/);
+  if (sectionPdfMatch && request.method === 'GET') {
+    await downloadSectionPdf(request, response, decodeURIComponent(sectionPdfMatch[1]), decodeURIComponent(sectionPdfMatch[2]));
+    return true;
+  }
+
+  const sectionMatch = pathName.match(/^\/api\/orders\/([^/]+)\/sections\/([^/]+)$/);
+  if (sectionMatch) {
+    const orderId = decodeURIComponent(sectionMatch[1]);
+    const sectionId = decodeURIComponent(sectionMatch[2]);
+    if (request.method === 'GET') {
+      await getSection(request, response, orderId, sectionId);
+      return true;
+    }
+    if (request.method === 'PATCH') {
+      await updateSection(request, response, orderId, sectionId);
+      return true;
+    }
+    if (request.method === 'DELETE') {
+      await deleteSection(request, response, orderId, sectionId);
+      return true;
+    }
+  }
+
+  const sectionsMatch = pathName.match(/^\/api\/orders\/([^/]+)\/sections$/);
+  if (sectionsMatch && request.method === 'POST') {
+    await createSection(request, response, decodeURIComponent(sectionsMatch[1]));
+    return true;
   }
 
   const itemMatch = pathName.match(/^\/api\/orders\/([^/]+)\/items\/([^/]+)$/);
