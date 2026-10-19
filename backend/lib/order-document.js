@@ -1,5 +1,6 @@
 import pdfMakeModule from 'pdfmake/build/pdfmake.js';
 import pdfFontsModule from 'pdfmake/build/vfs_fonts.js';
+import { aggregateOrderItems } from './order-sections.js';
 
 const pdfMake = pdfMakeModule?.default || pdfMakeModule;
 const pdfFonts = pdfFontsModule?.default || pdfFontsModule;
@@ -25,6 +26,9 @@ function toIso(value) {
 
 function normalizeItem(item) {
   return {
+    catalogItemId: item.catalogItemId || null,
+    sectionId: item.sectionId || item.section?.id || null,
+    sectionName: item.section?.name || null,
     materialKey: item.materialKey,
     materialName: item.materialName,
     categoryKey: item.categoryKey,
@@ -38,8 +42,16 @@ function normalizeItem(item) {
 }
 
 export function buildOrderSnapshot(order, overrides = {}) {
+  const normalizedItems = (order.items || []).map(normalizeItem);
+  const sections = (order.sections || []).map(section => ({
+    id: section.id,
+    name: section.name,
+    sortOrder: section.sortOrder ?? 0,
+    items: normalizedItems.filter(item => item.sectionId === section.id),
+  }));
+
   return {
-    version: 1,
+    version: 2,
     createdAt: new Date().toISOString(),
     order: {
       id: order.id,
@@ -66,7 +78,8 @@ export function buildOrderSnapshot(order, overrides = {}) {
       name: order.createdByMembership.user.name,
       email: order.createdByMembership.user.email,
     } : null,
-    items: (order.items || []).map(normalizeItem),
+    items: aggregateOrderItems(normalizedItems),
+    sections,
   };
 }
 
