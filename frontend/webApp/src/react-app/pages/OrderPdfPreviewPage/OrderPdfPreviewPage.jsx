@@ -6,7 +6,9 @@ import { OrderDocumentActions } from '../../components/OrderDocumentActions/Orde
 import { selectUser } from '../../features/auth/authSlice.js';
 import {
   useDownloadOrderPdfMutation,
+  useDownloadOrderSectionPdfMutation,
   useGetOrderQuery,
+  useGetOrderSectionQuery,
   useSubmitOrderMutation,
 } from '../../features/orders/ordersApi.js';
 import { PdfCanvasPreview } from './PdfCanvasPreview.jsx';
@@ -39,7 +41,7 @@ function savePdfBlob(blob, orderNumber) {
 }
 
 export function OrderPdfPreviewPage() {
-  const { orderId } = useParams();
+  const { orderId, sectionId } = useParams();
   const navigate = useNavigate();
   const user = useSelector(selectUser);
   const membership = (user?.memberships || []).find(item => item.status === 'ACTIVE' && !item.deletedAt);
@@ -51,6 +53,8 @@ export function OrderPdfPreviewPage() {
     refetch: refetchOrder,
   } = useGetOrderQuery(orderId);
   const [downloadOrderPdf, downloadState] = useDownloadOrderPdfMutation();
+  const [downloadOrderSectionPdf, sectionDownloadState] = useDownloadOrderSectionPdfMutation();
+  const { data: section } = useGetOrderSectionQuery({ orderId, sectionId }, { skip: !sectionId });
   const [submitOrder, submitState] = useSubmitOrderMutation();
   const [pdfBlob, setPdfBlob] = useState(null);
   const [pdfError, setPdfError] = useState('');
@@ -58,9 +62,10 @@ export function OrderPdfPreviewPage() {
   const [retryKey, setRetryKey] = useState(0);
   const [zoom, setZoom] = useState(100);
   const [fullscreen, setFullscreen] = useState(false);
+  const previewItemCount = sectionId ? (section?.items?.length || 0) : (order?.items?.length || 0);
   const canPreviewPdf = Boolean(
     order?.documentAvailable ||
-    (order?.status === 'DRAFT' && order?.items?.length),
+    (order?.status === 'DRAFT' && previewItemCount),
   );
   const isDraft = order?.status === 'DRAFT';
   const canSubmitDraft = Boolean(isDraft && (manager || order?.createdByMembershipId === membership?.id));
@@ -74,7 +79,9 @@ export function OrderPdfPreviewPage() {
       setPdfBlob(null);
       setPdfError('');
       try {
-        const blob = await downloadOrderPdf(order.id).unwrap();
+        const blob = sectionId
+          ? await downloadOrderSectionPdf({ orderId: order.id, sectionId }).unwrap()
+          : await downloadOrderPdf(order.id).unwrap();
         if (active) setPdfBlob(blob);
       } catch {
         if (active) setPdfError('Не вдалося завантажити PDF.');
@@ -86,7 +93,7 @@ export function OrderPdfPreviewPage() {
     return () => {
       active = false;
     };
-  }, [canPreviewPdf, downloadOrderPdf, order?.id, order?.itemCount, retryKey]);
+  }, [canPreviewPdf, downloadOrderPdf, downloadOrderSectionPdf, order?.id, order?.itemCount, retryKey, sectionId]);
 
   useEffect(() => {
     if (!fullscreen) return undefined;
@@ -105,7 +112,9 @@ export function OrderPdfPreviewPage() {
     if (!order) return;
     setActionError('');
     try {
-      const blob = pdfBlob || await downloadOrderPdf(order.id).unwrap();
+      const blob = pdfBlob || (sectionId
+        ? await downloadOrderSectionPdf({ orderId: order.id, sectionId }).unwrap()
+        : await downloadOrderPdf(order.id).unwrap());
       if (!pdfBlob) setPdfBlob(blob);
       savePdfBlob(blob, order.number);
     } catch {
@@ -149,10 +158,10 @@ export function OrderPdfPreviewPage() {
   return (
     <div className="pageStack orderPdfPreviewPage">
       <header className="orderPdfPreviewTopbar">
-        <BackLink to={`/orders/${order.id}`} />
+        <BackLink to={sectionId ? `/orders/${order.id}/sections/${sectionId}` : `/orders/${order.id}`} />
         <div>
           <strong>Перегляд PDF</strong>
-          <span>Заказ #{order.number}{isDraft ? ' · Draft' : ''}</span>
+          <span>{sectionId && section?.name ? `${section.name} · ` : ''}Заказ #{order.number}{isDraft ? ' · Draft' : ''}</span>
         </div>
         <span />
       </header>
@@ -199,20 +208,22 @@ export function OrderPdfPreviewPage() {
 
       {isDraft ? (
         <nav className="orderPdfDraftActions" aria-label="Дії з Draft PDF">
-          <button type="button" className="orderPdfDraftAction orderPdfDraftAction--back" onClick={() => navigate(`/orders/${order.id}`)}>
+          <button type="button" className="orderPdfDraftAction orderPdfDraftAction--back" onClick={() => navigate(sectionId ? `/orders/${order.id}/sections/${sectionId}` : `/orders/${order.id}`)}>
             Назад
           </button>
-          <button type="button" className="orderPdfDraftAction orderPdfDraftAction--download" disabled={downloadState.isLoading} onClick={handleDownloadDraft}>
-            {downloadState.isLoading ? 'PDF…' : 'Завантажити PDF'}
+          <button type="button" className="orderPdfDraftAction orderPdfDraftAction--download" disabled={downloadState.isLoading || sectionDownloadState.isLoading} onClick={handleDownloadDraft}>
+            {downloadState.isLoading || sectionDownloadState.isLoading ? 'PDF…' : 'Завантажити PDF'}
           </button>
-          <button
-            type="button"
-            className="orderPdfDraftAction orderPdfDraftAction--submit"
-            disabled={submitState.isLoading || !order.items.length || !canSubmitDraft}
-            onClick={handleSubmitDraft}
-          >
-            {submitState.isLoading ? 'Відправляємо…' : manager ? 'Відправити' : 'Відправити менеджеру'}
-          </button>
+          {!sectionId ? (
+            <button
+              type="button"
+              className="orderPdfDraftAction orderPdfDraftAction--submit"
+              disabled={submitState.isLoading || !order.items.length || !canSubmitDraft}
+              onClick={handleSubmitDraft}
+            >
+              {submitState.isLoading ? 'Відправляємо…' : manager ? 'Відправити' : 'Відправити менеджеру'}
+            </button>
+          ) : null}
         </nav>
       ) : (
         <OrderDocumentActions order={order} className="orderPdfPreviewActions" hidePreview />
