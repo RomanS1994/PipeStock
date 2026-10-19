@@ -187,7 +187,7 @@ function WizardTopbar({ orderId, onBack }) {
 }
 
 export function AddMaterialPage({ order, orderLoading, orderError, refetchOrder }) {
-  const { orderId } = useParams();
+  const { orderId, sectionId } = useParams();
   const navigate = useNavigate();
   const {
     data: materialBootstrap = {},
@@ -386,7 +386,7 @@ export function AddMaterialPage({ order, orderLoading, orderError, refetchOrder 
   }
 
   function goBackStep() {
-    if (step === 1) return navigate(`/orders/${orderId}`);
+    if (step === 1) return navigate(sectionId ? `/orders/${orderId}/sections/${sectionId}` : `/orders/${orderId}`);
 
     if (fromShortcut && step === 4) {
       setCatalogItemId('');
@@ -455,7 +455,8 @@ export function AddMaterialPage({ order, orderLoading, orderError, refetchOrder 
   async function handleAdd() {
     if (!catalogItemId || quantity <= 0 || quantity > MAX_QUANTITY || order?.status !== 'DRAFT') return;
     try {
-      await addItem({ orderId, catalogItemId, quantity }).unwrap();
+      if (!sectionId) return;
+      await addItem({ orderId, sectionId, catalogItemId, quantity }).unwrap();
       resetForNextMaterial();
     } catch {
       // API error below.
@@ -465,7 +466,7 @@ export function AddMaterialPage({ order, orderLoading, orderError, refetchOrder 
   if (orderLoading) {
     return (
       <div className="pageStack materialWizard">
-        <WizardTopbar orderId={orderId} onBack={() => navigate(`/orders/${orderId}`)} />
+        <WizardTopbar orderId={orderId} onBack={() => navigate(sectionId ? `/orders/${orderId}/sections/${sectionId}` : `/orders/${orderId}`)} />
         <section className="screenCard">Завантажуємо заказ…</section>
       </div>
     );
