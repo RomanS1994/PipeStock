@@ -1,9 +1,10 @@
 /* Keep product imagery within the banner without the white product-photo tiles.
-   The source WebP images have white backgrounds; multiply composites white into
-   the blue banner, while keeping the fittings visible. */
+   The source WebP images have white backgrounds; blend the combined photo layer
+   once against the blue banner so the white pixels disappear on mobile Safari too. */
 .dashboardPage--compact .dashboardHeroPhotos {
   overflow: hidden;
   border-radius: inherit;
+  mix-blend-mode: multiply;
 }
 
 .dashboardPage--compact .dashboardHeroPhotos img {
@@ -16,7 +17,7 @@
   background: transparent;
   box-shadow: none;
   object-fit: contain;
-  mix-blend-mode: multiply;
+  mix-blend-mode: normal;
 }
 
 .dashboardPage--compact .dashboardHeroPipe {
