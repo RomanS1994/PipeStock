@@ -71,7 +71,6 @@ export function DashboardPage() {
             <span className="dashboardHeroContent"><span className="dashboardHeroPlus" aria-hidden="true">＋</span><strong>Новий заказ</strong><span className="dashboardHeroChevron" aria-hidden="true">›</span></span>
             <span className="dashboardHeroPhotos" aria-hidden="true">
               <img className="dashboardHeroPipe" src={assetPath('/materials/category-ht.webp')} alt="" />
-              <img className="dashboardHeroValve" src={assetPath('/materials/category-brass.webp')} alt="" />
             </span>
           </Link>
 
