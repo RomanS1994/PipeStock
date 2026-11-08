@@ -1,14 +1,14 @@
-/* Use one product photo in a clean, stable white panel. */
+/* Display a single transparent product image directly over the blue banner. */
 .dashboardPage--compact .dashboardHeroPhotos {
   position: absolute;
   inset: 0 0 0 auto;
   z-index: 0;
   display: grid;
-  width: min(34%, 124px);
+  width: min(39%, 148px);
   place-items: center;
   overflow: hidden;
-  border-radius: 0 20px 20px 0;
-  background: #fff;
+  border-radius: inherit;
+  background: transparent;
   pointer-events: none;
 }
 
@@ -17,7 +17,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  padding: 6px;
+  padding: 5px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -35,8 +35,6 @@
 
 @media (max-width: 370px) {
   .dashboardPage--compact .dashboardHeroPhotos {
-    width: 31%;
-    border-top-right-radius: 18px;
-    border-bottom-right-radius: 18px;
+    width: 36%;
   }
 }
