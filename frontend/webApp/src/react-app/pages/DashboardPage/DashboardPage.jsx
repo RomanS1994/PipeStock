@@ -70,7 +70,7 @@ export function DashboardPage() {
           <Link className="dashboardHero" to="/objects" aria-label="Новий заказ — вибрати об’єкт">
             <span className="dashboardHeroContent"><span className="dashboardHeroPlus" aria-hidden="true">＋</span><strong>Новий заказ</strong><span className="dashboardHeroChevron" aria-hidden="true">›</span></span>
             <span className="dashboardHeroPhotos" aria-hidden="true">
-              <img className="dashboardHeroPipe" src={assetPath('/assets/new-order-box.png')} alt="" />
+              <img className="dashboardHeroPipe" src={assetPath('/materials/new-order-box.webp')} alt="" />
             </span>
           </Link>
 
